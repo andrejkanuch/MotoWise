@@ -187,6 +187,54 @@ The reverse case is in
 `docs/solutions/build-errors/eas-ota-runtime-version-mismatch-and-easignore.md`: an
 update published under a version no installed build has reaches nobody.
 
+## Before you publish: #365 release marking (crash/data-loss hotfix OTA)
+
+Owner rule D17 (2026-11-12): new functionality — features, UI, experiments, new events or
+properties, testIDs — ships **only in a store build**. An OTA is allowed only for an
+urgent **crash or data-loss hotfix**, and still needs the owner's go-ahead for that
+publish (see "How to publish"). The full release-marking procedure (levels, annotations,
+release log, 2/4/8-week reads) is in `docs/runbooks/mobile-release.md` → "#365 release
+marking"; the hotfix-specific steps are:
+
+1. **Target runtime and reach.** Name the runtime(s) the crash is on (the `version` of the
+   affected binaries) and how many riders run it (PostHog `Application Opened` by
+   `runtime_version`, or by `$app_version` before 3.29.0). One runtime per publish.
+2. **Branch to publish from.**
+   - Not `main`, even when `main` still carries the same `version`: `main` holds work
+     merged after the cut, and D17 forbids shipping it by OTA (the scope check above).
+   - A branch cut from the git commit of that runtime's **latest production update
+     group**, not the store-build commit. Find it with
+     `npx eas update:list --branch production --json --non-interactive` (from
+     `apps/mobile`; each group lists `runtimeVersion` and `gitCommitHash`), then
+     `git switch -c hotfix/<runtime>-<slug> <gitCommitHash>` and cherry-pick only the fix.
+     Branching from the store-build commit instead would roll back the OTAs riders
+     already run.
+   - **Exception: a runtime with no production update group** has no update commit, so its
+     first hotfix branches from its **store-build commit**. On 2026-11-12 that is runtime
+     **3.27.0** → `2ce57d1d` (iOS b108 / Android vc95).
+   - Latest production group per runtime (group id / git commit), as of 2026-11-12;
+     update this list after every publish:
+
+     | Runtime | Latest group | Git commit |
+     |---|---|---|
+     | 3.28.0 | `fece7a3c` | `5a497a1c` |
+     | 3.27.0 | none | store build `2ce57d1d` |
+     | 3.26.0 | `bd05b306` | `0b099fd3` |
+3. **Native-diff check** on that branch against the binary (the section above): no
+   JavaScript may import a native module the binary lacks.
+4. **Level.** In the publish commit on that branch, set `ACTIVATION_FIX_LEVEL`
+   (`apps/mobile/src/config/activation.ts`) to the next unused level in plan §6
+   (`docs/research/activation-365/EXECUTION_PLAN.md`), and fill §6.1 `Level` for the specs
+   it fixes, in the same commit.
+5. **Publish** with the `Mobile OTA Update` workflow: in "Use workflow from" pick the
+   hotfix git branch, EAS branch `production`, message `hotfix <runtime>: <what>`. Only on
+   the owner's go-ahead.
+6. **Mark it**, per platform × runtime, on the publish day: annotation
+   `#365 fixes: <platform> rt <runtime> ota <update group id> lvl <N> — <spec ids>`,
+   §6 row (notes: publish branch and its base commit), §6.1 `shipped`
+   (`docs/runbooks/mobile-release.md` → "#365 release marking", step 4). The 7-day reach
+   read is plan §5A.2 (target ≥ 90% of riders on that runtime seen ≥ 2 times).
+
 ## Facts that are easy to get wrong
 
 - **Metro bundles `@motovault/*` from source.** `resolveRequest` in
