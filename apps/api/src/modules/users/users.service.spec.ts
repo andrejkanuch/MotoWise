@@ -3,7 +3,8 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { SERVICE_PLAN_TIER } from '../oem-schedules/service-plan';
 import type { DataExportService } from './data-export.service';
 import { UsersService } from './users.service';
 
@@ -14,6 +15,9 @@ describe('UsersService', () => {
   let mockRevenueCatService: { cancelSubscription: ReturnType<typeof vi.fn> };
   let mockEmailService: { sendAccountDeletionConfirmation: ReturnType<typeof vi.fn> };
   let mockMetaEventsService: { sendAppEvent: ReturnType<typeof vi.fn> };
+  let mockOemSchedulesService: { importServicePlan: ReturnType<typeof vi.fn> };
+  let mockConfigService: { get: ReturnType<typeof vi.fn> };
+  let mockServerEvents: { captureOnboardingBikeCreated: ReturnType<typeof vi.fn> };
 
   const userId = 'user-123';
   const email = 'rider@example.com';
@@ -41,6 +45,13 @@ describe('UsersService', () => {
     return {
       from: vi.fn().mockReturnValue(chain),
       rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+      auth: {
+        admin: {
+          getUserById: vi
+            .fn()
+            .mockResolvedValue({ data: { user: { user_metadata: {} } }, error: null }),
+        },
+      },
       _chain: chain,
     };
   }
@@ -60,6 +71,20 @@ describe('UsersService', () => {
     mockMetaEventsService = {
       sendAppEvent: vi.fn().mockResolvedValue(undefined),
     };
+    mockOemSchedulesService = {
+      importServicePlan: vi.fn().mockResolvedValue({
+        taskCount: 0,
+        insertedCount: 0,
+        tier: null,
+        measurementSystem: 'metric',
+      }),
+    };
+    // No PostHog token by default: nothing is captured unless a test opts in.
+    mockConfigService = { get: vi.fn().mockReturnValue(undefined) };
+
+    mockServerEvents = {
+      captureOnboardingBikeCreated: vi.fn().mockResolvedValue(undefined),
+    };
 
     service = new UsersService(
       mockUserClient as never,
@@ -68,6 +93,9 @@ describe('UsersService', () => {
       mockRevenueCatService as never,
       mockEmailService as never,
       mockMetaEventsService as never,
+      mockOemSchedulesService as never,
+      mockConfigService as never,
+      mockServerEvents as never,
     );
   });
 
@@ -162,6 +190,59 @@ describe('UsersService', () => {
   });
 
   describe('completeOnboarding', () => {
+    // #365 T05e: onboarding_bike_created (consent and payload: server-events.service.spec.ts)
+    const bikeInput = {
+      experienceLevel: 'beginner',
+      ridingGoals: [],
+      learningFormats: [],
+      bikeMake: 'A',
+      bikeModel: '',
+      bikeYear: 2020,
+      bikeMileageUnit: 'km',
+    };
+
+    it('captures onboarding_bike_created once when the RPC returns a bike', async () => {
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: { user_id: userId, motorcycle_id: 'moto-1' },
+        error: null,
+      });
+      mockUserClient._chain.single.mockResolvedValueOnce({ data: fakeUserRow, error: null });
+
+      await service.completeOnboarding(userId, bikeInput as never);
+
+      expect(mockServerEvents.captureOnboardingBikeCreated).toHaveBeenCalledTimes(1);
+      expect(mockServerEvents.captureOnboardingBikeCreated).toHaveBeenCalledWith(userId, {
+        make: 'A',
+        model: '',
+        mileageUnit: 'km',
+      });
+    });
+
+    it('does not capture onboarding_bike_created when no bike was saved', async () => {
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: { user_id: userId, motorcycle_id: null },
+        error: null,
+      });
+      mockUserClient._chain.single.mockResolvedValueOnce({ data: fakeUserRow, error: null });
+
+      await service.completeOnboarding(userId, { ...bikeInput, bikeYear: undefined } as never);
+
+      expect(mockServerEvents.captureOnboardingBikeCreated).not.toHaveBeenCalled();
+    });
+
+    it('a failed onboarding_bike_created capture never fails completeOnboarding', async () => {
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: { user_id: userId, motorcycle_id: 'moto-1' },
+        error: null,
+      });
+      mockUserClient._chain.single.mockResolvedValueOnce({ data: fakeUserRow, error: null });
+      mockServerEvents.captureOnboardingBikeCreated.mockRejectedValueOnce(new Error('boom'));
+
+      await expect(service.completeOnboarding(userId, bikeInput as never)).resolves.toMatchObject({
+        id: userId,
+      });
+    });
+
     it('stores the onboarding contact opt-in in p_preferences when ticked', async () => {
       mockUserClient._chain.single.mockResolvedValueOnce({ data: fakeUserRow, error: null });
 
@@ -355,6 +436,228 @@ describe('UsersService', () => {
 
       expect(mockDataExportService.requestDataExport).toHaveBeenCalledWith(userId, email);
       expect(result).toEqual({ id: 'export-1', status: 'pending' });
+    });
+  });
+
+  // activation T07a (Experiment 2): onboarding imports the service plan for the bike it created.
+  describe('completeOnboarding — service plan import (activation T07a)', () => {
+    const motorcycleId = 'moto-1';
+    const bikeRow = {
+      id: motorcycleId,
+      make: 'Yamaha',
+      model: 'MT-09',
+      year: 2019,
+      variant: null,
+      current_mileage: 1200,
+    };
+    const bikeInput = {
+      experienceLevel: 'beginner',
+      ridingGoals: [],
+      learningFormats: [],
+      bikeMake: 'Yamaha',
+      bikeModel: 'MT-09',
+      bikeYear: 2019,
+    };
+    const imported = {
+      taskCount: 9,
+      insertedCount: 9,
+      tier: SERVICE_PLAN_TIER.MODEL,
+      measurementSystem: 'metric',
+    };
+
+    function arrange(opts: { userRow?: Record<string, unknown>; rpcBikeId?: string | null } = {}) {
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: {
+          user_id: userId,
+          motorcycle_id: opts.rpcBikeId === undefined ? motorcycleId : opts.rpcBikeId,
+        },
+        error: null,
+      });
+      mockUserClient._chain.single
+        .mockResolvedValueOnce({ data: opts.userRow ?? fakeUserRow, error: null })
+        .mockResolvedValueOnce({ data: bikeRow, error: null });
+    }
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('imports the full waterfall (no id filter) for the bike the RPC returned', async () => {
+      arrange();
+      mockOemSchedulesService.importServicePlan.mockResolvedValueOnce(imported);
+
+      const user = await service.completeOnboarding(userId, bikeInput as never);
+
+      expect(mockOemSchedulesService.importServicePlan).toHaveBeenCalledTimes(1);
+      const [, params] = mockOemSchedulesService.importServicePlan.mock.calls[0];
+      expect(params).toMatchObject({
+        userId,
+        motorcycleId,
+        make: 'Yamaha',
+        model: 'MT-09',
+        year: 2019,
+        currentMileage: 1200,
+      });
+      expect(params.scheduleIdFilter).toBeUndefined();
+      expect(user.servicePlanTaskCount).toBe(9);
+      expect(user.servicePlanTier).toBe(SERVICE_PLAN_TIER.MODEL);
+    });
+
+    it.each([
+      ['mi', 'imperial'],
+      ['km', 'metric'],
+    ])('imports in the rider’s unit: bikeMileageUnit %s → %s', async (unit, system) => {
+      arrange();
+      await service.completeOnboarding(userId, { ...bikeInput, bikeMileageUnit: unit } as never);
+      const [, params] = mockOemSchedulesService.importServicePlan.mock.calls[0];
+      expect(params.measurementSystem).toBe(system);
+    });
+
+    it('keeps the id filter for the riders who picked tasks (intent cohort)', async () => {
+      arrange();
+      await service.completeOnboarding(userId, {
+        ...bikeInput,
+        acceptedOemScheduleIds: ['s-1', 's-2'],
+      } as never);
+      const [, params] = mockOemSchedulesService.importServicePlan.mock.calls[0];
+      expect(params.scheduleIdFilter).toEqual(['s-1', 's-2']);
+    });
+
+    it('does not import when onboarding created no bike', async () => {
+      mockUserClient._chain.single.mockResolvedValueOnce({ data: fakeUserRow, error: null });
+      const user = await service.completeOnboarding(userId, {
+        experienceLevel: 'beginner',
+        ridingGoals: [],
+        learningFormats: [],
+      } as never);
+      expect(mockOemSchedulesService.importServicePlan).not.toHaveBeenCalled();
+      expect(user.servicePlanTaskCount).toBeUndefined();
+      expect(user.servicePlanTier).toBeUndefined();
+    });
+
+    it('does not import when the RPC returned no bike id (make without a year)', async () => {
+      arrange({ rpcBikeId: null });
+      await service.completeOnboarding(userId, bikeInput as never);
+      expect(mockOemSchedulesService.importServicePlan).not.toHaveBeenCalled();
+    });
+
+    it('never fails onboarding when the import throws', async () => {
+      arrange();
+      mockOemSchedulesService.importServicePlan.mockRejectedValueOnce(new Error('db down'));
+      const user = await service.completeOnboarding(userId, bikeInput as never);
+      expect(user.id).toBe(userId);
+      expect(user.servicePlanTaskCount).toBeUndefined();
+    });
+
+    it('a second run hands the same bike to the import, which dedups by oem_schedule_id', async () => {
+      arrange();
+      mockOemSchedulesService.importServicePlan.mockResolvedValueOnce(imported);
+      await service.completeOnboarding(userId, bikeInput as never);
+      arrange();
+      mockOemSchedulesService.importServicePlan.mockResolvedValueOnce({
+        ...imported,
+        insertedCount: 0,
+      });
+      const second = await service.completeOnboarding(userId, bikeInput as never);
+
+      const bikeIds = mockOemSchedulesService.importServicePlan.mock.calls.map(
+        ([, p]) => p.motorcycleId,
+      );
+      expect(bikeIds).toEqual([motorcycleId, motorcycleId]);
+      // The plan is still there, so the result still reports it.
+      expect(second.servicePlanTaskCount).toBe(9);
+    });
+
+    it('the import path sends no maintenance push', async () => {
+      arrange();
+      mockOemSchedulesService.importServicePlan.mockResolvedValueOnce(imported);
+      await service.completeOnboarding(userId, bikeInput as never);
+      const tables = mockUserClient.from.mock.calls.map(([t]) => t);
+      expect(tables).not.toContain('maintenance_push_log');
+      expect(tables).not.toContain('device_push_tokens');
+    });
+
+    describe('service_plan_imported consent', () => {
+      function stubPostHog() {
+        mockConfigService.get.mockImplementation((key: string) =>
+          key === 'POSTHOG_PROJECT_TOKEN' ? 'phc_test' : undefined,
+        );
+        const bodies: Array<{ batch: Array<Record<string, unknown>> }> = [];
+        const fetchFn = vi.fn(async (_url: string, init?: { body?: string }) => {
+          if (init?.body) bodies.push(JSON.parse(init.body));
+          return { ok: true, status: 200 } as Response;
+        });
+        vi.stubGlobal('fetch', fetchFn);
+        return { bodies, fetchFn };
+      }
+
+      async function captured(userRow: Record<string, unknown>, signupMetadata: unknown = {}) {
+        const { bodies, fetchFn } = stubPostHog();
+        mockUserClient.auth.admin.getUserById.mockResolvedValueOnce({
+          data: { user: { user_metadata: signupMetadata } },
+          error: null,
+        });
+        arrange({ userRow });
+        mockOemSchedulesService.importServicePlan.mockResolvedValueOnce({
+          ...imported,
+          measurementSystem: 'imperial',
+        });
+        await service.completeOnboarding(userId, { ...bikeInput, bikeMileageUnit: 'mi' } as never);
+        await vi.waitFor(() => expect(fetchFn).toHaveBeenCalledTimes(1));
+        return bodies[0].batch[0];
+      }
+
+      it('a stored "yes" → distinct_id is the user id', async () => {
+        const event = await captured({
+          ...fakeUserRow,
+          preferences: { privacy: { analyticsEnabled: true } },
+        });
+        expect(event.event).toBe('service_plan_imported');
+        expect(event.distinct_id).toBe(userId);
+        expect(event.properties).toMatchObject({
+          tier: 'model',
+          task_count: 9,
+          unit: 'mi',
+          source: 'onboarding',
+        });
+      });
+
+      it('a stored "no" → no user id in the payload', async () => {
+        const event = await captured({
+          ...fakeUserRow,
+          preferences: { privacy: { analyticsEnabled: false } },
+        });
+        expect(JSON.stringify(event)).not.toContain(userId);
+        expect(event.properties).toMatchObject({ $process_person_profile: false });
+      });
+
+      it('no decision stored yet (OAuth sign-up) → no user id in the payload', async () => {
+        const event = await captured({ ...fakeUserRow, preferences: {} }, {});
+        expect(JSON.stringify(event)).not.toContain(userId);
+        expect(JSON.stringify(event)).not.toContain(email);
+      });
+
+      it('falls back to the sign-up decision when the account has none', async () => {
+        const event = await captured(
+          { ...fakeUserRow, preferences: {} },
+          { analytics_consent: true },
+        );
+        expect(event.distinct_id).toBe(userId);
+      });
+
+      it('a PostHog failure never fails onboarding', async () => {
+        mockConfigService.get.mockReturnValue('phc_test');
+        vi.stubGlobal(
+          'fetch',
+          vi.fn(async () => {
+            throw new Error('network');
+          }),
+        );
+        arrange();
+        mockOemSchedulesService.importServicePlan.mockResolvedValueOnce(imported);
+        const user = await service.completeOnboarding(userId, bikeInput as never);
+        expect(user.servicePlanTaskCount).toBe(9);
+      });
     });
   });
 });

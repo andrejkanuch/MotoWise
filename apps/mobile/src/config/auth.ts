@@ -37,3 +37,22 @@ export const AUTH_METHOD = {
   GOOGLE: 'google',
 } as const;
 export type AuthMethod = (typeof AUTH_METHOD)[keyof typeof AUTH_METHOD];
+
+// issue 365 T04a
+/**
+ * The screen an auth event came from: `surface` on `auth_oauth_*`,
+ * `auth_email_submitted`, `user_signed_up` and `user_signed_in`.
+ */
+export const AUTH_SURFACE = {
+  ONBOARDING_ACCOUNT: 'onboarding_account',
+  ONBOARDING_SIGN_IN: 'onboarding_sign_in',
+  LOGIN: 'login',
+  REGISTER: 'register',
+} as const;
+export type AuthSurface = (typeof AUTH_SURFACE)[keyof typeof AUTH_SURFACE];
+
+/** `mode` on `auth_email_submitted`: which email form was submitted. */
+export const AUTH_EMAIL_MODE = {
+  SIGNUP: 'signup',
+  SIGNIN: 'signin',
+} as const;

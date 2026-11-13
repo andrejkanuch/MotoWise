@@ -141,6 +141,8 @@ Recipe: `queries/db/README.md` (every Monday, read-only, each file `BEGIN READ O
 | 2026-11-13 | `fs-ob1e-two-bikes.sql` | bikes in last 60 d | 2 accounts |
 | 2026-11-13 | `fs-r2-5-short-make.sql` | onboarding bikes, last 60 d / all time | 6/175 / 10/366 |
 
+**#365 T05e — FS-PO4b source of truth is `fs-po4b-first-ride.sql`, not `ride_saved`.** `ride_saved` is sent only when a rider saves (`RidesService.endRide`); rides the server ends (`closeStaleRides`, idle sweep) send nothing, and a rider whose first ride was swept gets `is_first = false` later. Its `below_min` also counts rides under 30 s (the SQL tests distance only), and it covers every rider, not a sign-up cohort. So the PostHog share `ride_saved{is_first, below_min}` / `ride_saved{is_first}` is not directly comparable to the SQL and can differ in either direction; it is a trend signal only (plan §5A.4 note).
+
 ## 6. Experiment 1 ledger — "first-ride plan" (D13 signed 2026-11-12; D16)
 
 ### 6.1 Design (D13)
@@ -213,7 +215,7 @@ go-live date **per platform**, so the A/B and Exp 1 readouts can be cut before/a
 
 | Date (go-live) | Platform | Task | Change | Release (version / build / API deploy) | `activation_fix_level` | PostHog annotation id |
 |---|---|---|---|---|---|---|
-| | | | | | | |
+| 2026-11-13 13:55 UTC | server (all app versions) | T07a (#472) | Exp 2: onboarding bike gets its OEM service plan (`service_plan_imported`); one maintenance push per bike per 7 days. Same for both `onboarding_paywall_2026q4` arms and both Exp 1 arms | API `8fd7cf6f` (Render `dep-dbrhcgqjnfac739gqms0`), plan §6 row 2 | null (`lvl n/a`) | `204996` |
 
 Expected entries (D1, D12): T11, T12, T13a, T13b, T14, T16a, T19a, T19b, T20, T25b, T30 (both onboarding arms); T27 (launch-day,
 Release B) and T29 (Release A target) as both Exp 1 arms; P05.3 install-reason card if it ships in 3.30.0.
