@@ -96,6 +96,10 @@ const ANALYZE = 'diagnoseV2.analyze';
 const LIMIT_PANEL = 'diagnose-limit-panel';
 const RESET = '2026-12-01T00:00:00.000Z';
 const DIAGNOSE_LIST = '/(tabs)/(diagnose)';
+// The quota query keeps its own `retry: 1` (about a 1 s backoff after the
+// offline failure) before the refetch lands, so date lookups wait longer than
+// the default 1 s.
+const QUOTA_REFETCH = { timeout: 5000 };
 
 const forbidden = () =>
   Object.assign(new Error(SERVER_MESSAGE), {
@@ -193,7 +197,7 @@ describe('diagnose form: free diagnosis used (FORBIDDEN)', () => {
     serveApi({ resetDate: RESET });
     await pressAnalyze();
 
-    expect(await screen.findByText(/December 1st, 2026/)).toBeTruthy();
+    expect(await screen.findByText(/December 1st, 2026/, {}, QUOTA_REFETCH)).toBeTruthy();
     expect(mockPresentPaywall).toHaveBeenCalledTimes(1);
     expect(mockRouter.back).not.toHaveBeenCalled();
   });
@@ -227,7 +231,11 @@ describe('diagnose form: free diagnosis used (FORBIDDEN)', () => {
     const panel = await screen.findByTestId(LIMIT_PANEL);
     expect(panel).toBeTruthy();
     expect(
-      await screen.findByText(`diagnose.limit.usedBackOn ${JSON.stringify({ date: expected })}`),
+      await screen.findByText(
+        `diagnose.limit.usedBackOn ${JSON.stringify({ date: expected })}`,
+        {},
+        QUOTA_REFETCH,
+      ),
     ).toBeTruthy();
   });
 
