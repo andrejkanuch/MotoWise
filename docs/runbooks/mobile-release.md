@@ -10,8 +10,10 @@ caught it.
 ## Required before promoting to production (App Store or Play)
 
 1. **The onboarding paywall E2E passes on the release build.**
-   Install the build you are about to promote, or a Release simulator build of the
-   same commit, on a booted iOS simulator. Then run:
+   Install a simulator build of the commit you are about to promote, built from the
+   `e2e-simulator-paywall` EAS profile (not `e2e-simulator`, which turns RevenueCat and
+   PostHog off), on a booted iOS simulator. A store binary does not run on the simulator. The run writes to production
+   analytics, so it needs the owner's go-ahead. Then run:
    ```bash
    DEVICE=<simulator udid> pnpm --filter @motovault/mobile test:e2e:onboarding-paywall
    ```

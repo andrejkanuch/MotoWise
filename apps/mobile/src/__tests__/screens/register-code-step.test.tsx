@@ -154,7 +154,9 @@ describe('Register with email confirmation', () => {
     await flush();
 
     expect(mockVerifySignupCode).toHaveBeenCalledWith(EMAIL, '482913');
-    expect(eventsNamed('USER_SIGNED_UP')).toEqual([['USER_SIGNED_UP', { auth_method: 'email' }]]);
+    expect(eventsNamed('USER_SIGNED_UP')).toEqual([
+      ['USER_SIGNED_UP', { auth_method: 'email', surface: 'register' }],
+    ]);
   });
 
   it('a rate-limited signup opens the code step with the countdown and no alert', async () => {
@@ -179,8 +181,24 @@ describe('Register with email confirmation', () => {
 
     await register();
 
-    expect(eventsNamed('USER_SIGNED_UP')).toEqual([['USER_SIGNED_UP', { auth_method: 'email' }]]);
+    expect(eventsNamed('USER_SIGNED_UP')).toEqual([
+      ['USER_SIGNED_UP', { auth_method: 'email', surface: 'register' }],
+    ]);
     expect(screen.queryByText(CODE_TITLE())).toBeNull();
+  });
+
+  it('submitting the form fires auth_email_submitted once with surface and mode, never the address', async () => {
+    mockSignUp.mockResolvedValue({
+      data: { user: { id: 'u1' }, session: { access_token: 'x' } },
+      error: null,
+    });
+
+    await register();
+
+    expect(eventsNamed('AUTH_EMAIL_SUBMITTED')).toEqual([
+      ['AUTH_EMAIL_SUBMITTED', { surface: 'register', mode: 'signup' }],
+    ]);
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(EMAIL);
   });
 
   it('an already-registered email offers sign-in instead of a code step that never arrives', async () => {

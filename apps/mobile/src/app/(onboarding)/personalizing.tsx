@@ -38,7 +38,7 @@ import { detectCurrency } from '../../lib/locale-detection';
 import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
-import { trackOnboardingEvent, trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
+import { trackOnboardingCompletion, trackOnboardingEvent } from '../../lib/onboarding-analytics';
 import {
   isGarageCtaPaywall,
   presentOnboardingPaywall,
@@ -393,7 +393,7 @@ export default function PersonalizingScreen() {
   };
 
   const trackOnboardingCompleted = () => {
-    trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
+    trackOnboardingCompletion({
       experience_level: experienceLevel ?? 'beginner',
       has_bike: !!bikeData,
       has_photo: !!bikeData?.photoUri,

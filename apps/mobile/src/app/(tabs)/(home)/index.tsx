@@ -20,7 +20,7 @@ import { SkeletonProvider } from '@/components/skeleton/skeleton-provider';
 import { BikePlate, PLATE_SIZE } from '@/components/ui/bike-plate';
 import { ESettingsGroup, ESettingsRow } from '@/components/ui/editorial';
 import { ThemedSegmentedControl } from '@/components/ui/themed-segmented-control';
-import { HOME_ROUTE } from '@/config/routes';
+import { diagnoseListFromHomeHref, HOME_ROUTE } from '@/config/routes';
 import { ReceiptScanRecoveryCard } from '@/features/receipt-scan/receipt-scan-recovery-card';
 import { SCAN_ENTRY_SURFACE } from '@/features/receipt-scan/scan-flow-constants';
 import { useOpenRide } from '@/features/ride/ride-route';
@@ -162,7 +162,7 @@ export default function HomeScreen() {
           icon: Sparkles,
           label: t('home.actionDiagnose'),
           testID: 'home-action-diagnose',
-          onPress: () => router.push('/(tabs)/(diagnose)'),
+          onPress: () => router.push(diagnoseListFromHomeHref()),
         },
       ]
     : [];

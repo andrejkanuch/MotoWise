@@ -79,7 +79,7 @@ jest.mock('../../lib/supabase', () => ({
 
 // The screen reads `bikeData` from the onboarding store for its Back route.
 jest.mock('../../stores/onboarding.store', () => ({
-  useOnboardingStore: { getState: () => ({ bikeData: null }) },
+  useOnboardingStore: { getState: () => ({ bikeData: null, setCodeStepPending: () => {} }) },
 }));
 jest.mock('../../stores/auth.store', () => {
   const { create } = require('zustand');
@@ -275,7 +275,9 @@ describe('AccountScreen email signup', () => {
     await flush();
 
     expect(mockVerifyOtp).toHaveBeenCalledWith({ email: EMAIL, token: '482913', type: 'email' });
-    expect(eventsNamed('USER_SIGNED_UP')).toEqual([['USER_SIGNED_UP', { auth_method: 'email' }]]);
+    expect(eventsNamed('USER_SIGNED_UP')).toEqual([
+      ['USER_SIGNED_UP', { auth_method: 'email', surface: 'onboarding_account' }],
+    ]);
 
     // onAuthStateChange would set the session; the screen's session effect advances.
     await act(async () => {
@@ -298,7 +300,20 @@ describe('AccountScreen email signup', () => {
     await submitSignup();
 
     expect(codeStepShown()).toBe(false);
-    expect(eventsNamed('USER_SIGNED_UP')).toEqual([['USER_SIGNED_UP', { auth_method: 'email' }]]);
+    expect(eventsNamed('USER_SIGNED_UP')).toEqual([
+      ['USER_SIGNED_UP', { auth_method: 'email', surface: 'onboarding_account' }],
+    ]);
     expect(eventsNamed('EMAIL_CODE_SENT')).toHaveLength(0);
+  });
+
+  it('submitting the form fires auth_email_submitted once with surface and mode, never the address', async () => {
+    mockSignUp.mockResolvedValue(newUser);
+
+    await submitSignup();
+
+    expect(eventsNamed('AUTH_EMAIL_SUBMITTED')).toEqual([
+      ['AUTH_EMAIL_SUBMITTED', { surface: 'onboarding_account', mode: 'signup' }],
+    ]);
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(EMAIL);
   });
 });
