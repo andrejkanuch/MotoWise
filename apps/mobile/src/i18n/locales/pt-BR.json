@@ -1450,7 +1450,16 @@
     "problemRequired": "Descreva o problema ou adicione uma foto para analisar. Toque para editar.",
     "symptomsRequired": "Escolha o que você percebe ou “Não tenho certeza”.",
     "descriptionRequired": "Descreva o que está acontecendo para continuar.",
-    "removeOption": "Remover {{label}}"
+    "removeOption": "Remover {{label}}",
+    "submit": {
+      "stillWorking": "Ainda processando…",
+      "deadline": "Ainda processando — se terminar, vai aparecer nos seus diagnósticos.",
+      "offline": "Você está offline. Suas respostas foram mantidas — tente de novo quando voltar a ficar online.",
+      "throttled": "Muitas solicitações agora. Espere um minuto e tente de novo.",
+      "server": "Algo deu errado do nosso lado. Suas respostas foram mantidas — tente de novo.",
+      "checkFailed": "Não foi possível verificar se o seu diagnóstico terminou.",
+      "retryCheck": "Tentar de novo"
+    }
   },
   "notifications": {
     "title": "Notificações",

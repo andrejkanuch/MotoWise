@@ -1450,7 +1450,16 @@
     "problemRequired": "Descrivi il problema o aggiungi una foto per analizzarlo. Tocca per modificare.",
     "symptomsRequired": "Scegli cosa noti, oppure «Non sono sicuro».",
     "descriptionRequired": "Descrivi cosa succede per continuare.",
-    "removeOption": "Rimuovi {{label}}"
+    "removeOption": "Rimuovi {{label}}",
+    "submit": {
+      "stillWorking": "Ancora in corso…",
+      "deadline": "Ancora in corso — se termina, comparirà nelle tue diagnosi.",
+      "offline": "Sei offline. Le tue risposte sono salvate — riprova quando torni online.",
+      "throttled": "Troppe richieste in questo momento. Aspetta un minuto e riprova.",
+      "server": "Qualcosa è andato storto da parte nostra. Le tue risposte sono salvate — riprova.",
+      "checkFailed": "Impossibile verificare se la diagnosi è stata completata.",
+      "retryCheck": "Riprova"
+    }
   },
   "notifications": {
     "title": "Notifiche",

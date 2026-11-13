@@ -1440,7 +1440,16 @@
     "problemRequired": "Describe the problem or add a photo to analyze. Tap to edit.",
     "symptomsRequired": "Pick what you notice, or “I'm not sure”.",
     "descriptionRequired": "Describe what's happening to continue.",
-    "removeOption": "Remove {{label}}"
+    "removeOption": "Remove {{label}}",
+    "submit": {
+      "stillWorking": "Still working…",
+      "deadline": "Still working — if it finishes, it will appear in your diagnoses.",
+      "offline": "You're offline. Your answers are kept — try again when you're back online.",
+      "throttled": "Too many requests right now. Wait a minute, then try again.",
+      "server": "Something went wrong on our side. Your answers are kept — try again.",
+      "checkFailed": "Couldn't check whether your diagnosis finished.",
+      "retryCheck": "Retry"
+    }
   },
   "notifications": {
     "title": "Notifications",

@@ -1475,7 +1475,16 @@
     "problemRequired": "Opíšte problém alebo pridajte fotku, aby sme ho mohli analyzovať. Ťuknutím upravíte.",
     "symptomsRequired": "Vyberte, čo spozorujete, alebo „Nie som si istý“.",
     "descriptionRequired": "Ak chcete pokračovať, opíšte, čo sa deje.",
-    "removeOption": "Odstrániť {{label}}"
+    "removeOption": "Odstrániť {{label}}",
+    "submit": {
+      "stillWorking": "Stále prebieha…",
+      "deadline": "Stále prebieha — ak sa dokončí, zobrazí sa v tvojich diagnostikách.",
+      "offline": "Si offline. Tvoje odpovede ostávajú uložené — skús to znova, keď budeš online.",
+      "throttled": "Momentálne príliš veľa požiadaviek. Počkaj minútu a skús to znova.",
+      "server": "Na našej strane sa niečo pokazilo. Tvoje odpovede ostávajú uložené — skús to znova.",
+      "checkFailed": "Nepodarilo sa overiť, či sa tvoja diagnostika dokončila.",
+      "retryCheck": "Skúsiť znova"
+    }
   },
   "notifications": {
     "title": "Notifikácie",

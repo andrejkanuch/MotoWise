@@ -1429,7 +1429,16 @@
     "problemRequired": "分析するには、症状を入力するか写真を追加してください。タップして編集。",
     "symptomsRequired": "気になる症状を選ぶか、「わかりません」を選んでください。",
     "descriptionRequired": "続けるには、症状を入力してください。",
-    "removeOption": "{{label}}を削除"
+    "removeOption": "{{label}}を削除",
+    "submit": {
+      "stillWorking": "処理中です…",
+      "deadline": "まだ処理中です。完了すると診断一覧に表示されます。",
+      "offline": "オフラインです。回答は保存されています。オンラインに戻ったら再度お試しください。",
+      "throttled": "現在リクエストが集中しています。1分ほど待ってから再度お試しください。",
+      "server": "サーバー側で問題が発生しました。回答は保存されています。再度お試しください。",
+      "checkFailed": "診断が完了したか確認できませんでした。",
+      "retryCheck": "再試行"
+    }
   },
   "notifications": {
     "title": "通知",

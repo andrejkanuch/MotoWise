@@ -1,6 +1,12 @@
-import { type MotorcycleType, SubmitDiagnosticDocument, type Urgency } from '@motovault/graphql';
+import {
+  type DiagnosticQuotaQuery,
+  type MotorcycleType,
+  SubmitDiagnosticDocument,
+  type Urgency,
+} from '@motovault/graphql';
 import { useQueryClient } from '@tanstack/react-query';
 import { File } from 'expo-file-system';
+import * as Network from 'expo-network';
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { useProGate } from '@/hooks/use-pro-gate';
@@ -9,19 +15,48 @@ import { gqlFetcher } from '@/lib/graphql-client';
 import { GRAPHQL_ERROR_CODE } from '@/lib/graphql-error-classification';
 import { hasGraphQLCode } from '@/lib/graphql-errors';
 import { queryKeys } from '@/lib/query-keys';
-import { useDiagnosticFlowStore } from '@/stores/diagnostic-flow.store';
+import {
+  DEADLINE_LOCK_PHASE,
+  SUBMIT_FAILURE,
+  type SubmitFailure,
+  useDiagnosticFlowStore,
+} from '@/stores/diagnostic-flow.store';
 import { useSubscriptionStore } from '@/stores/subscription.store';
-import { trackDiagnosticFailed } from '../diagnosis/diagnostic-analytics';
+import {
+  classifyDiagnosticFailure,
+  DIAGNOSTIC_FAILURE_REASON,
+  type DiagnosticFailureReason,
+  trackDiagnosticFailed,
+  trackDiagnosticOfflinePrecheck,
+} from '../diagnosis/diagnostic-analytics';
 import { recordDiagnosisSubmitted } from '../diagnosis/use-diagnostic-quota';
 
-function errorMessage(error: unknown): string {
-  if (error && typeof error === 'object') {
-    // graphql-request ClientError has response.errors[]
-    const gqlErrors = (error as { response?: { errors?: { message: string }[] } }).response?.errors;
-    if (gqlErrors?.length) return gqlErrors.map((e) => e.message).join('; ');
-    if (error instanceof Error) return error.message;
+/**
+ * Issue 365 T17: the failure class → the copy the review step shows. A timeout
+ * has no entry: it locks submit (`deadlineLock`) instead of offering Try Again.
+ */
+const FAILURE_COPY: Record<
+  Exclude<DiagnosticFailureReason, typeof DIAGNOSTIC_FAILURE_REASON.TIMEOUT>,
+  SubmitFailure
+> = {
+  [DIAGNOSTIC_FAILURE_REASON.OFFLINE]: SUBMIT_FAILURE.OFFLINE,
+  [DIAGNOSTIC_FAILURE_REASON.THROTTLED]: SUBMIT_FAILURE.THROTTLED,
+  [DIAGNOSTIC_FAILURE_REASON.LIMIT]: SUBMIT_FAILURE.SERVER,
+  [DIAGNOSTIC_FAILURE_REASON.SERVER]: SUBMIT_FAILURE.SERVER,
+};
+
+/**
+ * Only a definite "no connection" blocks the send: `isInternetReachable` can be
+ * null/undefined while the OS is still deciding, and a failed read of the
+ * state sends anyway (the request then fails as it would have).
+ */
+async function isDefinitelyOffline(): Promise<boolean> {
+  try {
+    const net = await Network.getNetworkStateAsync();
+    return net.isConnected === false || net.isInternetReachable === false;
+  } catch {
+    return false;
   }
-  return 'Failed to analyze';
 }
 
 /**
@@ -31,7 +66,7 @@ function errorMessage(error: unknown): string {
  * it is used.
  *
  * Issue 365 T08 (FS-PO2a): FORBIDDEN sets the typed `limitReached` state, never
- * `submitError`, and presents the automatic paywall on that one transition. Any
+ * `submitFailure`, and presents the automatic paywall on that one transition. Any
  * later submit of the same form is a no-op until the rider goes Pro, so the
  * "Try Again" → paywall → "Try Again" loop cannot start.
  */
@@ -43,11 +78,24 @@ export function useDiagnosticSubmit(): () => Promise<void> {
   return useCallback(async () => {
     const state = useDiagnosticFlowStore.getState();
     const isPro = useSubscriptionStore.getState().isPro;
-    if (state.isSubmitting || !state.hasProblemInput()) return;
+    if (state.isSubmitting || !state.hasProblemInput() || state.deadlineLock) return;
     if (state.limitReached && !isPro) return;
     state.setIsSubmitting(true);
-    state.setSubmitError(null);
+    state.setSubmitFailure(null);
+
+    // Issue 365 T17: offline → send nothing (7 of 14 failures were offline).
+    // The answers stay in the store for the next try.
+    if (await isDefinitelyOffline()) {
+      trackDiagnosticOfflinePrecheck();
+      state.setSubmitFailure(SUBMIT_FAILURE.OFFLINE);
+      state.setIsSubmitting(false);
+      return;
+    }
+
     const submittedAtMs = Date.now();
+    const usedAtSend =
+      queryClient.getQueryData<DiagnosticQuotaQuery>(queryKeys.diagnostics.quota)?.diagnosticQuota
+        .used ?? null;
     trackEvent(AnalyticsEvent.DIAGNOSTIC_SUBMITTED, { has_photo: !!state.photoUri });
 
     try {
@@ -104,10 +152,20 @@ export function useDiagnosticSubmit(): () => Promise<void> {
         // it now so the limit panel can say when the free diagnosis comes back.
         queryClient.invalidateQueries({ queryKey: queryKeys.diagnostics.quota });
       } else {
-        const message = errorMessage(error);
         trackDiagnosticFailed(error, submittedAtMs);
-        captureException(error, { source: 'diagnose.submitDiagnostic', message });
-        state.setSubmitError(message);
+        const reason = classifyDiagnosticFailure(error);
+        if (reason === DIAGNOSTIC_FAILURE_REASON.TIMEOUT) {
+          // The server may still finish (and use the free diagnosis): lock
+          // submit until its window has passed, then ask the quota.
+          state.setDeadlineLock({
+            phase: DEADLINE_LOCK_PHASE.WAITING,
+            sentAtMs: submittedAtMs,
+            usedAtSend,
+          });
+        } else {
+          state.setSubmitFailure(FAILURE_COPY[reason]);
+        }
+        captureException(error, { source: 'diagnose.submitDiagnostic', reason });
       }
     } finally {
       state.setIsSubmitting(false);

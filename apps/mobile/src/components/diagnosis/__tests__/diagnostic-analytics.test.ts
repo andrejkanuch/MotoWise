@@ -54,6 +54,7 @@ describe('trackDiagnosticFailed', () => {
       reason: 'server',
       elapsed_s: 47.3,
       offline: false,
+      precheck: false,
     });
     expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain('secret');
   });

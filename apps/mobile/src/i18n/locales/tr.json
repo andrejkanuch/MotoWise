@@ -1429,7 +1429,16 @@
     "problemRequired": "Analiz için sorunu açıklayın veya fotoğraf ekleyin. Düzenlemek için dokunun.",
     "symptomsRequired": "Fark ettiğiniz şeyi seçin veya “Emin değilim”.",
     "descriptionRequired": "Devam etmek için ne olduğunu açıklayın.",
-    "removeOption": "{{label}} kaldır"
+    "removeOption": "{{label}} kaldır",
+    "submit": {
+      "stillWorking": "Hâlâ çalışıyor…",
+      "deadline": "Hâlâ çalışıyor — tamamlanırsa teşhislerinde görünecek.",
+      "offline": "Çevrimdışısın. Yanıtların saklandı — tekrar çevrimiçi olunca yeniden dene.",
+      "throttled": "Şu anda çok fazla istek var. Bir dakika bekleyip yeniden dene.",
+      "server": "Bizim tarafımızda bir sorun oluştu. Yanıtların saklandı — yeniden dene.",
+      "checkFailed": "Teşhisinin tamamlanıp tamamlanmadığı kontrol edilemedi.",
+      "retryCheck": "Yeniden dene"
+    }
   },
   "notifications": {
     "title": "Bildirimler",

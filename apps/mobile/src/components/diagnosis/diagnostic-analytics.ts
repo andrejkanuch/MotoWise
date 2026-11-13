@@ -95,5 +95,17 @@ export function trackDiagnosticFailed(error: unknown, submittedAtMs: number): vo
     elapsed_s: elapsedSeconds(submittedAtMs),
     // The pre-3.29 boolean, unchanged (a timeout also counts), for existing insights.
     offline: isNetworkError(error),
+    // Issue 365 T17: the request was sent (FS-PO2b counts post-send offline failures).
+    precheck: false,
+  });
+}
+
+/** Issue 365 T17: the offline pre-check stopped the submit; nothing was sent. */
+export function trackDiagnosticOfflinePrecheck(): void {
+  trackEvent(AnalyticsEvent.DIAGNOSTIC_FAILED, {
+    reason: DIAGNOSTIC_FAILURE_REASON.OFFLINE,
+    elapsed_s: 0,
+    offline: true,
+    precheck: true,
   });
 }
