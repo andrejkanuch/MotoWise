@@ -86,6 +86,8 @@ interface ServiceTaskRowProps {
   onEdit?: (taskId: string) => void;
   onDelete: (taskId: string, title: string) => void;
   motorcycleId: string;
+  /** Place among the active tasks as shown (0 = top): `service-task-card-<n>` for Maestro. */
+  position?: number;
 }
 
 /**
@@ -107,6 +109,7 @@ export const ServiceTaskRow = memo(function ServiceTaskRow({
   onEdit,
   onDelete,
   motorcycleId,
+  position,
 }: ServiceTaskRowProps) {
   const hub = useHubTheme();
   const { t, i18n } = useTranslation();
@@ -144,7 +147,10 @@ export const ServiceTaskRow = memo(function ServiceTaskRow({
   );
 
   return (
-    <View style={rowDivider(hub, divider)}>
+    <View
+      testID={position === undefined ? undefined : `service-task-card-${position}`}
+      style={rowDivider(hub, divider)}
+    >
       <View style={{ flexDirection: 'row', alignItems: stacked ? 'flex-start' : 'center' }}>
         <Pressable
           testID={`service-task-${task.id}`}

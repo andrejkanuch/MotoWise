@@ -885,6 +885,16 @@ export const AnalyticsEvent = {
   // Checklist
   CHECKLIST_ITEM_COMPLETED: 'checklist_item_completed',
 
+  // issue 365 T05d — landing, Discover load, bike edits (lib/post-onboarding-landing.ts)
+  /** First `(tabs)` screen after onboarding: {screen, onboarding_variant, ms_since_cta, overlay}. */
+  POST_ONBOARDING_LANDED: 'post_onboarding_landed',
+  /** A sheet shown over Home: {sheet, ms_since_landed, queue_position}. Fired by T16b's sheet queue. */
+  LANDING_SHEET_SHOWN: 'landing_sheet_shown',
+  /** Time to the first settled list: {screen: 'discover', ms_to_content, outcome}. */
+  SCREEN_LOAD_TIMED: 'screen_load_timed',
+  /** A saved bike edit: {changed_fields, from_capture_level, source, schedule_refreshed_count}. */
+  GARAGE_BIKE_EDITED: 'garage_bike_edited',
+
   /**
    * The rider's Nth saved ride / logged service (`kind`, `count`), fired once
    * per kind at the milestone count. Exists for PostHog survey targeting — see

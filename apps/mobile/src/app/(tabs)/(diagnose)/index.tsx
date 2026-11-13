@@ -112,7 +112,8 @@ export default function DiagnoseScreen() {
   const recent = diagnostics.slice(0, RECENT_LIMIT);
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+    // `tab-diagnose`: Diagnose is a hidden tab (no bar button), so its root view carries the id.
+    <View testID="tab-diagnose" style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
@@ -139,6 +140,7 @@ export default function DiagnoseScreen() {
         </Text>
 
         <Pressable
+          testID="diagnose-new"
           onPress={handleNewDiagnostic}
           accessibilityRole="button"
           accessibilityLabel={t('diagnose.startCta')}
