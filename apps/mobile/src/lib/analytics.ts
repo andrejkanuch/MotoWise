@@ -114,11 +114,12 @@ export const posthogClient: PostHog = new PostHog(POSTHOG_API_KEY || 'placeholde
   capturePushNotificationSubscriptions: false,
   capturePushNotificationOpened: false,
   // Session replay only in release builds (redundant with `disabled` in dev,
-  // but explicit). The recorder is CONSENT-GATED: the SDK auto-starts replay on
-  // init based only on `enableSessionReplay` + remote config — it does NOT check
-  // the user's opt-out — so we immediately `stopSessionRecording()` after init
-  // unless last-known consent is true, and `setAnalyticsEnabled` is the single
-  // source of truth that starts/stops the recorder thereafter (see todo 184).
+  // but explicit). The recorder is CONSENT-GATED: SDKs before 4.81 auto-started
+  // replay on init from `enableSessionReplay` + remote config without checking
+  // the opt-out; 4.81+ checks the persisted opt-out, but that loads
+  // asynchronously, so we still `stopSessionRecording()` after init unless
+  // last-known consent is true, and `setAnalyticsEnabled` is the single source
+  // of truth that starts/stops the recorder thereafter (see todo 184).
   //
   // Masking is best-effort, NOT a guarantee that no PII is captured:
   //  - `maskAllTextInputs` masks `TextInput` only — read-only `<Text>` (VIN,
@@ -155,9 +156,10 @@ function registerReleaseMarker() {
 // Right after creation, so it is queued before any event the app captures.
 registerReleaseMarker();
 
-// Default replay OFF until consent is confirmed. The SDK auto-starts the
-// recorder at construction (gated only by `enableSessionReplay`/remote config,
-// NOT by opt-out), so without this a pre-consent user — including the
+// Default replay OFF until consent is confirmed. The SDK may auto-start the
+// recorder at construction (before 4.81 it ignored opt-out; since then it reads
+// the persisted opt state, which a fresh or pre-3.21 install may not have yet),
+// so without this a pre-consent user — including the
 // cold-start/login/onboarding window before the server `me` query resolves —
 // would be recorded. We stop immediately unless the last-known consent
 // (persisted locally) is true, then `setAnalyticsEnabled` takes over.
