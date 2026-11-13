@@ -38,6 +38,7 @@ jest.mock('@/lib/email-confirmation', () => ({
 
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { AUTH_SURFACE } from '@/config/auth';
 import i18n from '@/i18n';
 import { EMAIL_CODE_SOURCE, EmailCodeStep, type EmailCodeStepProps } from '../email-code-step';
 
@@ -77,6 +78,7 @@ async function renderStep(props: Partial<EmailCodeStepProps> = {}) {
     <EmailCodeStep
       email={EMAIL}
       source={EMAIL_CODE_SOURCE.SIGNUP}
+      surface={AUTH_SURFACE.REGISTER}
       onBack={onBack}
       onNeedsSignIn={onNeedsSignIn}
       {...props}
@@ -170,7 +172,9 @@ describe('EmailCodeStep', () => {
     await flush();
 
     expect(eventsNamed('EMAIL_CODE_VERIFIED')).toEqual([['EMAIL_CODE_VERIFIED', { source }]]);
-    expect(eventsNamed('USER_SIGNED_UP')).toEqual([['USER_SIGNED_UP', { auth_method: 'email' }]]);
+    expect(eventsNamed('USER_SIGNED_UP')).toEqual([
+      ['USER_SIGNED_UP', { auth_method: 'email', surface: 'register' }],
+    ]);
     expect(mockResetUser).not.toHaveBeenCalled();
     expect(mockSignOut).not.toHaveBeenCalled();
   });
@@ -188,7 +192,9 @@ describe('EmailCodeStep', () => {
     expect(eventsNamed('EMAIL_CODE_RECOVERED')).toEqual([
       ['EMAIL_CODE_RECOVERED', { source: EMAIL_CODE_SOURCE.SIGNUP }],
     ]);
-    expect(eventsNamed('USER_SIGNED_UP')).toEqual([['USER_SIGNED_UP', { auth_method: 'email' }]]);
+    expect(eventsNamed('USER_SIGNED_UP')).toEqual([
+      ['USER_SIGNED_UP', { auth_method: 'email', surface: 'register' }],
+    ]);
   });
 
   it('recovery that finds the email still unconfirmed keeps the error and never retries automatically', async () => {

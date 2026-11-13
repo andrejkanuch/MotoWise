@@ -68,6 +68,40 @@ Step-specific `onboarding_step_completed` properties (pre-existing, unchanged): 
 
 Variant B's extra steps: frequency → `riding_frequency`; stay_on_top → `concerns`, `concerns_count`, `primary_concern` (derived via `CONCERN_PRIORITY`/`getPrimaryConcern`, biases the Reveal's lead card + paywall framing); last_service → `last_service`, `has_mileage`, `unit`; building_plan → loader, no extra props.
 
+### #365 T04a — auth events (from app 3.29.0)
+
+Current flow, not the retired experiment. Fired by the app on every sign-in surface (`surface`: `onboarding_account`, `onboarding_sign_in`, `login`, `register` = `AUTH_SURFACE` in `apps/mobile/src/config/auth.ts`). Names and Zod shapes are also in `packages/analytics/src/events.ts` (`MOBILE_AUTH_EVENTS`). Consent-gated like every app event. No email and no error message ever: `error_code` is the error's code (`ERR_REQUEST_CANCELED`, `PLAY_SERVICES_NOT_AVAILABLE`, a Supabase code), else its class name (`AuthRetryableFetchError`, `GoogleSignInInProgressError`), else `null`.
+
+| Event | When | Properties |
+|---|---|---|
+| `auth_oauth_started` | Apple/Google tapped, before the provider is called (`hooks/use-oauth-sign-in.ts`) | `provider: apple \| google`, `surface` |
+| `auth_oauth_result` | the same tap ended — exactly one per `auth_oauth_started`, double taps included | `provider`, `surface`, `outcome: success \| cancelled \| in_progress \| no_play_services \| cannot_present \| error`, `stage: sheet \| token_exchange` (`sheet` = the provider never handed back a token; `token_exchange` = the Supabase `signInWithIdToken` call was reached), `duration_ms` (tap → end), `is_new_user` (`null` unless success), `error_code` (`null` on success) |
+| `auth_error_alert_shown` | `presentOAuthError` showed an alert (`lib/oauth-error-alert.ts`). Never on `in_progress` (silent). Until T12, a cancel still alerts: FS-OB2c = alerts with `outcome = cancelled` ÷ results with `outcome = cancelled` | `provider`, `outcome`, `error_code` |
+| `auth_email_submitted` | an email form was submitted (account, onboarding sign-in, login, register) | `surface`, `mode: signup \| signin` |
+| `auth_post_signin_wait` | the onboarding account step decided where to go after the session landed (`components/onboarding/use-account-advance.ts`), once | `wait_ms` (session seen → decision), `outcome: advanced \| already_onboarded \| me_error` (the way it went: `me_error` = the server state failed to load and the step advanced anyway; `timeout` is reserved for T12's bounded wait) |
+
+`user_signed_up` / `user_signed_in` also carry `surface` from 3.29.0 (OAuth, email and the email code step); `auth_method` is unchanged.
+
+"Started, no result" (FS-OB2a) = `auth_oauth_started` − `auth_oauth_result` per `provider` × platform: the app was killed or the sheet never returned. Do not read `Application Backgrounded` on the account step as "left the app": the Google sheet backgrounds the app on Android.
+
+### #365 T04b — onboarding navigation, resume and gate events
+
+Current (not historical). Sent from `apps/mobile/src/lib/onboarding-nav-analytics.ts`, behind the
+analytics consent gate like every `trackEvent`. Step names come from `OB_STEP_NAME`; no free text,
+email or ids. `onboarding_back`, `onboarding_welcome_mounted` and `onboarding_resumed` also carry
+`variant`. All five carry the release marker super properties (T01).
+
+| Event | When | Properties |
+|---|---|---|
+| `onboarding_back` | A Back between onboarding steps: the stack's `beforeRemove` on a `GO_BACK`/`POP`, the chevron's replace fallback, or Android Back on the stack root (`to: 'exit'`, the app leaves). Forward replaces never count. | `from`, `to` (step names; `to` may be `exit`), `trigger: hardware \| gesture \| button` (chevron marks itself; else `GO_BACK` = hardware, `POP` = iOS swipe), `ms_on_screen` (since the step's focus; null if unknown) |
+| `onboarding_welcome_mounted` | Every Welcome mount | `reason: initial` (first mount in this JS runtime) `\| back` (≤ 2 s after a Back to Welcome) `\| remount` (anything else — RC-D), `had_progress` (a completed step, or a viewed step past Welcome, on record) |
+| `onboarding_resumed` (extended) | resume-after-kill | adds `resumed_from_screen` (last step on screen, persisted on every focus as `lastViewedScreen`), `away_s` (since `lastViewedAt`), `cold_start` (always `true` today), `pending_code_step: 0 \| 1` (the account email code step was open), `had_session: 0 \| 1` |
+| `gate_routed` | Once per cold start, when the root NavigationGate first settles | `group: restoring \| auth \| onboarding \| tabs \| none`, `onboarding_completed_source: local \| me_cache \| me_network \| none` (which input decided: the auth store flag, `me` restored from the persisted cache, `me` fetched this launch, or nothing; `me_network` means `me`'s `dataUpdatedAt` is at or after this JS runtime's start), `me_age_s` (age of `me` data; null without it) |
+| `auth_session_lost` | A null session after a signed-in one, right before local data is cleared (fired before `resetUser()`, so it lands on the rider's person). Includes ordinary sign-outs. | `during_onboarding` (a step on record; the gate clears it whenever it opens (tabs), so a rider who signed in from the onboarding sign-in step does not count), `last_step`, `auth_event` (Supabase event: `SIGNED_OUT` or `INITIAL_SESSION`) |
+
+`lastViewedScreen`, `lastViewedAt` and `codeStepPending` are new optional fields of the persisted
+onboarding store with defaults, so a v9 state loads unchanged (no version bump; T13a owns v10).
+
 ### #365 T04c — `bike_setup_summary`
 
 One event per visit to the bike-setup step (`trackOnboardingEvent`, so it also carries `variant`, `step: bike_setup`, `step_index`). A visit starts when the screen gains focus (first mount, or coming Back to it after Continue) and ends exactly once. Fired by `components/onboarding/bike-setup/use-bike-setup-telemetry.ts`; counters come from `make-grid.tsx` and `model-picker.tsx`. Counts and enums only: the typed search text is never sent. `bike_added` is unchanged.

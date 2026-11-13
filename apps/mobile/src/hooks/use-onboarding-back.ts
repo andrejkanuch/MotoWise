@@ -1,6 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { getPreviousRoute, type OnboardingRoute } from '../config/onboarding';
+import { markOnboardingButtonBack } from '../lib/onboarding-back-marker';
+import { trackOnboardingReplaceBack } from '../lib/onboarding-nav-analytics';
 import { useOnboardingStore } from '../stores/onboarding.store';
 import { useOnboardingVariant } from './use-onboarding-flow';
 
@@ -20,11 +22,15 @@ export function useOnboardingBack(current: OnboardingRoute) {
   const variant = useOnboardingVariant();
   return useCallback(() => {
     if (router.canGoBack()) {
+      // The pop's `beforeRemove` reports it, as `button` (issue 365 T04b).
+      markOnboardingButtonBack();
       router.back();
       return;
     }
     const hasBike = !!useOnboardingStore.getState().bikeData?.make;
     const previous = getPreviousRoute(variant, current, { hasBike });
-    if (previous) router.replace(previous);
+    if (!previous) return;
+    trackOnboardingReplaceBack(current, previous);
+    router.replace(previous);
   }, [router, variant, current]);
 }

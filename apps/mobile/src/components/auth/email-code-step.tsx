@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { EMAIL_OTP_LENGTH } from '../../config/auth';
+import { type AuthSurface, EMAIL_OTP_LENGTH } from '../../config/auth';
 import { useResendCooldown } from '../../hooks/use-resend-cooldown';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import {
@@ -67,6 +67,8 @@ export interface EmailCodeStepProps {
   /** The address the code went to (already normalized by the caller or not; it is normalized here). */
   email: string;
   source: EmailCodeEntrySource;
+  /** The screen the step is on: `surface` on the `user_signed_up` it fires. */
+  surface: AuthSurface;
   /** The password the rider just typed, held in memory only, for the already-confirmed recovery. */
   password?: string;
   /** Open with the resend countdown already running (a send was rate-limited). */
@@ -105,7 +107,7 @@ interface StepMessage {
  */
 const VERIFY_THROTTLE_WAIT_MS = 60_000;
 const NON_DIGITS = /\D/g;
-const USER_SIGNED_UP_PROPS = { auth_method: 'email' } as const;
+const EMAIL_AUTH_METHOD = 'email';
 
 /** Copy for a failed send (Resend). `null` = no message (rate-limited shows the countdown). */
 const SEND_ERROR_MESSAGE: Record<EmailAuthErrorKind, MessageKey | null> = {
@@ -136,6 +138,7 @@ const RECOVERY_ERROR_MESSAGE: Record<EmailAuthErrorKind, MessageKey> = {
 export function EmailCodeStep({
   email,
   source,
+  surface,
   password,
   initialCooldownMs,
   theme: themeOverride,
@@ -181,7 +184,7 @@ export function EmailCodeStep({
   ) => {
     triggerNotification(Haptics.NotificationFeedbackType.Success);
     trackEvent(event, { source });
-    trackEvent(AnalyticsEvent.USER_SIGNED_UP, USER_SIGNED_UP_PROPS);
+    trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: EMAIL_AUTH_METHOD, surface });
   };
 
   /** Sign in with the in-memory password: succeeds only if the email was confirmed elsewhere. */
