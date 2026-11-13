@@ -211,6 +211,12 @@
     "startCta": "Spustiť diagnostiku",
     "quotaRemaining": "Tento mesiac zadarmo: zostáva {{count}} z {{limit}} diagnóz",
     "quotaUsed": "Bezplatnú diagnózu na tento mesiac ste už využili. Znova bude dostupná {{date}}, alebo prejdite na Pro bez limitu.",
+    "limit": {
+      "usedBackOn": "Bezplatnú diagnózu na tento mesiac ste už využili. Znova bude dostupná {{date}}.",
+      "usedResetsNextMonth": "Bezplatnú diagnózu na tento mesiac ste už využili. Obnoví sa budúci mesiac.",
+      "seePro": "Pozrieť plány Pro",
+      "done": "Hotovo"
+    },
     "emptyExplainer": "Opíš, čo počuješ, vidíš alebo cítiš, a ak môžeš, pridaj fotku. Dostaneš pravdepodobné príčiny, naliehavosť a ďalšie kroky.",
     "severityLevel": {
       "low": "Nízka",

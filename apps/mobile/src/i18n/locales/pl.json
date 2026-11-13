@@ -211,6 +211,12 @@
     "startCta": "Rozpocznij diagnozę",
     "quotaRemaining": "Za darmo w tym miesiącu: pozostało {{count}} z {{limit}} diagnoz",
     "quotaUsed": "Darmowa diagnoza w tym miesiącu została wykorzystana. Wróci {{date}} — albo przejdź na Pro bez limitu.",
+    "limit": {
+      "usedBackOn": "Darmowa diagnoza w tym miesiącu została wykorzystana. Wróci {{date}}.",
+      "usedResetsNextMonth": "Darmowa diagnoza w tym miesiącu została wykorzystana. Odnowi się w przyszłym miesiącu.",
+      "seePro": "Zobacz plany Pro",
+      "done": "Gotowe"
+    },
     "emptyExplainer": "Opisz, co słyszysz, widzisz lub czujesz, i dodaj zdjęcie, jeśli możesz. Otrzymasz prawdopodobne przyczyny, pilność i kolejne kroki.",
     "severityLevel": {
       "low": "Niska",

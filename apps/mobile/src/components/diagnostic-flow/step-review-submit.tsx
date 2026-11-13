@@ -16,9 +16,11 @@ import {
   PREDEFINED_TIMING,
   useDiagnosticFlowStore,
 } from '../../stores/diagnostic-flow.store';
+import { useSubscriptionStore } from '../../stores/subscription.store';
 import { type } from '../../theme/type';
 import { NativeToggle } from '../ui/native-toggle';
 import { useDiagnosticColors } from './diagnostic-colors';
+import { DiagnoseLimitPanel } from './limit-panel';
 
 const ALL_PREDEFINED = new Set<string>([
   ...PREDEFINED_SYMPTOMS,
@@ -28,6 +30,8 @@ const ALL_PREDEFINED = new Set<string>([
 
 interface StepReviewSubmitProps {
   onSubmit: () => void;
+  /** "Done" on the limit panel shown once the free diagnosis is used (issue 365 T08). */
+  onLimitDone: () => void;
 }
 
 function ReviewCard({
@@ -98,7 +102,7 @@ function ReviewCard({
   );
 }
 
-export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
+export function StepReviewSubmit({ onSubmit, onLimitDone }: StepReviewSubmitProps) {
   const { t } = useTranslation();
   const colors = useDiagnosticColors();
   const insets = useSafeAreaInsets();
@@ -117,12 +121,17 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
       includeMaintenanceHistory: s.includeMaintenanceHistory,
       isSubmitting: s.isSubmitting,
       submitError: s.submitError,
+      limitReached: s.limitReached,
       hasProblemInput: s.hasProblemInput(),
       goToStepFromReview: s.goToStepFromReview,
       setDataSharingOptedIn: s.setDataSharingOptedIn,
       setIncludeMaintenanceHistory: s.setIncludeMaintenanceHistory,
     })),
   );
+
+  // A rider who went Pro from the paywall gets the Analyze button back.
+  const isPro = useSubscriptionStore((s) => s.isPro);
+  const showLimitPanel = store.limitReached && !isPro;
 
   const { data: motorcyclesData } = useQuery({
     ...motorcyclesOptions(),
@@ -397,64 +406,74 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
           backgroundColor: colors.background,
         }}
       >
-        {!store.hasProblemInput && (
-          <Pressable onPress={() => editStep(2)} accessibilityRole="button">
-            <Text
-              style={{
-                fontSize: 14,
-                color: colors.textMuted,
-                textAlign: 'center',
-                marginBottom: 8,
-              }}
-            >
-              {t('diagnoseV2.problemRequired')}
-            </Text>
-          </Pressable>
-        )}
-        {store.submitError && (
-          <Text
-            style={{
-              fontSize: 14,
-              color: colors.danger,
-              textAlign: 'center',
-              marginBottom: 8,
-            }}
-          >
-            {store.submitError}
-          </Text>
-        )}
-        <Pressable
-          style={{
-            borderRadius: 16,
-            paddingVertical: 16,
-            alignItems: 'center',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            gap: 8,
-            backgroundColor: submitDisabled ? colors.submittingBg : colors.accent,
-            borderCurve: 'continuous',
-          }}
-          onPress={onSubmit}
-          disabled={submitDisabled}
-          accessibilityRole="button"
-          accessibilityState={{ disabled: submitDisabled, busy: store.isSubmitting }}
-        >
-          {store.isSubmitting ? (
-            <>
-              <ActivityIndicator size="small" color={submitInk} />
-              <Text style={[type.bodyStrong, { color: submitInk }]}>
-                {t('diagnoseV2.analyzing')}
+        {showLimitPanel ? (
+          <DiagnoseLimitPanel onDone={onLimitDone} />
+        ) : (
+          <>
+            {!store.hasProblemInput && (
+              <Pressable onPress={() => editStep(2)} accessibilityRole="button">
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: colors.textMuted,
+                    textAlign: 'center',
+                    marginBottom: 8,
+                  }}
+                >
+                  {t('diagnoseV2.problemRequired')}
+                </Text>
+              </Pressable>
+            )}
+            {store.submitError && (
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: colors.danger,
+                  textAlign: 'center',
+                  marginBottom: 8,
+                }}
+              >
+                {store.submitError}
               </Text>
-            </>
-          ) : store.submitError ? (
-            <Text style={[type.bodyStrong, { color: submitInk }]}>{t('diagnoseV2.tryAgain')}</Text>
-          ) : (
-            <>
-              <Sparkles size={18} color={submitInk} strokeWidth={2} />
-              <Text style={[type.bodyStrong, { color: submitInk }]}>{t('diagnoseV2.analyze')}</Text>
-            </>
-          )}
-        </Pressable>
+            )}
+            <Pressable
+              style={{
+                borderRadius: 16,
+                paddingVertical: 16,
+                alignItems: 'center',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                gap: 8,
+                backgroundColor: submitDisabled ? colors.submittingBg : colors.accent,
+                borderCurve: 'continuous',
+              }}
+              onPress={onSubmit}
+              disabled={submitDisabled}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: submitDisabled, busy: store.isSubmitting }}
+            >
+              {store.isSubmitting ? (
+                <>
+                  <ActivityIndicator size="small" color={submitInk} />
+                  <Text style={[type.bodyStrong, { color: submitInk }]}>
+                    {t('diagnoseV2.analyzing')}
+                  </Text>
+                </>
+              ) : store.submitError ? (
+                <Text style={[type.bodyStrong, { color: submitInk }]}>
+                  {t('diagnoseV2.tryAgain')}
+                </Text>
+              ) : (
+                <>
+                  <Sparkles size={18} color={submitInk} strokeWidth={2} />
+                  <Text style={[type.bodyStrong, { color: submitInk }]}>
+                    {t('diagnoseV2.analyze')}
+                  </Text>
+                </>
+              )}
+            </Pressable>
+          </>
+        )}
       </View>
     </View>
   );

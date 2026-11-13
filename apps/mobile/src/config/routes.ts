@@ -12,6 +12,8 @@ export const TAB_ROUTE = {
   DISCOVER: '/(tabs)/(discover)',
   GARAGE: '/(tabs)/(garage)',
   PROFILE: '/(tabs)/(profile)',
+  /** Hidden from the tab bar; opened from Home's Diagnose tool and the diagnose form. */
+  DIAGNOSE: '/(tabs)/(diagnose)',
 } as const;
 
 /**

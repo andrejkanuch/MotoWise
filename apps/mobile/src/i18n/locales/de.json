@@ -211,6 +211,12 @@
     "startCta": "Diagnose starten",
     "quotaRemaining": "Diesen Monat kostenlos: noch {{count}} von {{limit}} Diagnosen",
     "quotaUsed": "Die kostenlose Diagnose für diesen Monat ist verbraucht. Ab {{date}} wieder verfügbar – oder unbegrenzt mit Pro.",
+    "limit": {
+      "usedBackOn": "Die kostenlose Diagnose für diesen Monat ist verbraucht. Ab {{date}} wieder verfügbar.",
+      "usedResetsNextMonth": "Die kostenlose Diagnose für diesen Monat ist verbraucht. Sie wird nächsten Monat erneuert.",
+      "seePro": "Pro-Abos ansehen",
+      "done": "Fertig"
+    },
     "emptyExplainer": "Beschreibe, was du hörst, siehst oder spürst, und füge wenn möglich ein Foto hinzu. Du erhältst die wahrscheinlichen Ursachen, die Dringlichkeit und die nächsten Schritte.",
     "severityLevel": {
       "low": "Gering",

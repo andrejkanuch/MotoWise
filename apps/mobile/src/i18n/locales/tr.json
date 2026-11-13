@@ -211,6 +211,12 @@
     "startCta": "Teşhis başlat",
     "quotaRemaining": "Bu ay ücretsiz: {{limit}} teşhisten {{count}} kaldı",
     "quotaUsed": "Bu ayın ücretsiz teşhisi kullanıldı. {{date}} tarihinde yenilenir ya da sınırsız kullanım için Pro'ya geçin.",
+    "limit": {
+      "usedBackOn": "Bu ayın ücretsiz teşhisi kullanıldı. {{date}} tarihinde yenilenir.",
+      "usedResetsNextMonth": "Bu ayın ücretsiz teşhisi kullanıldı. Gelecek ay yenilenir.",
+      "seePro": "Pro planlarını gör",
+      "done": "Bitti"
+    },
     "emptyExplainer": "Duyduğunu, gördüğünü veya hissettiğini anlat, mümkünse bir fotoğraf ekle. Olası nedenleri, aciliyeti ve sonraki adımları öğrenirsin.",
     "severityLevel": {
       "low": "Düşük",
