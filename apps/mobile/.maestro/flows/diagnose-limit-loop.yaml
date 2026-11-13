@@ -21,10 +21,11 @@
 # an error alert or a paywall; both are closed with `optional: true` and only
 # app-owned UI is asserted.
 #
-# AUTHORED FROM SOURCE 2026-11-13, PENDING ON-DEVICE VALIDATION. Selectors come
-# from the screen code and en.json. TO VERIFY ON DEVICE: that the garage Honda
-# from onboarding.yaml is preselected on step 1, and the label of the RevenueCat
-# "unavailable" alert button.
+# VALIDATED ON DEVICE 2026-11-14 (Android emulator, API 35): red on a main
+# build (raw server text + "Try Again"), green on this branch. Findings: the
+# garage bike is NOT preselected on step 1 (Next stays disabled until it is
+# tapped), and the e2e build's RevenueCat alert is "Upgrade unavailable right
+# now" with a single "OK" button.
 appId: ${APP_ID}
 tags:
   - android
@@ -50,18 +51,19 @@ env:
     id: "diagnose-new"
 
 # 4. Fill the four steps.
-#    Step 1 — the bike (the garage bike may already be selected).
+#    Step 1 — the bike. Not preselected: tap the onboarding Honda card
+#    (its label is "HONDA Africa Twin"; Maestro matches case-insensitively).
 - tapOn:
     text: "Honda.*"
-    optional: true
 - tapOn: "Next"
 #    Step 2 — describe the problem in free text.
 - tapOn: "I'll describe it myself"
 - tapOn:
     text: "Describe what's happening.*"
 - inputText: ${PROBLEM_TEXT}
-# The custom keyboard ignores hideKeyboard: tap the step title instead.
-- tapOn: "Describe the Problem"
+# The system keyboard covers "Next" (verified on the emulator); Android only,
+# so hideKeyboard is safe here.
+- hideKeyboard
 - tapOn: "Next"
 #    Step 3 — no photo, no urgency.
 - scrollUntilVisible:

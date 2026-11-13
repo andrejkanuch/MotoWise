@@ -192,8 +192,8 @@ the flows below.
   FS-PO2a). Seeded and Android only (tag `android`, `setAirplaneMode`): the runner plants a used
   diagnosis (`E2E_SEED_DIAGNOSIS_USED=1`, local stack only), the flow reaches the form offline,
   submits online and asserts the limit panel (`diagnose-limit-panel`, `-see-pro`, `-done`) with
-  no "Try Again". iOS is covered by the jest suite `new-limit.test.tsx`. **Authored from source
-  2026-11-13, pending on-device validation.** `test:e2e:diagnose-limit-loop` on the
+  no "Try Again". iOS is covered by the jest suite `new-limit.test.tsx`. **Validated on the
+  Android emulator 2026-11-14** (red on main, green on the fix). `test:e2e:diagnose-limit-loop` on the
   `e2e-android-local` build.
 
   All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /
