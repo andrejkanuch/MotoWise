@@ -25,6 +25,7 @@ import { GlobalCarPlayBanner } from '../../components/carplay/global-carplay-ban
 import { ErrorFallback } from '../../components/error-fallback';
 import { countGarageBadge } from '../../components/garage/garage-badge-count';
 import { useOpenRide } from '../../features/ride/ride-route';
+import { RIDE_TEST_ID } from '../../features/ride/ride-test-ids';
 import { useRideElapsed } from '../../features/ride/use-ride-elapsed';
 import { BIKE_HUB_ROUTES } from '../../lib/bike-hub/constants';
 import { maintenanceBadgeOptions } from '../../lib/query-options';
@@ -120,6 +121,7 @@ function RideFAB() {
       ]}
     >
       <Pressable
+        testID={RIDE_TEST_ID.TAB_RIDE_FAB}
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={[t('common.ride'), caption].filter(Boolean).join(', ')}

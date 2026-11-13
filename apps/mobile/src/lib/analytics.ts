@@ -578,6 +578,23 @@ export const AnalyticsEvent = {
   // Auth
   USER_SIGNED_IN: 'user_signed_in',
   USER_SIGNED_UP: 'user_signed_up',
+  // issue 365 T04a — auth attempts (FS-OB2a/b/c, FS-OB5); `surface` is `AUTH_SURFACE`.
+  /** An Apple/Google button was tapped, before the provider is called: {provider, surface}. */
+  AUTH_OAUTH_STARTED: 'auth_oauth_started',
+  /**
+   * How that tap ended, exactly once per `auth_oauth_started`: {provider, surface,
+   * outcome, stage, duration_ms, is_new_user, error_code}. Codes only, never messages.
+   */
+  AUTH_OAUTH_RESULT: 'auth_oauth_result',
+  /** `presentOAuthError` showed an alert: {provider, outcome, error_code}. */
+  AUTH_ERROR_ALERT_SHOWN: 'auth_error_alert_shown',
+  /** An email sign-up or sign-in form was submitted: {surface, mode}. Never the address. */
+  AUTH_EMAIL_SUBMITTED: 'auth_email_submitted',
+  /**
+   * The onboarding account step decided where to go once the session landed:
+   * {wait_ms, outcome: advanced | already_onboarded | me_error}.
+   */
+  AUTH_POST_SIGNIN_WAIT: 'auth_post_signin_wait',
   /**
    * An email confirmation code was sent from the app. `source`: `signup`,
    * `signin_unconfirmed` (sign-in to an unconfirmed account) or `resend`.
@@ -618,6 +635,18 @@ export const AnalyticsEvent = {
   // Activation Goal 7 — a receipt scan completed during onboarding (KTD-10 quota-exempt).
   ONBOARDING_SCAN_COMPLETED: 'receipt_scan_onboarding_completed',
   ONBOARDING_RESUMED: 'onboarding_resumed',
+  // issue 365 T04c — one per visit to the bike-setup step: dwell, search counts, how
+  // make/model were picked, models fetch time. See docs/onboarding-ab-event-schema.md.
+  BIKE_SETUP_SUMMARY: 'bike_setup_summary',
+  // issue 365 T04b — onboarding navigation, resume and gate events (lib/onboarding-nav-analytics.ts).
+  /** A Back between onboarding steps: `from`, `to`, `trigger`, `ms_on_screen`. */
+  ONBOARDING_BACK: 'onboarding_back',
+  /** Welcome mounted: `reason` (initial | back | remount), `had_progress`. */
+  ONBOARDING_WELCOME_MOUNTED: 'onboarding_welcome_mounted',
+  /** Root gate's first routing in a launch: `group`, `onboarding_completed_source`, `me_age_s`. */
+  GATE_ROUTED: 'gate_routed',
+  /** A session ended and local data was cleared: `during_onboarding`, `last_step`. */
+  AUTH_SESSION_LOST: 'auth_session_lost',
   // Onboarding A/B (2026) funnel — see docs/onboarding-ab-event-schema.md
   BIKE_ADDED: 'bike_added',
   REVEAL_VIEWED: 'reveal_viewed',

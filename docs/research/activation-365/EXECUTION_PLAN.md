@@ -617,7 +617,8 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Type** release · **Size** S · **Depends** T01, T04a, T04b, T04c, T05a, T05b, T05c, T05d, T07b, T08–T17 (merged) · **Blocks** T35, T14b, T15b, T36, T38 · **Release** store builds per `docs/runbooks/mobile-release.md`
   (D17: no OTA of this content; an OTA only for a crash/data-loss hotfix per `docs/runbooks/mobile-ota.md`, `--environment production`, owner go-ahead) · **Constraints** D14, D17.
 - **What.** Version bump in `apps/mobile/app.config.ts`; `ACTIVATION_FIX_LEVEL = 2` (level 1 is not used, §3A.0 rule 2); release notes list task ids;
-  pre-promotion E2E: `onboarding-paywall-verify.yaml` both arms (required by the runbook), `onboarding.yaml`, plus every new flow from T07–T17.
+  pre-promotion E2E: `onboarding-paywall-verify.yaml` both arms (required by the runbook; iOS build from the `e2e-simulator-paywall` profile, vendor SDKs on, owner go-ahead),
+  `onboarding.yaml`, plus every new flow from T07–T17 (iOS flows on `e2e-simulator`; the Android-only `onboarding-complete-relaunch.yaml` and `diagnose-offline.yaml` on `e2e-android`; both vendor SDKs off).
   On go-live per platform: annotation + §6 row (T03 procedure). Android also carries the FCM config from PR #393 (vc99 line). **vc99 (validation, V3 §2):** vc98 is in Play
   production, so D14's condition is met, but vc99 is a **draft on internal named "3.26.0"** (not even delivered to testers). Steps: (a) rename the release to "3.28.0 (99)";
   (b) roll it to internal and verify a push token registers (`push_token_registered` with `platform='android'`, and a `device_push_tokens` row); (c) promote to production with the
@@ -1544,6 +1545,8 @@ the bug and only protects the fixed behaviour.
 | FS-OB1e cross-check | — | `fs-ob1e-two-bikes.sql` |
 | Android push tokens | `push_token_registered` by `platform` (`lib/push-token.ts:132`) | — |
 
+**#365 T05e — `ride_saved` covers rider saves only.** It is sent from `RidesService.endRide` (including the reclaim branch). Rides the server completes itself (`closeStaleRides` on the next ride start, the idle sweep in `push-tokens/ride-idle.service.ts`) never send it. Those are mostly null-distance or abandoned first rides, the bucket FS-PO4b counts as sub-floor, and a rider whose first ride was swept gets `is_first = false` on the next save, so they leave both numerator and denominator. The two shares also measure different things: `below_min` uses the HUD floors (distance < 50 m **or** duration < 30 s, the client's `below_min_ride`) while the SQL tests distance only, and the event covers every rider while the SQL covers a sign-up cohort. So the event share `ride_saved{is_first, below_min}` / `ride_saved{is_first}` is not directly comparable to `fs-po4b-first-ride.sql` and can differ in either direction; the weekly DB check stays the source of truth for FS-PO4b and the tile is a trend signal only. Follow-up (not in T05e): emit `ride_saved` with a system `save_trigger` from the two sweep paths.
+
 ---
 
 ## 6. Release log (fill during implementation; one row per binary per platform, crash/data-loss hotfix OTA (D17), or API deploy)
@@ -1551,8 +1554,9 @@ the bug and only protects the fixed behaviour.
 | # | Version / runtime + hotfix OTA id / API | Go-live date | Platform | `activation_fix_level` | Tasks + spec ids shipped | PostHog annotation id | Notes (staged %, E2E run link, publish branch) |
 |---|---|---|---|---|---|---|---|
 | 0 | 3.26.0 (b93 Android / b106 iOS), 3.27.0 (iOS b108; Android vc95 internal only), 3.28.0 (iOS b111 from 11-11; Android vc98 from ~11-12) | before 2026-11-12 | both | null | — (baseline) | — | Riders 14 d, per-person platform: Android 3.26.0 108, 3.28.0 5; iOS 3.26.0 37, 3.27.0 14, 3.28.0 11 [SOURCE: V3 P1]. Play production 3.28.0 vc98 (review cleared ~11-12, 80%); vc99 = internal draft named "3.26.0"; App Store 3.28.0 b111, nothing in review [SOURCE: V3 §2–3]. Latest OTA groups: 3.28.0 `fece7a3c`, 3.26.0 `bd05b306`; none on 3.27.0 |
-| 1 | | | | | | | |
-| 2 | | | | | | | |
+| 1 | API `49db3863` (Render `dep-dbrh42m7bikc73f0ebg0`) | 2026-11-13 | server | null (`lvl n/a`) | T05e (#471) — measurement for FS-R2-5, FS-PO4b: server events `onboarding_bike_created`, `ride_saved` | `204938`; text `#365 fixes: server api 49db3863 lvl n/a — FS-R2-5, FS-PO4b (T05e measurement: onboarding_bike_created, ride_saved)` | Live 13:37 UTC; reaches every app version at once. Measurement only: §6.1 rows for FS-R2-5 (T25b) and FS-PO4b (T09) stay `open`. `ride_saved` misses server-ended rides; FS-PO4b stays on the weekly DB check (§5A.4) |
+| 2 | API `8fd7cf6f` (Render `dep-dbrhcgqjnfac739gqms0`) | 2026-11-13 | server | null (`lvl n/a`) | T07a (#472) — FS-PO1H, FS-R2-4 (Exp 2): onboarding bike gets its OEM service plan in the rider's unit, `User.servicePlanTaskCount`/`servicePlanTier`, server event `service_plan_imported`; D7 cap (one maintenance push per bike per 7 days) | `204996`; text `#365 fixes: server api 8fd7cf6f lvl n/a — FS-PO1H, FS-R2-4 (T07a Exp 2: onboarding service plan import + per-bike reminder cap; event service_plan_imported)` | Live 13:55 UTC; reaches every app version at once. Both Exp 1 / onboarding-paywall arms (experiments.md §7). No migration. Client half (tier label, Maestro) is T07b in a store build; §6.1 rows stay `open` until T07b ships |
+| 3 | | | | | | | |
 
 **Template — example row, NOT a real go-live (#365 T03a).** Copy its shape; build numbers, dates and ids are placeholders. Procedure: `docs/runbooks/mobile-release.md` → "#365 release marking".
 
@@ -1627,6 +1631,24 @@ This table is the only record of which level ships which spec (no code map; doc 
 | *ex. FS-PO2a* | *T08* | *2* | *ex. (android)* | *`<T08 PR link>`* | *`<date>`: 0 limit loops on lvl 2 (target 0), n = `<riders>` android* | | | *shipped* |
 
 ---
+
+### 6.2 T03b PostHog objects (created 2026-11-13 from the named list, D2)
+
+Named list: issue #401, [comment 6850112739](https://github.com/andrejkanuch/MotoWise/issues/401#issuecomment-6850112739)
+(amended before the writes it changed: the static cohort was replaced by a SQL view, because one `{EXCL}` person is personless).
+Full tile table, SQL changes and checks: `experiments.md` §11.
+
+| Object | Id |
+|---|---|
+| Dashboard "#365 Activation & frictions" | **1111923** — https://eu.posthog.com/project/155556/dashboard/1111923 |
+| SQL view `activation365_excluded_persons` (`{EXCL}` ids) | `01a1d46b-e269-0000-0612-a1fe79b50e59` |
+| Insights (47, tag `activation-365`) | 7346020 (Day-1 funnel, first tile), 7346041 (S1), 7346043 (S2), 7346050 (S3), 7346064 (S4 / FS-PO1H), 7346071 (S5), 7346112 (S6 / FS-OB1), 7346123 (FS-M), 7346128 (FS-OB1a), 7346139 (FS-OB1b), 7346150 (FS-OB1c), 7346163 (FS-OB1d), 7346167 (FS-OB1e), 7346168 (FS-OB1f), 7346169 (FS-OB2a), 7346171 (FS-OB2b), 7346172 (FS-OB2c), 7346177 (FS-OB3), 7346188 (FS-OB4), 7346189 (FS-OB5), 7346190 (FS-OB6), 7346193 (FS-PO1), 7346195 (FS-R2-3), 7346196 (FS-R2-4), 7346197 (FS-R2-5), 7346198 (FS-PO2a), 7346199 (FS-PO2b), 7346201 (FS-PO2c), 7346212 (FS-PO2d), 7346213 (FS-PO3), 7346215 (FS-PO3b), 7346216 (FS-PO4a), 7346219 (FS-PO4b), 7346222 (FS-PO5), 7346242 (FS-PO6), 7346245 (FS-PO7), 7346246 (FS-PO8), 7346247 (FS-PO10), 7346257 (FS-PO12), 7346264 (FS-PO13), 7346271 (FS-PO14), 7346281 (FS-PO17), 7346292 (FS-EXP1), 7346299 (weekly install-cohort table), 7346305 (push tokens), 7346326 (FS-PO5 alert source), 7346324 (FS-M alert source) |
+| Alert FS-PO5 (weekly, `hud_without_any_start > 0`) | `01a1d474-999b-0000-5792-c19c6b5dd5df` |
+| Alert FS-M (daily, last 3 d, `mismatched_opens > 0`) | `01a1d474-a32e-0000-dc16-82ddcdf4b826` |
+| Annotation `#365 baseline` (2026-11-13) | **204474** |
+
+FS-M alert upkeep: the FS-M alert source (7346324) maps 3.29.0 → 2 and 3.30.0 → 3; each later store-build cut adds its version →
+level row with one `insight-update` on that release's named list (§3A.0 rule 5).
 
 ## 7. Queries and reads added in the revision run (2026-11-12, all read-only)
 

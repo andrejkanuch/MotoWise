@@ -35,3 +35,22 @@ describe('resolveMaintenancePushCopy', () => {
     }
   });
 });
+
+// activation T07a: the per-bike reminder cap sends one push naming the count.
+describe('MaintenancePushCopy.combinedBody', () => {
+  it('names the count and the bike in English', () => {
+    expect(resolveMaintenancePushCopy('en').combinedBody(3, 'MT-09')).toBe(
+      '3 services due on your MT-09. Tap to review.',
+    );
+  });
+
+  it('has a localized combined line for every supported locale', () => {
+    const english = resolveMaintenancePushCopy('en').combinedBody(3, 'MT-09');
+    for (const locale of SUPPORTED_LOCALES) {
+      const body = resolveMaintenancePushCopy(locale).combinedBody(3, 'MT-09');
+      expect(body).toContain('3');
+      expect(body).toContain('MT-09');
+      if (locale !== 'en') expect(body).not.toBe(english);
+    }
+  });
+});

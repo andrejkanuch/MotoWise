@@ -189,7 +189,20 @@ describe('Onboarding sign-in with an unconfirmed account', () => {
 
     await signIn();
 
-    expect(eventsNamed('USER_SIGNED_IN')).toEqual([['USER_SIGNED_IN', { auth_method: 'email' }]]);
+    expect(eventsNamed('USER_SIGNED_IN')).toEqual([
+      ['USER_SIGNED_IN', { auth_method: 'email', surface: 'onboarding_sign_in' }],
+    ]);
     expect(mockSendSignupCode).not.toHaveBeenCalled();
+  });
+
+  it('submitting the form fires auth_email_submitted once with surface and mode, never the address', async () => {
+    mockSignInWithPassword.mockResolvedValue({ data: { session: {} }, error: null });
+
+    await signIn();
+
+    expect(eventsNamed('AUTH_EMAIL_SUBMITTED')).toEqual([
+      ['AUTH_EMAIL_SUBMITTED', { surface: 'onboarding_sign_in', mode: 'signin' }],
+    ]);
+    expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(EMAIL);
   });
 });
