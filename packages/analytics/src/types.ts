@@ -1,6 +1,11 @@
 import type { z } from 'zod';
 import type {
   ANALYTICS_EVENTS,
+  AuthEmailSubmittedSchema,
+  AuthErrorAlertShownSchema,
+  AuthOAuthResultSchema,
+  AuthOAuthStartedSchema,
+  AuthPostSigninWaitSchema,
   ExplorePageViewedSchema,
   FilterAppliedSchema,
   GpxDownloadAttemptedSchema,
@@ -27,6 +32,12 @@ export type SignupStartedProperties = z.infer<typeof SignupStartedSchema>;
 export type SearchPerformedProperties = z.infer<typeof SearchPerformedSchema>;
 export type ExplorePageViewedProperties = z.infer<typeof ExplorePageViewedSchema>;
 export type RegionPageViewedProperties = z.infer<typeof RegionPageViewedSchema>;
+// Mobile auth events (MOBILE_AUTH_EVENTS); not part of the web `track()` map.
+export type AuthOAuthStartedProperties = z.infer<typeof AuthOAuthStartedSchema>;
+export type AuthOAuthResultProperties = z.infer<typeof AuthOAuthResultSchema>;
+export type AuthErrorAlertShownProperties = z.infer<typeof AuthErrorAlertShownSchema>;
+export type AuthEmailSubmittedProperties = z.infer<typeof AuthEmailSubmittedSchema>;
+export type AuthPostSigninWaitProperties = z.infer<typeof AuthPostSigninWaitSchema>;
 
 // ---------------------------------------------------------------------------
 // Event name union type
