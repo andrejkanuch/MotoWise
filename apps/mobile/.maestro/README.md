@@ -119,9 +119,10 @@ the flows below.
   path (tap row → Delete → confirm). `test:e2e:delete-expense`.
 - **`flows/log-ride.yaml`** — start a ride, record, hold-to-end, save. **Validated end-to-end
   on-device 2026-07-15.** Uses `setLocation` for a GPS fix; ends via a long-press ("Hold to end
-  ride") + a point-tap (~73%,88%) on the "End Anyway" bottom-sheet confirm (its texts are not in
-  the a11y tree). Re-validated 2026-10-09 against the redesigned sheet.
-  `test:e2e:log-ride`.
+  ride") + the minimum-ride guard sheet. Since #365 T05c it uses ids only (`tab-ride-fab`,
+  `start-ride-screen`, `start-ride-button`, `ride-hud-root`, `ride-guard-sheet`,
+  `ride-guard-variant-default`, `ride-guard-keep`, `ride-guard-end-anyway`;
+  `src/features/ride/ride-test-ids.ts`). `test:e2e:log-ride`.
 - **`flows/bike-hub-overview.yaml`** — the redesigned bike screen (bike-detail redesign R1): four
   segments, Overview "Log" pill → Log sheet → Note sheet → save, the Notes screen with delete + Undo,
   and the Odometer sheet from the header chip. Needs a backend with migrations 00180–00182 (see
@@ -255,10 +256,11 @@ Hard-won specifics for THIS app — check these first when a flow "should work" 
   carries its badge (**"Garage, 1 due"**). Match the a11y label (partial regex), not the on-screen word.
 - **Some controls are gestures, not taps.** Ending a ride is a **long-press** ("Hold to end ride" →
   `longPressOn`), and deleting an expense is swipe/long-press (see delete-expense's blocked note).
-- **Unlabeled + portal'd controls need point-taps.** The center ride **FAB** has no label (tap ~50%,92%),
-  and the ride's **"End ride?"** confirm is a `@gorhom/bottom-sheet` whose buttons are absent from the
-  a11y tree — tap "End Anyway" by point (~73%,88% since the redesign; 73%,80% now hits the tip box). Point-taps are percentage-based (portable) but
-  resolution-sensitive; prefer a real selector whenever `inspect_screen` exposes one.
+- **A `@gorhom/bottom-sheet` hides its content from the a11y tree by default.** The sheet is one
+  `accessible` element ("Bottom Sheet"), so its buttons are invisible to Maestro and VoiceOver. Pass
+  `accessible={false}` and give the buttons testIDs, as the ride guard sheet does
+  (`src/features/ride/ride-guard-sheet.tsx`). Prefer a real selector over a `point:` tap whenever
+  `inspect_screen` exposes one.
 - **GPS-dependent flows need `setLocation`.** The ride pre-flight GPS check and recording need a fix;
   set one at the top of the flow (a stationary sim logs ~0 distance, which still saves).
 
