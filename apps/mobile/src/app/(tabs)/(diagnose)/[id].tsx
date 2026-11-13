@@ -28,6 +28,7 @@ import {
   URGENT_SEVERITIES,
 } from '@/components/diagnosis/severity-chip';
 import { useStartDiagnosis } from '@/components/diagnosis/use-start-diagnosis';
+import { DIAGNOSTIC_ENTRY } from '@/config/diagnostic-entry';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { exportDiagnosticReport } from '@/lib/pdf-export';
 import { queryKeys } from '@/lib/query-keys';
@@ -113,7 +114,7 @@ export default function DiagnosticResultScreen() {
     }
   };
 
-  const startNew = useStartDiagnosis();
+  const startNew = useStartDiagnosis(DIAGNOSTIC_ENTRY.DETAIL);
 
   if (isLoading) {
     return <ProcessingState label={t('diagnose.processing')} />;
@@ -129,9 +130,7 @@ export default function DiagnosticResultScreen() {
     return <ProcessingState label={t('diagnose.processing')} />;
   }
 
-  if (diagnostic.status === DIAGNOSTIC_STATUS.FAILED) {
-    return <FailedState onRetry={startNew} />;
-  }
+  if (diagnostic.status === DIAGNOSTIC_STATUS.FAILED) return <FailedState onRetry={startNew} />;
 
   const confidence = diagnostic.confidence ?? 0;
   const isUrgent = diagnostic.severity != null && URGENT_SEVERITIES.has(diagnostic.severity);

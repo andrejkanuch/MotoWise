@@ -20,6 +20,11 @@ const mockPurchases = {
   setEmail: jest.fn(),
   collectDeviceIdentifiers: jest.fn().mockResolvedValue(undefined),
   enableAdServicesAttributionTokenCollection: jest.fn().mockResolvedValue(undefined),
+  getOfferings: jest.fn().mockResolvedValue({
+    current: { identifier: 'default', availablePackages: [{}] },
+    all: {},
+  }),
+  getCurrentOfferingForPlacement: jest.fn().mockResolvedValue(null),
 };
 
 jest.mock('react-native-purchases', () => ({
@@ -30,6 +35,21 @@ jest.mock('react-native-purchases', () => ({
 jest.mock('expo-constants', () => ({
   appOwnership: null,
 }));
+
+const mockPresentPaywallUI = jest.fn();
+jest.mock('react-native-purchases-ui', () => ({
+  __esModule: true,
+  PAYWALL_RESULT: {
+    PURCHASED: 'PURCHASED',
+    RESTORED: 'RESTORED',
+    NOT_PRESENTED: 'NOT_PRESENTED',
+    ERROR: 'ERROR',
+    CANCELLED: 'CANCELLED',
+  },
+  CustomVariableValue: { string: (value: string) => value },
+  default: { presentPaywall: (...args: unknown[]) => mockPresentPaywallUI(...args) },
+}));
+jest.mock('../paywall-error-alert', () => ({ showPaywallUnavailable: jest.fn() }));
 
 const mockConsent = jest.fn<boolean, []>();
 jest.mock('../store-review', () => ({
@@ -73,10 +93,23 @@ jest.mock('../../stores/subscription.store', () => ({
 }));
 
 import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
+import { AppState, type AppStateStatus } from 'react-native';
+import {
+  PAYWALL_GATE_EVENT,
+  PAYWALL_GATE_POLICY,
+  PAYWALL_SESSION_BACKGROUND_RESET_MS,
+  PAYWALL_SUPPRESSED_REASON,
+  PAYWALL_TRIGGER,
+  recordOnboardingCompleted,
+  resetPaywallSession,
+} from '../paywall-session';
+import { ONBOARDING_PAYWALL_SURFACE } from '../paywall-surfaces';
 import {
   configureRcAttribution,
   loginRevenueCat,
   logoutRevenueCat,
+  paywallHistoryLoader,
+  presentPaywall,
   resyncTrialReminder,
   setOnboardingAttributes,
   setSelfReportedSource,
@@ -444,4 +477,223 @@ describe('configureRcAttribution', () => {
   // NOTE: the Android path (enableAdServicesAttributionTokenCollection skipped) is
   // not unit-tested because babel-preset-expo inlines `process.env.EXPO_OS` at
   // transform time, so it cannot be flipped to 'android' at runtime in jest.
+});
+
+// issue 365 T05a: every paywall event says who started it, under which gate policy,
+// and where it sits in the session (FS-PO3).
+describe('paywall trigger and session properties', () => {
+  const PAYWALL_EVENTS = ['PAYWALL_PRESENT_REQUESTED', 'PAYWALL_VIEWED', 'PAYWALL_RESULT'];
+  const BASE_KEYS = [
+    'source',
+    'feature',
+    'surface',
+    'placement',
+    'offering_identifier',
+    'required_entitlement_identifier',
+    'platform',
+    'sdk',
+  ];
+  const ADDED_KEYS = [
+    'trigger',
+    'gate_policy',
+    'session_paywall_index',
+    'minutes_since_onboarding_completed',
+  ];
+  const MINUTE = 60 * 1000;
+  const appStateHandlers: Array<(state: AppStateStatus) => void> = [];
+  let now = 0;
+
+  const paywallEvents = () =>
+    mockTrackEvent.mock.calls
+      .filter(([event]) => PAYWALL_EVENTS.includes(event as string))
+      .map(([event, props]) => ({
+        event: event as string,
+        props: props as Record<string, unknown>,
+      }));
+  const eventsNamed = (name: string) =>
+    paywallEvents()
+      .filter(({ event }) => event === name)
+      .map(({ props }) => props);
+  const changeAppState = (state: AppStateStatus) => {
+    for (const handler of appStateHandlers) handler(state);
+  };
+
+  beforeAll(() => {
+    jest.spyOn(AppState, 'addEventListener').mockImplementation((_type, handler) => {
+      appStateHandlers.push(handler as (state: AppStateStatus) => void);
+      return { remove: jest.fn() } as unknown as ReturnType<typeof AppState.addEventListener>;
+    });
+    paywallHistoryLoader.load = () =>
+      Promise.resolve({
+        recordOnboardingPaywallDismissed: jest.fn(),
+        getOnboardingPaywallDismissedAt: () => null,
+      });
+  });
+
+  beforeEach(() => {
+    now = 1_000_000;
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
+    mockPresentPaywallUI.mockResolvedValue('CANCELLED');
+    resetPaywallSession();
+  });
+
+  afterEach(() => {
+    jest.spyOn(Date, 'now').mockRestore();
+  });
+
+  it('puts trigger and gate_policy on 100% of paywall events, auto and none by default', async () => {
+    await presentPaywall({ source: 'garage', feature: 'unlimited_bikes' });
+    mockPresentPaywallUI.mockResolvedValueOnce('PURCHASED');
+    await presentPaywall({ source: 'garage', feature: 'unlimited_bikes' });
+
+    const events = paywallEvents();
+    expect(events.map(({ event }) => event)).toEqual([...PAYWALL_EVENTS, ...PAYWALL_EVENTS]);
+    for (const { props } of events) {
+      expect(props).toEqual(
+        expect.objectContaining({
+          trigger: PAYWALL_TRIGGER.AUTO,
+          gate_policy: PAYWALL_GATE_POLICY.NONE,
+          minutes_since_onboarding_completed: null,
+        }),
+      );
+    }
+  });
+
+  it('numbers each present in the session: Garage "Add a Bike" twice gives 1 then 2', async () => {
+    const garage = {
+      source: 'garage',
+      feature: 'unlimited_bikes',
+      surface: 'garage_add_bike_header',
+    };
+    await presentPaywall(garage);
+    await presentPaywall(garage);
+
+    expect(eventsNamed('PAYWALL_PRESENT_REQUESTED')).toEqual([
+      expect.objectContaining({ trigger: 'auto', session_paywall_index: 1 }),
+      expect.objectContaining({ trigger: 'auto', session_paywall_index: 2 }),
+    ]);
+    // One present: its viewed and result events share the request's index.
+    expect(eventsNamed('PAYWALL_VIEWED').map((p) => p.session_paywall_index)).toEqual([1, 2]);
+    expect(eventsNamed('PAYWALL_RESULT').map((p) => p.session_paywall_index)).toEqual([1, 2]);
+  });
+
+  it('names the T21 gate events as the shared contract does', () => {
+    expect(PAYWALL_GATE_EVENT).toEqual({
+      PAYWALL_SUPPRESSED: 'paywall_suppressed',
+      LIMIT_SHEET_VIEWED: 'limit_sheet_viewed',
+    });
+    expect(Object.values(PAYWALL_SUPPRESSED_REASON)).toEqual([
+      'feature_cap',
+      'session_cap',
+      'error_cooldown',
+    ]);
+  });
+
+  it('keeps the stamped props when call-site metadata uses the same keys', async () => {
+    await presentPaywall({
+      source: 'feature_gate',
+      metadata: {
+        entry_surface: 'home',
+        trigger: 'rider_tap',
+        gate_policy: 'capped_v1',
+        session_paywall_index: 99,
+        minutes_since_onboarding_completed: 5,
+      },
+    });
+
+    expect(paywallEvents()).toHaveLength(PAYWALL_EVENTS.length);
+    for (const { props } of paywallEvents()) {
+      expect(props).toEqual(
+        expect.objectContaining({
+          entry_surface: 'home',
+          trigger: PAYWALL_TRIGGER.AUTO,
+          gate_policy: PAYWALL_GATE_POLICY.NONE,
+          session_paywall_index: 1,
+          minutes_since_onboarding_completed: null,
+        }),
+      );
+    }
+  });
+
+  it('carries rider_tap from an explicit Upgrade surface', async () => {
+    await presentPaywall({
+      source: 'profile',
+      feature: 'subscription',
+      surface: 'profile_subscriptions_row',
+      trigger: PAYWALL_TRIGGER.RIDER_TAP,
+    });
+
+    expect(paywallEvents()).toHaveLength(PAYWALL_EVENTS.length);
+    for (const { props } of paywallEvents()) {
+      expect(props.trigger).toBe('rider_tap');
+    }
+  });
+
+  it('starts a new session after more than 30 minutes in the background, not after less', async () => {
+    await presentPaywall();
+    changeAppState('background');
+    now += PAYWALL_SESSION_BACKGROUND_RESET_MS;
+    changeAppState('active');
+    await presentPaywall();
+    changeAppState('background');
+    now += PAYWALL_SESSION_BACKGROUND_RESET_MS + 1;
+    changeAppState('active');
+    await presentPaywall();
+
+    expect(eventsNamed('PAYWALL_PRESENT_REQUESTED').map((p) => p.session_paywall_index)).toEqual([
+      1, 2, 1,
+    ]);
+  });
+
+  it('reports whole minutes since onboarding was completed in this app run', async () => {
+    recordOnboardingCompleted(now);
+    now += 7 * MINUTE + 59 * 1000;
+
+    await presentPaywall();
+
+    expect(paywallEvents()).toHaveLength(PAYWALL_EVENTS.length);
+    for (const { props } of paywallEvents()) {
+      expect(props.minutes_since_onboarding_completed).toBe(7);
+    }
+  });
+
+  it('changes onboarding paywall events only by the added properties', async () => {
+    await presentPaywall({
+      source: 'onboarding',
+      feature: 'onboarding',
+      surface: ONBOARDING_PAYWALL_SURFACE.STEP,
+      placement: 'onboarding',
+      silentOnError: true,
+    });
+
+    expect(
+      paywallEvents().map(({ event, props }) => ({ event, keys: Object.keys(props) })),
+    ).toEqual([
+      { event: 'PAYWALL_PRESENT_REQUESTED', keys: [...BASE_KEYS, ...ADDED_KEYS] },
+      {
+        event: 'PAYWALL_VIEWED',
+        keys: [
+          ...BASE_KEYS,
+          ...ADDED_KEYS,
+          'offering_source',
+          'resolved_offering_identifier',
+          'custom_variables_sent',
+        ],
+      },
+      {
+        event: 'PAYWALL_RESULT',
+        keys: [...BASE_KEYS, ...ADDED_KEYS, 'paywall_result', 'offering_source'],
+      },
+    ]);
+    expect(eventsNamed('PAYWALL_VIEWED')[0]).toEqual(
+      expect.objectContaining({
+        source: 'onboarding',
+        surface: 'onboarding_paywall',
+        placement: 'onboarding',
+        trigger: 'auto',
+        gate_policy: 'none',
+        session_paywall_index: 1,
+      }),
+    );
+  });
 });

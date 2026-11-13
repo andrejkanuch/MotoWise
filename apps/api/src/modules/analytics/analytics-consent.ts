@@ -19,6 +19,7 @@ export function hasAnalyticsConsent(decision: AnalyticsDecision): boolean {
   return decision !== false;
 }
 
+/** Stricter consent for the #365 server events: only a stored "yes" counts; NULL is "no". */
 export function hasExplicitAnalyticsConsent(decision: boolean | null | undefined): boolean {
   return decision === true;
 }

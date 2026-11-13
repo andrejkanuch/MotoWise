@@ -30,6 +30,7 @@ import {
   type TrackPointsRow,
 } from '../../common/track-points';
 import { POSTGRES_REAL, QUERY_LIMITS } from '../../config/constants';
+import { ServerEventsService } from '../analytics/server-events.service';
 import { TIERS } from '../entitlements/entitlements.types';
 import { RIDE_STATS_TABLE } from '../ride-stats/ride-stats.types';
 import { RIDE_NEW_ROADS_RPC } from '../rider-insights/rider-insights.types';
@@ -253,6 +254,7 @@ export class RidesService {
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
     private readonly eventEmitter: EventEmitter2,
+    private readonly serverEvents: ServerEventsService,
   ) {}
 
   /**
@@ -792,6 +794,21 @@ export class RidesService {
         });
       }
     }
+
+    // #365 T05e: ride_saved, once per save (idempotent retries returned above).
+    // Fire and forget; never fails the mutation.
+    this.serverEvents
+      .captureRideSaved(userId, {
+        rideId: ride.id,
+        startedAt: ride.startedAt,
+        endedAt: ride.endedAt,
+        distanceM: ride.distanceM,
+        durationS: ride.durationS,
+        endSource: input.endSource,
+      })
+      .catch((err) => {
+        this.logger.warn(`ride_saved capture failed for ride ${ride.id}: ${err}`);
+      });
 
     // Emit event for async AI ride summary generation
     this.eventEmitter.emit(RIDE_EVENTS.COMPLETED, {

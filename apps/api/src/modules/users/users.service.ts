@@ -24,6 +24,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { PG_ERROR } from '../../common/supabase/unwrap';
 import { type AnalyticsDecision, readAnalyticsDecision } from '../analytics/analytics-consent';
 import { postHogCaptureTarget, sendPostHogBatch } from '../analytics/posthog-capture';
+import { ServerEventsService } from '../analytics/server-events.service';
 import {
   buildServicePlanImportedEvent,
   SERVICE_PLAN_SOURCE,
@@ -106,6 +107,7 @@ export class UsersService {
     private readonly metaEventsService: MetaEventsService,
     private readonly oemSchedulesService: OemSchedulesService,
     private readonly configService: ConfigService,
+    private readonly serverEvents: ServerEventsService,
   ) {}
 
   private mapRow(row: Tables<'users'>): User {
@@ -255,6 +257,20 @@ export class UsersService {
     }
 
     const user = await this.findById(userId);
+
+    // T05e: the RPC returns the bike it created or found (a sequential repeat
+    // with the same bike finds it, T06 item 5). Fire and forget; never fails the mutation.
+    if (input.bikeMake && onboardingBikeId(rpcResult)) {
+      this.serverEvents
+        .captureOnboardingBikeCreated(userId, {
+          make: input.bikeMake,
+          model: input.bikeModel,
+          mileageUnit: input.bikeMileageUnit,
+        })
+        .catch((err) => {
+          this.logger.warn(`onboarding_bike_created capture failed for ${userId}: ${err}`);
+        });
+    }
 
     const servicePlan = await this.importOnboardingServicePlan(
       user,

@@ -34,6 +34,7 @@ jest.mock('../lib/analytics', () => ({
     ONBOARDING_STEP_VIEWED: 'onboarding_step_viewed',
     ONBOARDING_STEP_COMPLETED: 'onboarding_step_completed',
     ONBOARDING_STARTED: 'onboarding_started',
+    ONBOARDING_COMPLETED: 'onboarding_completed',
     BIKE_ADDED: 'bike_added',
   },
   trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
@@ -63,7 +64,9 @@ const { useExperimentStore } = require('../stores/experiment.store');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { resolveOnboardingVariant, getOnboardingVariant } = require('../lib/onboarding-experiment');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { trackOnboardingEvent } = require('../lib/onboarding-analytics');
+const { trackOnboardingEvent, trackOnboardingCompletion } = require('../lib/onboarding-analytics');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { minutesSinceOnboardingCompleted, resetPaywallSession } = require('../lib/paywall-session');
 
 /** Every value that can be persisted in MMKV, including the retired arms. */
 const ALL_VARIANTS = [OB_VARIANT.SHIPPED, OB_VARIANT.LEAN, OB_VARIANT.INVESTED, OB_VARIANT.CONTROL];
@@ -354,6 +357,22 @@ describe('analytics contract survives the retirement', () => {
       'onboarding_step_viewed',
       expect.objectContaining({ variant: 'invested' }),
     );
+  });
+
+  // issue 365 T05a: completion starts the clock paywall events report.
+  it('fires onboarding_completed once and starts the paywall onboarding clock', async () => {
+    resetPaywallSession();
+    useExperimentStore.getState().assignVariant(OB_VARIANT.SHIPPED, 'shipped');
+    await resolveOnboardingVariant();
+    expect(minutesSinceOnboardingCompleted()).toBeNull();
+    mockTrackEvent.mockClear();
+
+    trackOnboardingCompletion({ has_bike: true });
+
+    expect(mockTrackEvent.mock.calls).toEqual([
+      ['onboarding_completed', { variant: 'shipped', has_bike: true }],
+    ]);
+    expect(minutesSinceOnboardingCompleted()).toBe(0);
   });
 });
 
