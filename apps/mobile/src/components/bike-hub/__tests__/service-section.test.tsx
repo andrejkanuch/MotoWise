@@ -331,4 +331,20 @@ describe('Service — imported service plan (issue 365 T07b)', () => {
     await renderSection(IMPORTED, { initialExpandedId: 'oem-9' });
     expect(screen.getByTestId('service-task-details-oem-9')).toBeOnTheScreen();
   });
+
+  it('a task asked for before a snapshot lists it is shown once a later one does', async () => {
+    const props = {
+      motorcycleId: 'bike-a',
+      odometer: ODOMETER,
+      make: 'Honda',
+      mileageUnit: HUB_UNIT.KM,
+      initialExpandedId: 'oem-9',
+      ...handlers(),
+    };
+    await render(<MaintenanceSection tasks={IMPORTED.slice(0, 5)} {...props} />);
+    expect(screen.queryByTestId('service-task-details-oem-9')).toBeNull();
+    // The refetch lists the task below the first three: the list opens for it.
+    await screen.rerender(<MaintenanceSection tasks={IMPORTED} {...props} />);
+    expect(screen.getByTestId('service-task-details-oem-9')).toBeOnTheScreen();
+  });
 });
