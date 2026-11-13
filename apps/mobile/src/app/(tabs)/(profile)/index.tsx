@@ -29,7 +29,7 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LEGAL_URL } from '@/components/profile/constants';
+import { LEGAL_URL, PROFILE_UPGRADE_PAYWALL } from '@/components/profile/constants';
 import { IdentityHeader } from '@/components/profile/identity-header';
 import {
   openManageSubscription,
@@ -162,13 +162,7 @@ export default function ProfileScreen() {
             icon={Crown}
             title={t('profile.proBanner')}
             subtitle={t('profile.proDescription')}
-            onPress={() =>
-              presentPaywall({
-                source: 'profile',
-                feature: 'subscription',
-                surface: 'profile_subscriptions_row',
-              })
-            }
+            onPress={() => presentPaywall(PROFILE_UPGRADE_PAYWALL)}
           />
         )}
         {isPro ? (

@@ -18,6 +18,14 @@ import { getStoredUtmProperties } from './meta-attribution';
 import { isNetworkError } from './network-error';
 import { showPaywallUnavailable } from './paywall-error-alert';
 import {
+  minutesSinceOnboardingCompleted,
+  nextSessionPaywallIndex,
+  PAYWALL_GATE_POLICY,
+  PAYWALL_TRIGGER,
+  type PaywallGatePolicy,
+  type PaywallTrigger,
+} from './paywall-session';
+import {
   isOnboardingPaywallSurface,
   PAYWALL_SURFACE,
   RIDER_INSIGHTS_PAYWALL_VARIABLE,
@@ -93,6 +101,19 @@ type PaywallAnalyticsOptions = {
   feature?: string;
   surface?: string;
   metadata?: Record<string, JsonType>;
+  /**
+   * Who asked for this paywall (issue 365 T05a). Defaults to `auto`; only explicit
+   * Upgrade surfaces the rider taps pass `rider_tap`.
+   */
+  trigger?: PaywallTrigger;
+  /** The frequency policy that allowed this present. Defaults to `none` (no cap yet, T21). */
+  gatePolicy?: PaywallGatePolicy;
+};
+
+/** Per-present session context, stamped once on the request and reused by its later events. */
+type PaywallSessionContext = {
+  sessionPaywallIndex: number;
+  minutesSinceOnboardingCompleted: number | null;
 };
 
 type PresentPaywallOptions = PaywallAnalyticsOptions & {
@@ -131,8 +152,11 @@ type PresentPaywallOptions = PaywallAnalyticsOptions & {
   silentOnError?: boolean;
 };
 
+/** The options of one present, with the session context its events carry. */
+type TrackedPaywallOptions = PresentPaywallOptions & { session: PaywallSessionContext };
+
 function paywallProperties(
-  options: PresentPaywallOptions,
+  options: TrackedPaywallOptions,
   extra: Record<string, JsonType> = {},
 ): Record<string, JsonType> {
   return {
@@ -144,6 +168,10 @@ function paywallProperties(
     required_entitlement_identifier: options.requiredEntitlementIdentifier ?? null,
     platform: process.env.EXPO_OS ?? 'unknown',
     sdk: 'revenuecat',
+    trigger: options.trigger ?? PAYWALL_TRIGGER.AUTO,
+    gate_policy: options.gatePolicy ?? PAYWALL_GATE_POLICY.NONE,
+    session_paywall_index: options.session.sessionPaywallIndex,
+    minutes_since_onboarding_completed: options.session.minutesSinceOnboardingCompleted,
     ...(options.metadata ?? {}),
     ...extra,
   };
@@ -188,7 +216,7 @@ export const paywallHistoryLoader = {
 };
 
 async function trackPaywallResult(
-  options: PresentPaywallOptions,
+  options: TrackedPaywallOptions,
   result: PaywallResult,
   extra: Record<string, JsonType> = {},
 ) {
@@ -851,7 +879,16 @@ function resolveCustomVariables(
   );
 }
 
-async function doPresentPaywall(options: PresentPaywallOptions): Promise<PaywallResult> {
+async function doPresentPaywall(requested: PresentPaywallOptions): Promise<PaywallResult> {
+  // Counted here, not in presentPaywall: a request that joins one in flight shows
+  // no paywall and fires no events, so it is not a present of its own.
+  const options: TrackedPaywallOptions = {
+    ...requested,
+    session: {
+      sessionPaywallIndex: nextSessionPaywallIndex(),
+      minutesSinceOnboardingCompleted: minutesSinceOnboardingCompleted(),
+    },
+  };
   trackEvent(AnalyticsEvent.PAYWALL_PRESENT_REQUESTED, paywallProperties(options));
   let stage: PaywallErrorStage = PAYWALL_ERROR_STAGE.offerings;
   let packageCount: number | null = null;
