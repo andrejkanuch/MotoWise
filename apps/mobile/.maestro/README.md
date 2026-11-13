@@ -20,7 +20,7 @@ when a local build is not possible. The first local Android build fills ~5–8 G
 | Android APK, local stack | `eas build -p android --profile e2e-android-local` | local Supabase `http://10.0.2.2:54321` + local API `http://10.0.2.2:4000/graphql` (cleartext allowed only in this build via `E2E_LOCAL_STACK=1`) | seeded flows (diagnosis used, limits) — see `features/bike-detail-shell-overview/local-stack.md` |
 | Android, real store binary | `bundletool build-apks --mode=universal` on the production AAB, sign with a local debug key, `adb install` | production | read-only red runs only: never sign up, sign in or create rows |
 
-The Android E2E profiles set `EXPO_PUBLIC_E2E_NO_VENDOR_SDKS=1` (`src/lib/e2e-build.ts`: RevenueCat not configured, PostHog without a key, Meta events dropped; EAS rejects empty keys in `eas.json`) (no test traffic in those dashboards; paywall flows need `e2e-simulator`). All E2E profiles set `EXPO_PUBLIC_E2E_RUN=1` (the E2E marker for analytics exclusion) and
+The Android E2E profiles set `EXPO_PUBLIC_E2E_NO_VENDOR_SDKS=1` (`src/lib/e2e-build.ts`: RevenueCat not configured, PostHog without a key, Meta events dropped; EAS rejects empty keys in `eas.json`) (no test traffic in those dashboards; paywall flows need `e2e-simulator`). All E2E profiles set `EXPO_PUBLIC_E2E_RUN=1`: every PostHog event from such a build carries the super property `e2e_run: true` (`src/lib/analytics-release-marker.ts`), which every #365 metric excludes. Any new E2E profile must set it too. They also set
 `EAS_NO_FROZEN_LOCKFILE=1` (the EAS upload has no `apps/api/package.json`, so a frozen install fails).
 
 Devices on the dev machine (2026-11-12): iOS simulator **"MV iPhone"** (iPhone 16, iOS 27.2,

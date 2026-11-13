@@ -1,4 +1,4 @@
-import type { JsonType } from '@posthog/core';
+import type { CaptureEvent, JsonType } from '@posthog/core';
 import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
 import PostHog from 'posthog-react-native';
@@ -10,6 +10,7 @@ import {
   resolveLaunchConsent,
   setStoredAnalyticsConsent,
 } from './analytics-consent';
+import { buildReleaseMarker } from './analytics-release-marker';
 import { vendorSdksDisabled } from './e2e-build';
 import {
   describeGraphQLError,
@@ -53,6 +54,24 @@ const launchConsent: ConsentState = resolveLaunchConsent();
 // the client so the `before_send` guard below can read it from the first event.
 let analyticsEnabled = launchConsent === CONSENT_STATE.GRANTED;
 
+/**
+ * Which JS this launch runs (issue 365 FS-M) plus the platform; fixed for the launch.
+ * Built before the client so `before_send` can stamp it from the first event.
+ */
+export const RELEASE_MARKER: Record<string, JsonType> = buildReleaseMarker();
+
+/**
+ * Stamps the release marker on an outgoing event. The SDK captures
+ * `Application Installed`/`Opened` as soon as its storage has loaded, which can
+ * run before the `register` queued below lands, so the first open after install
+ * would otherwise go out without `platform` (29% of opens did). The event's own
+ * values win; they are the same once the marker is registered.
+ */
+function withReleaseMarker(event: CaptureEvent | null): CaptureEvent | null {
+  if (!event) return null;
+  return { ...event, properties: { ...RELEASE_MARKER, ...event.properties } };
+}
+
 // Eagerly initialize PostHog so the instance can be passed to PostHogProvider.
 // The client is disabled when no API key is configured, so events are no-ops.
 export const posthogClient: PostHog = new PostHog(POSTHOG_API_KEY || 'placeholder', {
@@ -66,7 +85,8 @@ export const posthogClient: PostHog = new PostHog(POSTHOG_API_KEY || 'placeholde
   // the re-apply below runs, and the SDK captures lifecycle events
   // ("Application Updated") while loading storage — before that re-apply — and
   // flushes without re-checking opt-out. Nothing passes until consent is given.
-  before_send: (event) => (analyticsEnabled ? event : null),
+  // Events that pass get the release marker stamped (see withReleaseMarker).
+  before_send: (event) => (analyticsEnabled ? withReleaseMarker(event) : null),
   // `captureAppLifecycleEvents` is intentionally left at its SDK default (`true`):
   // `Application Installed`/`Opened`/`Backgrounded` already flow to PostHog and are
   // relied on as the install-count denominator. Do NOT set it to false. (Note: the
@@ -100,6 +120,24 @@ export const posthogClient: PostHog = new PostHog(POSTHOG_API_KEY || 'placeholde
     captureLog: false,
   },
 });
+
+/**
+ * Registers the release marker as super properties. Unlike
+ * `registerSuperProperties` this is not consent-gated: it only writes the
+ * device's local PostHog storage, holds no personal data, and nothing leaves the
+ * device without consent (`before_send` drops it). Registering it before consent
+ * is what puts it on the first events after a rider says yes. Skipped where the
+ * client is disabled (dev, no key), like the replay gate below.
+ */
+const POSTHOG_REPORTING_BUILD = !__DEV__ && !!POSTHOG_API_KEY;
+
+function registerReleaseMarker() {
+  if (!POSTHOG_REPORTING_BUILD) return;
+  void posthogClient.register(RELEASE_MARKER);
+}
+
+// Right after creation, so it is queued before any event the app captures.
+registerReleaseMarker();
 
 // Default replay OFF until consent is confirmed. The SDK auto-starts the
 // recorder at construction (gated only by `enableSessionReplay`/remote config,
@@ -406,6 +444,9 @@ export function setAnalyticsEnabled(enabled: boolean, decidedAt?: number | null)
   }
   if (posthogClient) {
     if (enabled) {
+      // Re-register on consent, so the marker is in place even if anything
+      // removed it while analytics was off.
+      registerReleaseMarker();
       posthogClient.optIn();
       // `optIn`/`optOut` only gate the JS event queue — they do NOT control the
       // native session-replay recorder. Drive it explicitly so consent is
@@ -514,6 +555,9 @@ export function getAnalyticsDistinctId(): string | undefined {
 export function resetUser() {
   if (posthogClient) {
     posthogClient.reset();
+    // reset() clears every super property; the release marker belongs to the
+    // launch, not the account, so it goes straight back on.
+    registerReleaseMarker();
   }
   if (SENTRY_DSN) {
     Sentry.setUser(null);

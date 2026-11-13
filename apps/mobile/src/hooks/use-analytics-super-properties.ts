@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import {
   isAnalyticsEnabled,
+  RELEASE_MARKER,
   registerSuperProperties,
   setUserProperties,
   unregisterSuperProperty,
@@ -76,7 +77,9 @@ export function useAnalyticsSuperProperties(): void {
   // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the serialized value so an equal object does not re-register
   useEffect(() => {
     if (!consented) return;
-    registerSuperProperties(properties);
+    // The release marker is fixed for the launch (so it is not part of the key),
+    // but every re-register carries it so nothing here can leave it out.
+    registerSuperProperties({ ...RELEASE_MARKER, ...properties });
     // A goal registered before sign-in (the device's onboarding goals) does not
     // belong to an account that has none of its own; omitting it would leave the
     // old value in place, so clear it once the account's preferences are known.
