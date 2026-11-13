@@ -78,7 +78,7 @@
     "app/(tabs)/(profile)/saved.tsx": 333,
     "app/(tabs)/(profile)/trips.tsx": 542,
     "app/(tabs)/_layout.tsx": 429,
-    "app/_layout.tsx": 1101,
+    "app/_layout.tsx": 1041,
     "app/t/[token]/index.tsx": 484
   }
 }

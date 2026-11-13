@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { AppState, type AppStateStatus } from 'react-native';
 import { captureException } from './analytics';
+import { withExplicitSignOut } from './explicit-sign-out';
 import { secureStoreAuthAdapter } from './secure-store';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
@@ -58,7 +59,7 @@ export async function safeSignOut(): Promise<void> {
     data: { session },
   } = await supabase.auth.getSession();
   if (session) {
-    await supabase.auth.signOut().catch((err) => {
+    await withExplicitSignOut(() => supabase.auth.signOut()).catch((err) => {
       captureException(err, { source: 'supabase.safeSignOut' });
     });
   }

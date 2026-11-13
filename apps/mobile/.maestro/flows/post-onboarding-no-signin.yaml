@@ -1,0 +1,69 @@
+# No sign-in screen after onboarding completion (issue 365 T15, FS-PO12/FS-PO13).
+#
+# Finishes onboarding, then visits the screens where riders saw a sign-in screen
+# or the Google account picker after completing: Profile, Diagnose, Diagnose →
+# New and Discover. After each one: the screen is there, and no "Sign in",
+# "Continue with Google" or "Choose an account" (the Android Google picker).
+#
+# Guard only: onboarding.yaml signs up by email, while the production repro
+# needs a Google-created account (T15b). The cause-independent fix is the auth
+# blip guard, covered by src/lib/__tests__/auth-state-change.test.ts in Jest.
+#
+# Diagnose is a hidden tab (no tab bar button), so it is opened the way riders
+# open it: Home's Diagnose quick action (`home-action-diagnose`).
+#
+# Both platforms. Run like the other authed flows (provisions and deletes the
+# test user):
+#   pnpm --filter @motovault/mobile test:e2e:post-onboarding-no-signin
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+- runFlow: onboarding.yaml
+
+# Profile
+- tapOn:
+    id: "tab-profile"
+- extendedWaitUntil:
+    visible:
+      id: "profile-screen"
+    timeout: 15000
+- assertNotVisible: ".*Sign in.*|.*Continue with Google.*|.*Choose an account.*"
+
+# Diagnose (hidden tab, opened from Home)
+- tapOn:
+    id: "tab-home"
+- extendedWaitUntil:
+    visible:
+      id: "home-action-diagnose"
+    timeout: 15000
+- tapOn:
+    id: "home-action-diagnose"
+- extendedWaitUntil:
+    visible:
+      id: "tab-diagnose"
+    timeout: 15000
+- assertNotVisible: ".*Sign in.*|.*Continue with Google.*|.*Choose an account.*"
+
+# Diagnose → New
+- tapOn:
+    id: "diagnose-new"
+- extendedWaitUntil:
+    visible: "Close"
+    timeout: 15000
+- assertNotVisible: ".*Sign in.*|.*Continue with Google.*|.*Choose an account.*"
+- tapOn: "Close"
+- extendedWaitUntil:
+    visible:
+      id: "tab-diagnose"
+    timeout: 15000
+
+# Discover
+- tapOn:
+    id: "tab-discover"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible:
+    id: "tab-discover"
+- assertNotVisible: ".*Sign in.*|.*Continue with Google.*|.*Choose an account.*"
+- assertNotVisible: "Let's get started"

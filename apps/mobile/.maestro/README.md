@@ -135,6 +135,13 @@ the flows below.
   (`setAirplaneMode` is Android-only); the stale-`me` race itself is covered by
   `src/__tests__/navigation-gate.test.tsx`. **Validated on an Android emulator 2026-11-13: fails on
   main (Welcome screen), passes with the fix.** `test:e2e:onboarding-complete-relaunch`.
+- **`flows/post-onboarding-no-signin.yaml`** — no sign-in screen after onboarding completion (issue 365
+  T15, FS-PO12/FS-PO13). Composes `onboarding.yaml`, then Profile (`tab-profile`), Diagnose (Home's
+  `home-action-diagnose`, as Diagnose has no tab button), Diagnose → New (`diagnose-new`) and Discover
+  (`tab-discover`); after each, no "Sign in", "Continue with Google" or "Choose an account". **Guard
+  only**: the production repro needs a Google-created account; the auth blip guard itself is covered by
+  `src/lib/__tests__/auth-state-change.test.ts`. Both platforms. **Authored from source, pending
+  on-device validation.** `test:e2e:post-onboarding-no-signin`.
 - **`flows/add-bike.yaml`** — add a motorcycle from the garage. Composes `onboarding.yaml` with
   `NO_BIKE: "true"` (bike setup → "Not sure of the details?" → "I'll add my bike later" → no-bike
   value screen), so the free test user reaches an empty garage and "Add your first bike" opens the
