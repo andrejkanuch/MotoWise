@@ -10,6 +10,17 @@
 #   - service-role key from apps/api/.env          (SUPABASE_SERVICE_ROLE_KEY)
 # Override any of them by exporting SUPABASE_URL / SUPABASE_ANON_KEY /
 # SUPABASE_SERVICE_ROLE_KEY before running (e.g. to point at local Supabase).
+# Seeded flows (data planted with the service role) must run against the local
+# stack, and SUPABASE_URL must match the backend the installed build talks to:
+#   iOS simulator     SUPABASE_URL=http://127.0.0.1:54321
+#   Android emulator  build profile e2e-android-local (the app uses 10.0.2.2);
+#                     the runner on the host still uses http://127.0.0.1:54321
+# plus the stack's SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY
+# (features/bike-detail-shell-overview/local-stack.md). A production build with a
+# local seed would read the wrong database.
+#
+# The created user is marked public.users.is_synthetic = true right after it is
+# created (e2e-mark-synthetic.sh), so analytics baselines exclude it (#365 T02).
 #
 # Prereq: install a STANDALONE / PREVIEW build (bundled JS, no Metro) with
 # EXPO_PUBLIC_OB_VARIANT=invested baked into its bundle, running on a booted
@@ -20,6 +31,8 @@ set -eu
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 MOBILE_DIR=$(dirname "$SCRIPT_DIR")
+# shellcheck source=./e2e-mark-synthetic.sh
+. "$SCRIPT_DIR/e2e-mark-synthetic.sh"
 REPO_ROOT=$(cd "$MOBILE_DIR/../.." && pwd)
 APP_ID=${APP_ID:-com.motovault.app}
 
@@ -86,6 +99,7 @@ if [ -z "$USER_ID" ]; then
   exit 1
 fi
 echo "  created user id=$USER_ID"
+mark_synthetic "$USER_ID" || exit 1
 
 echo "→ running Maestro flow $E2E_FLOW (APP_ID=$APP_ID)"
 maestro test "$MOBILE_DIR/.maestro/flows/$E2E_FLOW" \
