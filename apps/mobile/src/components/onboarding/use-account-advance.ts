@@ -73,9 +73,9 @@ export function useAccountAdvance(hasSession: boolean, goNext: () => void): void
   }, [hasSession, goNext, meQuery.isLoading, meQuery.isError, meQuery.data]);
 }
 
+// The outcome names the way the step went. A failed refetch over cached data that
+// already says "onboarded" still takes the no-advance path, so it reports that.
 function waitOutcome(meError: boolean, alreadyOnboarded: boolean) {
-  if (meError) return POST_SIGNIN_WAIT_OUTCOME.ME_ERROR;
-  return alreadyOnboarded
-    ? POST_SIGNIN_WAIT_OUTCOME.ALREADY_ONBOARDED
-    : POST_SIGNIN_WAIT_OUTCOME.ADVANCED;
+  if (alreadyOnboarded) return POST_SIGNIN_WAIT_OUTCOME.ALREADY_ONBOARDED;
+  return meError ? POST_SIGNIN_WAIT_OUTCOME.ME_ERROR : POST_SIGNIN_WAIT_OUTCOME.ADVANCED;
 }

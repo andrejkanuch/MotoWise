@@ -260,6 +260,27 @@ describe('AccountScreen auth_post_signin_wait', () => {
     expect(mockGoNext).toHaveBeenCalledTimes(1);
   });
 
+  it('a failed refetch over cached "onboarded" data: one {already_onboarded}, no advance', async () => {
+    mockMeQuery.isLoading = true;
+    mockMeQuery.data = undefined;
+    await render(<AccountScreen />);
+    await sessionLands();
+
+    await meSettles(
+      {
+        isLoading: false,
+        isError: true,
+        data: { me: { preferences: { onboardingCompleted: true } } },
+      },
+      1_200,
+    );
+
+    expect(waits()).toEqual([
+      ['AUTH_POST_SIGNIN_WAIT', { wait_ms: 1_200, outcome: 'already_onboarded' }],
+    ]);
+    expect(mockGoNext).not.toHaveBeenCalled();
+  });
+
   it('a cache hit decides at once, and later re-renders fire nothing more', async () => {
     await render(<AccountScreen />);
     await sessionLands();
