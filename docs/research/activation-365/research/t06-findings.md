@@ -7,8 +7,11 @@ Only aggregates and replay session ids are reported: no emails, names or person 
 
 **Exclusion used in PostHog reads (`{EXCL}`).** The project test-account filter (4 person ids + `person.properties.internal != true`) plus the
 q00 list re-derived today from Supabase (`is_synthetic`, `e2e-%`, the three test domains, the test account, users soft-deleted 2026-11-10:
-26 user ids, mapped through `person_distinct_ids`). The id list stays in the session scratchpad. Queries marked "filter only" use the
-project filter without the q00 list. `{RN}` = `properties.$lib = 'posthog-react-native'`.
+26 user ids, mapped through `person_distinct_ids`). Build the id list with the recipe in [`queries/q00-excluded-persons.md`](../queries/q00-excluded-persons.md);
+the ids themselves stay outside the repo. Queries marked "filter only" use the project filter without the q00 list. `{RN}` = `properties.$lib = 'posthog-react-native'`.
+
+**SQL.** The exact HogQL/SQL for q1a, q2a, items 4, 5, 9 and 10 is in [`queries/q09-t06-research.md`](../queries/q09-t06-research.md). Each was re-run on
+2026-11-13 and gave the numbers below, so a reviewer can spot-check any of them.
 
 | # | Question | Answer in one line | Gates |
 |---|---|---|---|
@@ -20,7 +23,7 @@ project filter without the q00 list. `{RN}` = `properties.$lib = 'posthog-react-
 | 6 | Rider-edited OEM task signal | D8 proxy stands. Only trigger: `set_maintenance_tasks_updated_at` (any UPDATE). No system path updates live tasks today | T23 reviewer note |
 | 7 | Reminder cap on ~10 dated tasks | Recorded as answered: no immediate burst; same-day clustering at interval anniversaries; cap built in T07a | T07a |
 | 8 | PO8 dialog type + replays | **The OS location permission dialog** (Android permission controller), requested by Discover on mount. No Play-services prompt seen. Replays could not be watched | **T29** |
-| 9 | Android push tokens after vc99 | vc99 is still not in production. Android tokens 3 (all 7 d, **all 3 from test/synthetic users**); iOS 106 total / 7 in 7 d. `push_token_registered` does not exist in PostHog | T18, T03b tile |
+| 9 | Android push tokens after vc99 | vc99 is still not in production. Android tokens 3 (all 7 d, **all 3 from test/synthetic users**); iOS 106 total / 7 in 7 d. `push_token_registered` is in the code (#393) but no production build carries it yet, so PostHog has none | T18, T03b tile |
 | 10 | F14 engaged return on the 100 scanned riders | Day-2 raw **16/100**, day-2 engaged **13/100**, week-1 engaged 16/100 (7/72 with a full week), week-1 core action 17/100 | Exp 1 baseline |
 
 ---
@@ -81,7 +84,7 @@ normal onboarding tail (the `garage_first` order fires `onboarding_completed` be
   Corrected baseline today: **4/292**, 3.26.0 **1/121**.
 - PO13 needs a 60 s grace after `onboarding_completed` (account/heard_about/notifications in the `garage_first` tail are not relapses).
 
-**Source.** PostHog q1a–q1c 2026-11-13; plan §5 FS-PO12/PO13; `validation/V1-metrics.md` §3.5; `deep-dives/R6-replays-returners.md` §2.1.
+**Source.** PostHog q1a–q1c 2026-11-13 (q1a SQL in `queries/q09-t06-research.md`); plan §5 FS-PO12/PO13; `validation/V1-metrics.md` §3.5; `deep-dives/R6-replays-returners.md` §2.1.
 
 ---
 
@@ -120,7 +123,7 @@ both platforms; the redesign changed the whole Home, so placement is the leading
 
 **FS-PO2d tile baseline (T03b):** first-hour diagnosis via Home → Diagnose, 3.26.0 **26/120**; all entries 29/120.
 
-**Source.** PostHog q2a–q2c 2026-11-13; git `1edc49cd`, `0a0687d7`, `origin/main` `ca4704c3`.
+**Source.** PostHog q2a–q2c 2026-11-13 (q2a SQL in `queries/q09-t06-research.md`); git `1edc49cd`, `0a0687d7`, `origin/main` `ca4704c3`.
 
 ---
 
@@ -162,7 +165,7 @@ and daily `sum(cost_cents)`, last 120 days.
 **Answer.** **No.** In the data window every submit `FORBIDDEN` is the monthly free-tier limit. T08/T24 can treat `FORBIDDEN` on submit as
 "monthly limit reached"; keep a separate copy only if the daily-cap message ever appears (it would need 50 generations in a day).
 
-**Source.** Code at `origin/main`; Supabase SELECT 2026-11-13.
+**Source.** Code at `origin/main`; Supabase SELECT 2026-11-13 (SQL in `queries/q09-t06-research.md`, item 4).
 
 ---
 
@@ -197,7 +200,7 @@ duplicate since 00191 (2026-10-15).
   in `UsersService.completeOnboarding` skip the OEM import and the Meta event when the user was already completed (or the RPC reports it).
   Until then, any metric that reads `users.onboarding_completed_at` sees the **last** call, not the first.
 
-**Source.** Migrations and API code at `origin/main`; Supabase SELECT 2026-11-13.
+**Source.** Migrations and API code at `origin/main`; Supabase SELECT 2026-11-13 (SQL in `queries/q09-t06-research.md`, item 5).
 
 ---
 
@@ -235,6 +238,15 @@ several intervals fall due on the same anniversary. Today `sendDuePush` sends on
 7 days) is built inside T07a before its deploy.
 
 **Source.** Plan §3 T06 item 7, §9 D7; doc review 2026-11-12. Nothing re-run.
+
+**Hand-off to `experiments.md`.** The issue asks for this answer in `experiments.md`. That file does not exist on `origin/main` yet: T02 (#399)
+creates it. This PR does not create it, so the two PRs do not both add the same file. Until T02 lands, this section is the record. When T02
+creates `experiments.md` (or whichever of the two PRs merges second), it must:
+1. link this file (`research/t06-findings.md`) as the T06 findings;
+2. copy the item 7 answer above into `experiments.md` word for word;
+3. carry the item 1 and item 2 tile baselines (FS-PO12 4/292, FS-PO2d 26/120) and the item 10 engaged-return numbers.
+
+If the owner prefers, this PR can add the stub `experiments.md` instead; that is a merge-order decision for the coordinator.
 
 ---
 
@@ -300,15 +312,19 @@ T29's fix is the one in the plan: no permission request on Discover mount; ask o
 | android | 3 | 3 | 2026-11-12 | **3** |
 | ios | 7 | 106 | 2026-11-12 | — |
 
-- PostHog has **no `push_token_registered` event** (taxonomy). Only `push_token_registration_failed` exists: 3 events, 1 person, Android 3.28.0
-  **vc99**, 2026-11-12. `notification_permission_result` keeps firing on Android 3.26.0 vc93 (33) and 3.28.0 vc98 (1).
+- The success event exists in code: `apps/mobile/src/lib/push-token.ts:132` calls `trackEvent(AnalyticsEvent.PUSH_TOKEN_REGISTERED, { platform })`,
+  added with `push_token_registration_failed` by #393 (`52d281e9`, 2026-11-12). Plan §3A.0 rule 6 relies on it.
+- PostHog has **no `push_token_registered` rows yet**, because no production build carries #393: vc99 is the first binary with it and is still an
+  internal draft. The only push-token events are the 3 `push_token_registration_failed` events (1 person, Android 3.28.0 **vc99**, 2026-11-12), so
+  all vc99 events so far are failures. `notification_permission_result` keeps firing on Android 3.26.0 vc93 (33) and 3.28.0 vc98 (1).
 - 7 d `Application Opened` on vc99: 4 persons (3 after `{EXCL}`); vc98: 10 (9). vc99 is still the internal draft (V3 §2); Play production is vc98.
   The Play track itself was not read (listing it needs a Play edit).
 
-**Answer.** No change from the baseline: no non-test Android token yet. **Re-run after vc99 (or 3.29.0) reaches production**; until then the T03b
-Android-token tile should read the DB (`device_push_tokens`), because the client sends only the failure event, not a success event.
+**Answer.** No change from the baseline: no non-test Android token yet. **Re-check `push_token_registered` by platform once vc99 or 3.29.0
+reaches production.** Until then the T03b Android-token tile can read the DB (`device_push_tokens`). The reason is that no shipped build carries
+#393 yet, not that the event is missing: once a build with #393 is live, the PostHog event and the DB count should agree.
 
-**Source.** Supabase SELECT 2026-11-13; PostHog 2026-11-13.
+**Source.** Supabase SELECT 2026-11-13; PostHog 2026-11-13 (SQL in `queries/q09-t06-research.md`, item 9); code at `origin/main`.
 
 ---
 
@@ -332,4 +348,4 @@ those sessions (107). Per owner `ob_day = toDate(min(onboarding_completed))` (UT
 - d2 raw 16/100 reproduces R6-q2 exactly. **3 of the 16 day-2 returns were not engaged** (only Home / What's New / onboarding screens that day).
 - d2 engaged 13% here vs the cohort F14 baseline 37/367 (10.1%) of completers [SOURCE: board/06 F14].
 
-**Source.** PostHog 2026-11-13 (noncanonical one-off query; the governed metric catalog is empty).
+**Source.** PostHog 2026-11-13 (noncanonical one-off query; the governed metric catalog is empty). SQL in `queries/q09-t06-research.md`, item 10.
