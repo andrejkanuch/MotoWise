@@ -24,8 +24,9 @@
 # run-onboarding-e2e.sh (SUPABASE_URL must match the build under test).
 #
 # The account the app creates is marked public.users.is_synthetic = true as
-# soon as part 1 records its id (e2e-mark-synthetic.sh), so analytics baselines
-# exclude it even when TEST_EMAIL keeps it (#365 T02).
+# soon as part 1 records its id, and the id goes to the local E2E user ledger
+# (e2e-mark-synthetic.sh), so analytics baselines exclude it whether teardown
+# deletes it or TEST_EMAIL keeps it (#365 T02).
 #
 # The UI signup makes Supabase send a real confirmation email. TEST_EMAIL
 # defaults to Resend's delivered+<label>@resend.dev test address, which reports

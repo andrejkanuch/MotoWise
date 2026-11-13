@@ -17,7 +17,7 @@ Contents: 1 Placeholders · 2 Canonical definitions · 3 Reading rule and strata
 |---|---|
 | `{RN}` | `properties.$lib = 'posthog-react-native'`. **Never** applied to server events (`$lib` null): `signup_completed`, and from T05e/T07a `onboarding_bike_created`, `ride_saved`, `service_plan_imported`. Mixed queries use `({RN} OR event IN (<server events>))` |
 | `{EXCL}` | 14 excluded persons (13 test/synthetic + the V4 emulator person) + `e2e_run != 'true'` + `{E2E_PERSONS}`; ids kept outside the repo, recipe in `queries/q00-excluded-persons.md` |
-| `{E2E_PERSONS}` | historical E2E persons: **empty** on 2026-11-13 (0 persons with an `e2e-%` or `delivered+mv-e2e-%` email in 90 d) |
+| `{E2E_PERSONS}` | PostHog persons of E2E accounts that teardown deleted, mapped by user id from the runners' local ledger (`queries/q00-excluded-persons.md`): **empty** on 2026-11-13; runs before the ledger cannot be recovered |
 | `{REL}` | `ver` (`$app_version`), `build` (`$app_build`), `lvl` (`activation_fix_level`), `ota` (`ota_update_id`), person-level `plat` = `coalesce(argMinIf(lower(toString(properties.platform)), timestamp, properties.platform IS NOT NULL), multiIf(toInt(argMin(toString(properties.$app_build), timestamp)) >= 100, 'ios?', 'android?'))`. The build fallback is valid for 3.26.0–3.28.x only (on 3.19.x–3.21.x it labels old iOS builds `android?`). `lvl`/`ota` are null on every event until 3.29.0 (T01) |
 | DB exclusion | `queries/db/README.md` → "Exclusion" (`is_synthetic`, `e2e-%`, `delivered+mv-e2e-%`, test domains, 2026-11-10 junk) |
 
@@ -291,6 +291,6 @@ several intervals fall due on the same anniversary. Today `sendDuePush` sends on
 
 | Item | Baseline | Note |
 |---|---|---|
-| FS-PO12 (T06 item 1) | **4/292** (3.26.0 **1/121**) without the cold-start `/(auth)` flash | Replaces 11/292 in §4.2 as the T15 / T15b tile baseline; 11/292 is the as-measured form |
-| FS-PO2d (T06 item 2) | first-hour diagnosis via Home → Diagnose, 3.26.0 **26/120**; all entries 29/120 | T03b tile baseline; §4.2's 29/121 is the all-entries form with a one-rider cohort difference |
+| FS-PO12 (T06 item 1) | **4/292** (3.26.0 **1/121**) without the cold-start `/(auth)` flash | Replaces 11/292 in §4.2 as the T15 / T15b tile baseline (column `po12_no_flash_1h` in `queries/fs/fs-po12.sql`); 11/292 is the as-measured form |
+| FS-PO2d (T06 item 2) | first-hour diagnosis via Home → Diagnose, 3.26.0 **29/121** (60 d, tie-aware; T06 first reported 26/120, an order-dependent count) = all entries 29/121 | T03b tile baseline, column `po2d_diag_1h_via_home` in `queries/fs/fs-po2d.sql`. T06's 26/120 (90 d) came from q2a's last-screen rule, which depends on sort order when `/(tabs)` and `/(tabs)/(home)` share a timestamp (26, 27, 28 on same-day re-runs); counting the tie, all 29 first-hour diagnoses on 3.26.0 entered from Home |
 | F14 engaged return, 100 scanned riders (T06 item 10) | d2 raw **16/100**, d2 engaged **13/100**, week-1 engaged 16/100 (**7/72** with a full week), week-1 core action 17/100 | Exp 1 context; the cohort F14 baseline stays 37/367 completers |

@@ -20,7 +20,8 @@
 # local seed would read the wrong database.
 #
 # The created user is marked public.users.is_synthetic = true right after it is
-# created (e2e-mark-synthetic.sh), so analytics baselines exclude it (#365 T02).
+# created and its id is appended to the local E2E user ledger (e2e-mark-synthetic.sh),
+# so analytics baselines exclude it after teardown deletes it (#365 T02).
 #
 # Prereq: install a STANDALONE / PREVIEW build (bundled JS, no Metro) with
 # EXPO_PUBLIC_OB_VARIANT=invested baked into its bundle, running on a booted

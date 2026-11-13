@@ -45,5 +45,6 @@ and not (u.deleted_at is not null and u.deleted_at::date = '2026-11-10')   -- ju
 ```
 
 Always qualify `u.deleted_at` / `u.email`: inside a join with `motorcycles` the bare names are ambiguous (V1 §3.8). The E2E
-runners set `is_synthetic = true` on every account they create, so new test accounts drop out through the first line even when
-their email has another shape.
+runners set `is_synthetic = true` on every account they create, so a kept test account drops out through the first line even
+when its email has another shape. An account their teardown deletes has no row left, so DB counts never see it; PostHog
+needs the runners' user-id ledger for those (`../q00-excluded-persons.md`, `{E2E_PERSONS}`).

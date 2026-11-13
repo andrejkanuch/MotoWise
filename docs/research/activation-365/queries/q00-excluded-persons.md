@@ -8,7 +8,7 @@ owner can re-derive them with the recipe below). Committed SQL uses the placehol
 ```sql
 person_id NOT IN (<{EXCL} ids: 14 persons, list kept outside the repo>)
 AND coalesce(toString(properties.e2e_run), '') != 'true'      -- E2E builds (super property from T01; absent before 3.29.0)
-AND person_id NOT IN ({E2E_PERSONS})                          -- historical e2e persons (empty on 2026-11-13, see below)
+AND person_id NOT IN ({E2E_PERSONS})                          -- deleted E2E accounts from the runners' ledger (empty on 2026-11-13, see below)
 ```
 
 The 14 ids are:
@@ -40,18 +40,34 @@ COMMIT;
 SELECT DISTINCT person_id FROM person_distinct_ids WHERE distinct_id IN (<the user ids>)
 ```
 
-## `{E2E_PERSONS}` (Q-P10 shape), run 2026-11-13
+## `{E2E_PERSONS}`, E2E accounts that teardown deleted
+
+The synthetic-user mapping above only finds accounts that still have a `public.users` row. The E2E runners delete the auth
+user on teardown (pass or fail), which deletes that row too, so a production E2E run with analytics on would otherwise count
+as a real rider until T01 ships `e2e_run` (3.29.0). PostHog persons carry no email (`packages/analytics/src/client.ts`:
+`identify` takes the Supabase user id only), so a `person.properties.email` filter cannot find them either.
+
+From 2026-11-13 the runners record each account they create before teardown: `mark_synthetic` in
+`apps/mobile/scripts/e2e-mark-synthetic.sh` appends `UTC time, user id, Supabase host` to the local ledger `E2E_USER_LOG`
+(default `$HOME/.motovault-local/e2e-users.log`, outside the repo; ids only). The user id is the PostHog distinct_id after
+`identify`, and identify merges the run's anonymous pre-sign-in events into the same person. Build the list from it:
 
 ```sql
-SELECT uniqIf(person_id, toString(person.properties.email) LIKE 'e2e-%')               AS e2e_prefix_persons,
-       uniqIf(person_id, toString(person.properties.email) LIKE 'delivered+mv-e2e-%')  AS resend_e2e_persons,
-       uniqIf(person_id, toString(properties.e2e_run) = 'true')                          AS e2e_run_persons
-FROM events WHERE timestamp >= now() - INTERVAL 90 DAY AND properties.$lib = 'posthog-react-native'
+-- PostHog execute-sql; <ledger ids> = the user ids of the ledger lines whose host is the production project
+SELECT DISTINCT person_id FROM person_distinct_ids WHERE distinct_id IN (<ledger ids>)
 ```
 
-Result: **0 / 0 / 0** (`e2e_run` does not exist yet). `{E2E_PERSONS}` is empty; re-run it at every 2/4/8-week read. From now on
-the runners mark every account they create `users.is_synthetic = true` (`apps/mobile/scripts/e2e-mark-synthetic.sh`), so a test
-account that reaches PostHog is caught by the synthetic-user mapping above, and E2E builds carry `e2e_run` after T01.
+Run 2026-11-13: the ledger is new and empty, so `{E2E_PERSONS}` is **empty**. Re-run it at every 2/4/8-week read and
+paste the result into the read's notes, not here.
+
+Runs before the ledger cannot be recovered: their `public.users` rows are gone and `auth.audit_log_entries` is empty on this
+project (checked 2026-11-13, read-only). The old Q-P10 email query (`person.properties.email LIKE 'e2e-%'` /
+`'delivered+mv-e2e-%'`) returned 0 / 0, which is by construction, not evidence that no run reached PostHog. Production E2E
+runs before 2026-11-13 used `e2e-onboarding+…@motovault.app` accounts with a sign-in through the app; any that reached
+PostHog are a known, unmeasured over-count in the 3.26.0–3.28.x baselines (at most one person per run).
+
+Accounts a runner keeps (`TEST_EMAIL` set on the email-code runner, or a failed teardown) stay in `public.users` with
+`is_synthetic = true` and are caught by the synthetic-user mapping above; they are in the ledger too.
 
 ## DB exclusion (weekly DB check)
 
