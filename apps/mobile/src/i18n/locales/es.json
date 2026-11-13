@@ -3227,5 +3227,14 @@
     "newRoadsComputing": "Calculando…",
     "unlockPro": "Desbloquear con Pro",
     "newRoadsLockedA11y": "Carreteras nuevas en esta rodada. Desbloquear con Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Tu plan de mantenimiento está listo",
+      "body": "El calendario de mantenimiento del fabricante para tu {{bike}} ya está en tu garaje. Te avisaremos antes de cada servicio.",
+      "bodyNoBike": "El calendario de mantenimiento del fabricante para tu moto ya está en tu garaje. Te avisaremos antes de cada servicio.",
+      "open": "Ver mi plan",
+      "notNow": "Ahora no"
+    }
   }
 }

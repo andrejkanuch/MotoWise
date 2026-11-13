@@ -3164,5 +3164,14 @@
     "newRoadsComputing": "Hesaplanıyor…",
     "unlockPro": "Pro ile kilidi aç",
     "newRoadsLockedA11y": "Bu sürüşteki yeni yollar. Pro ile kilidi aç"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Bakım planın hazır",
+      "body": "{{bike}} için üretici bakım takvimi garajında. Her bakımdan önce sana hatırlatacağız.",
+      "bodyNoBike": "Motosikletin için üretici bakım takvimi garajında. Her bakımdan önce sana hatırlatacağız.",
+      "open": "Planımı gör",
+      "notNow": "Şimdi değil"
+    }
   }
 }

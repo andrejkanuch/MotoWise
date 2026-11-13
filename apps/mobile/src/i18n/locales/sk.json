@@ -3298,5 +3298,14 @@
     "newRoadsComputing": "Počítame…",
     "unlockPro": "Odomknúť s Pro",
     "newRoadsLockedA11y": "Nové cesty na tejto jazde. Odomknúť s Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Tvoj servisný plán je pripravený",
+      "body": "Servisný plán výrobcu pre tvoj {{bike}} je v garáži. Pripomenieme ti každý servis vopred.",
+      "bodyNoBike": "Servisný plán výrobcu pre tvoju motorku je v garáži. Pripomenieme ti každý servis vopred.",
+      "open": "Pozrieť môj plán",
+      "notNow": "Teraz nie"
+    }
   }
 }
