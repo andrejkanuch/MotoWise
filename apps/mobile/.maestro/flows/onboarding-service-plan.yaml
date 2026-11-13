@@ -1,0 +1,64 @@
+# FS-PO1H (issue 365 T07a/T07b, Experiment 2): the bike onboarding creates gets
+# its OEM service plan. Onboarding a Yamaha MT-09 2019 (12 model rows) must leave
+# Home with a next service item, not "No service due", and the bike's Service
+# segment with tasks.
+#
+# Run: pnpm --filter @motovault/mobile test:e2e:service-plan (a fresh confirmed
+# user per run, deleted on teardown — scripts/run-onboarding-e2e.sh). Needs a
+# STANDALONE/PREVIEW build against a backend with the T07a import live (API
+# 8fd7cf6f or later). Red on a build from main before T07a: "No service due".
+#
+# Optional env DISTANCE_UNIT ("km" or "mi"): asserts the plan's distances are in
+# that unit — an imperial (en-US) device must read "mi".
+#
+# No RevenueCat purchase: onboarding.yaml only closes the paywall (optional taps).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+- runFlow:
+    file: onboarding.yaml
+    env:
+      BIKE_MAKE: "Yamaha"
+      BIKE_MODEL: "MT-09"
+      BIKE_YEAR: "2019"
+
+# Home: the plate counts down to the plan's next item and Up next lists it.
+- extendedWaitUntil:
+    notVisible: "No service due"
+    timeout: 20000
+- assertNotVisible: "No service due"
+- extendedWaitUntil:
+    visible:
+      id: "home-up-next"
+    timeout: 20000
+- takeScreenshot: service-plan-home
+
+# Garage → the bike → Service segment: the plan's tasks are listed.
+- tapOn:
+    id: "tab-garage"
+- tapOn:
+    id: "garage-bike-plate-.*"
+- extendedWaitUntil:
+    visible:
+      id: "segment-service"
+    timeout: 20000
+- tapOn:
+    id: "segment-service"
+- extendedWaitUntil:
+    visible:
+      id: "service-task-card-0"
+    timeout: 10000
+- runFlow:
+    when:
+      true: ${typeof DISTANCE_UNIT !== 'undefined'}
+    commands:
+      # Active shows three tasks; open the rest so a distance row is on screen.
+      - tapOn:
+          id: "service-more"
+          optional: true
+      - scrollUntilVisible:
+          element: ".*\\d ${DISTANCE_UNIT}\\b.*"
+          direction: DOWN
+          timeout: 15000
+- takeScreenshot: service-plan-service

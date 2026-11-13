@@ -130,6 +130,7 @@
     "plateStateOverdue": "Überfällig",
     "plateCaptionTo": "bis {{task}}",
     "plateCaptionLate": "{{task}}, überfällig",
+    "plateCaptionDueNow": "{{task}}, jetzt fällig",
     "plateCaptionAt": "Kilometerstand für {{task}}",
     "noServiceDue": "Kein Service fällig",
     "plateDayUnit_one": "Tag",
@@ -1140,6 +1141,10 @@
       "doneOn": "Erledigt am {{date}}",
       "seeAllHistory_one": "{{count}} erledigte Aufgabe ansehen",
       "seeAllHistory_other": "Alle {{count}} erledigten Aufgaben ansehen",
+      "moreTasks_one": "+{{count}} weitere",
+      "moreTasks_other": "+{{count}} weitere",
+      "moreTasksA11y_one": "{{count}} weitere Aufgabe anzeigen",
+      "moreTasksA11y_other": "{{count}} weitere Aufgaben anzeigen",
       "serviceItems": "Serviceposten"
     },
     "costsSegment": {

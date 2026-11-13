@@ -113,6 +113,10 @@ export const DUE_SOON_DISTANCE = { km: 2000, mi: 1200 } as const satisfies Recor
 /** A due date further away than this is worded at month precision ("Mar 2027"). */
 export const DUE_DAY_PRECISION_DAYS = 120;
 
+/**
+ * Task rows a short list shows before one "+N more" row: Overview's attention
+ * list, Home's "Up next" and the Service segment's Active list (issue 365 T07b).
+ */
 export const ATTENTION_MAX_ROWS = 3;
 
 /**

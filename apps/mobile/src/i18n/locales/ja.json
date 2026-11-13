@@ -130,6 +130,7 @@
     "plateStateOverdue": "期限超過",
     "plateCaptionTo": "{{task}}まで",
     "plateCaptionLate": "{{task}}（期限超過）",
+    "plateCaptionDueNow": "{{task}}、今すぐ実施",
     "plateCaptionAt": "{{task}}の走行距離",
     "noServiceDue": "予定の整備はありません",
     "plateDayUnit_one": "日",
@@ -1140,6 +1141,10 @@
       "doneOn": "{{date}}に完了",
       "seeAllHistory_one": "完了したタスク{{count}}件を表示",
       "seeAllHistory_other": "完了したタスク{{count}}件をすべて表示",
+      "moreTasks_one": "他{{count}}件",
+      "moreTasks_other": "他{{count}}件",
+      "moreTasksA11y_one": "残り{{count}}件のタスクを表示",
+      "moreTasksA11y_other": "残り{{count}}件のタスクを表示",
       "serviceItems": "整備項目"
     },
     "costsSegment": {

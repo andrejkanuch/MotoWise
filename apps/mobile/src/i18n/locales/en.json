@@ -130,6 +130,7 @@
     "plateStateOverdue": "Overdue",
     "plateCaptionTo": "to {{task}}",
     "plateCaptionLate": "{{task}}, past due",
+    "plateCaptionDueNow": "{{task}}, due now",
     "plateCaptionAt": "odometer for {{task}}",
     "noServiceDue": "No service due",
     "plateDayUnit_one": "day",
@@ -1151,6 +1152,10 @@
       "doneOn": "Done {{date}}",
       "seeAllHistory_one": "See {{count}} completed task",
       "seeAllHistory_other": "See all {{count}} completed tasks",
+      "moreTasks_one": "+{{count}} more",
+      "moreTasks_other": "+{{count}} more",
+      "moreTasksA11y_one": "Show {{count}} more task",
+      "moreTasksA11y_other": "Show {{count}} more tasks",
       "serviceItems": "Service items"
     },
     "costsSegment": {

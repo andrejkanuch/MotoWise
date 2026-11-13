@@ -130,6 +130,7 @@
     "plateStateOverdue": "En retard",
     "plateCaptionTo": "avant {{task}}",
     "plateCaptionLate": "{{task}}, en retard",
+    "plateCaptionDueNow": "{{task}}, à faire maintenant",
     "plateCaptionAt": "au compteur pour {{task}}",
     "noServiceDue": "Aucun entretien prévu",
     "plateDayUnit_one": "jour",
@@ -1161,7 +1162,11 @@
       "seeAllHistory_one": "Voir {{count}} tâche faite",
       "seeAllHistory_other": "Voir les {{count}} tâches faites",
       "serviceItems": "Points d'entretien",
-      "seeAllHistory_many": "Voir les {{count}} tâches faites"
+      "seeAllHistory_many": "Voir les {{count}} tâches faites",
+      "moreTasks_one": "+{{count}} autre",
+      "moreTasks_other": "+{{count}} autres",
+      "moreTasksA11y_one": "Afficher {{count}} autre tâche",
+      "moreTasksA11y_other": "Afficher {{count}} autres tâches"
     },
     "costsSegment": {
       "spentIn": "Dépensé en {{year}}",

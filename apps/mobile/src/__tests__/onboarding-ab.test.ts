@@ -367,10 +367,22 @@ describe('analytics contract survives the retirement', () => {
     expect(minutesSinceOnboardingCompleted()).toBeNull();
     mockTrackEvent.mockClear();
 
-    trackOnboardingCompletion({ has_bike: true });
+    trackOnboardingCompletion(
+      { servicePlanTaskCount: 12, servicePlanTier: 'model' },
+      { has_bike: true },
+    );
 
+    // issue 365 T07b: the service plan completeOnboarding imported rides along.
     expect(mockTrackEvent.mock.calls).toEqual([
-      ['onboarding_completed', { variant: 'shipped', has_bike: true }],
+      [
+        'onboarding_completed',
+        {
+          variant: 'shipped',
+          has_bike: true,
+          service_plan_task_count: 12,
+          service_plan_tier: 'model',
+        },
+      ],
     ]);
     expect(minutesSinceOnboardingCompleted()).toBe(0);
   });
