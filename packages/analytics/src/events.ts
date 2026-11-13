@@ -76,7 +76,7 @@ export const RegionPageViewedSchema = z.object({
   routeCount: z.number().int().nonnegative().optional(),
 });
 
-// #365 T05a — mobile paywall contract (fired by apps/mobile `lib/subscription.ts`;
+// Issue 365 T05a — mobile paywall contract (fired by apps/mobile `lib/subscription.ts`;
 // the two events below by the T21 session cap). Kept out of ANALYTICS_EVENTS,
 // which types the web `track()` client.
 export const PAYWALL_GATE_EVENTS = {

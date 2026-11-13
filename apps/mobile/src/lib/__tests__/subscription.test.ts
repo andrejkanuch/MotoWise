@@ -589,6 +589,32 @@ describe('paywall trigger and session properties', () => {
     ]);
   });
 
+  it('keeps the stamped props when call-site metadata uses the same keys', async () => {
+    await presentPaywall({
+      source: 'feature_gate',
+      metadata: {
+        entry_surface: 'home',
+        trigger: 'rider_tap',
+        gate_policy: 'capped_v1',
+        session_paywall_index: 99,
+        minutes_since_onboarding_completed: 5,
+      },
+    });
+
+    expect(paywallEvents()).toHaveLength(PAYWALL_EVENTS.length);
+    for (const { props } of paywallEvents()) {
+      expect(props).toEqual(
+        expect.objectContaining({
+          entry_surface: 'home',
+          trigger: PAYWALL_TRIGGER.AUTO,
+          gate_policy: PAYWALL_GATE_POLICY.NONE,
+          session_paywall_index: 1,
+          minutes_since_onboarding_completed: null,
+        }),
+      );
+    }
+  });
+
   it('carries rider_tap from an explicit Upgrade surface', async () => {
     await presentPaywall({
       source: 'profile',

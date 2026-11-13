@@ -168,11 +168,12 @@ function paywallProperties(
     required_entitlement_identifier: options.requiredEntitlementIdentifier ?? null,
     platform: process.env.EXPO_OS ?? 'unknown',
     sdk: 'revenuecat',
+    ...(options.metadata ?? {}),
+    // After the call-site metadata, so no caller can drop or overwrite them.
     trigger: options.trigger ?? PAYWALL_TRIGGER.AUTO,
     gate_policy: options.gatePolicy ?? PAYWALL_GATE_POLICY.NONE,
     session_paywall_index: options.session.sessionPaywallIndex,
     minutes_since_onboarding_completed: options.session.minutesSinceOnboardingCompleted,
-    ...(options.metadata ?? {}),
     ...extra,
   };
 }
