@@ -50,12 +50,13 @@ export function createPostOnboardingLanding({ now, variant, track, trackSheet }:
       overlay = null;
     },
 
-    noteScreen(name: string, segments: readonly string[]) {
-      if (completedAt === null) return;
+    /** Returns true for the one screen view that is the landing. */
+    noteScreen(name: string, segments: readonly string[]): boolean {
+      if (completedAt === null) return false;
       const group = segments[0] ?? '';
       if (group !== TABS_GROUP) {
         if (overlay === null && !NOT_AN_OVERLAY.has(group)) overlay = name;
-        return;
+        return false;
       }
       landedAt = now();
       track({
@@ -65,6 +66,7 @@ export function createPostOnboardingLanding({ now, variant, track, trackSheet }:
         overlay: overlay ?? LANDING_OVERLAY_NONE,
       });
       completedAt = null;
+      return true;
     },
 
     /** A sheet shown over Home; `queuePosition` is its place in the landing queue (0 = first). */

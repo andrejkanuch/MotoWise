@@ -1,10 +1,11 @@
 import * as Application from 'expo-application';
 import { type Href, useRouter, useSegments } from 'expo-router';
-import { useEffect, useReducer, useRef } from 'react';
+import { useEffect, useReducer, useRef, useSyncExternalStore } from 'react';
 import { MODAL_ROUTE } from '../../config/routes';
 import { WHATS_NEW_ARM, WHATS_NEW_SOURCE, WHATS_NEW_TIMING } from '../../config/whats-new';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { isConsentPromptOwed } from '../../lib/analytics-consent';
+import { LANDING_SHEET, landingSheetQueue } from '../../lib/landing-sheet-queue';
 import { isPaywallInFlight, paywallFlightSettled } from '../../lib/subscription';
 import { type OwedWhatsNew, owedRelease } from '../../lib/whats-new';
 import { resolveWhatsNewArm } from '../../lib/whats-new-experiment';
@@ -85,7 +86,9 @@ function owedNow(): OwedWhatsNew | null {
  * ended, or onboarding, rules out the rest of the session; everything else
  * blocks only while it lasts, including a screen or sheet opened over a tab
  * (a notification deep link, a half-filled form). The consent screen is a root route, so being in
- * tabs also means it is not on screen.
+ * tabs also means it is not on screen. What's New is also a landing sheet (issue 365 T16b): it
+ * waits for the queue, which allows one sheet per cold session and none of What's New in the
+ * session the rider landed from onboarding.
  */
 function canShowNow(inputs: GateInputs): boolean {
   if (inputs.rideStatus === RIDE_PHASE.ENDED) rideEndedThisSession = true;
@@ -101,7 +104,8 @@ function canShowNow(inputs: GateInputs): boolean {
     !inputs.carPlayConnected &&
     inputs.phoneSceneVisible &&
     !isConsentPromptOwed() &&
-    !isPaywallInFlight()
+    !isPaywallInFlight() &&
+    landingSheetQueue.canRequest(LANDING_SHEET.WHATS_NEW)
   );
 }
 
@@ -123,6 +127,11 @@ export function useWhatsNewGate(): void {
   const lastSeenVersion = useWhatsNewStore((s) => s.lastSeenVersion);
   // Bumped when an async step (arm resolution, a paywall closing) needs the gate re-run.
   const [recheck, requestRecheck] = useReducer((count: number) => count + 1, 0);
+  // A landing sheet before What's New settling (or showing) re-runs the gate.
+  const queueVersion = useSyncExternalStore(
+    landingSheetQueue.subscribe,
+    landingSheetQueue.getVersion,
+  );
 
   const inputs: GateInputs = {
     ready: !isLoading && !!session && onboardingCompleted,
@@ -194,6 +203,10 @@ export function useWhatsNewGate(): void {
         waitForPaywall();
         return;
       }
+      if (!landingSheetQueue.request(LANDING_SHEET.WHATS_NEW)) {
+        phase = GATE_PHASE.SHOWING;
+        return;
+      }
       phase = GATE_PHASE.DONE;
       router.push(WHATS_NEW_AUTO_HREF);
     }, WHATS_NEW_TIMING.SHOW_DELAY_MS);
@@ -208,6 +221,7 @@ export function useWhatsNewGate(): void {
     phoneSceneVisible,
     lastSeenVersion,
     recheck,
+    queueVersion,
     router,
   ]);
 }

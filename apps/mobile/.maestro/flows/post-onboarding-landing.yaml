@@ -1,0 +1,82 @@
+# FS-PO17 guard (issue 365 T16b, owner ruling D11): at most one modal sheet over
+# Home in the session the rider lands from onboarding, and none after it closes.
+#
+# Order of the landing-sheet queue: safety recall (`recall-sheet`), then
+# "Service plan ready" (`oem-imported-sheet`); What's New (`whats-new-sheet`)
+# never shows in the landing session. Ids from source: lib/landing-sheet-queue.ts
+# (LANDING_SHEET_TEST_ID), the dismiss button `service-plan-ready-dismiss`, and
+# the recall sheet's back button ("Go back").
+#
+# Prereqs: as onboarding.yaml (a LOCAL E2E build with RevenueCat, PostHog and
+# Meta keys empty; never a store build or a production OTA). The friction-spec
+# repro is a bike with an open recall AND an imported service plan; with the
+# default Africa Twin the flow still asserts "at most one" for whatever shows.
+# Run: pnpm --filter @motovault/mobile test:e2e:post-onboarding (light, then
+# dark appearance; screenshots below are taken in both by the device stage).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+# 1. Onboard and land on Home, keeping the landing sheet on screen.
+- runFlow:
+    file: onboarding.yaml
+    env:
+      KEEP_LANDING_SHEET: "true"
+
+# 2. Give the queue its show delay, then capture what covers Home.
+- extendedWaitUntil:
+    visible:
+      id: "recall-sheet|oem-imported-sheet|whats-new-sheet"
+    timeout: 8000
+    optional: true
+- takeScreenshot: post-onboarding-landing-sheet
+
+# 3. At most one sheet: none of the others is visible beside the one shown.
+- runFlow:
+    when:
+      visible:
+        id: "recall-sheet"
+    commands:
+      - assertNotVisible:
+          id: "oem-imported-sheet"
+      - assertNotVisible:
+          id: "whats-new-sheet"
+- runFlow:
+    when:
+      visible:
+        id: "oem-imported-sheet"
+    commands:
+      - assertNotVisible:
+          id: "recall-sheet"
+      - assertNotVisible:
+          id: "whats-new-sheet"
+# What's New never shows in the landing session.
+- assertNotVisible:
+    id: "whats-new-sheet"
+
+# 4. Close the sheet; nothing else may follow it in the same cold session.
+- tapOn:
+    id: "service-plan-ready-dismiss"
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: "recall-sheet"
+    commands:
+      - tapOn: "Go back"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: "recall-sheet|oem-imported-sheet|whats-new-sheet"
+    timeout: 8000
+    optional: true
+- assertNotVisible:
+    id: "recall-sheet"
+- assertNotVisible:
+    id: "oem-imported-sheet"
+- assertNotVisible:
+    id: "whats-new-sheet"
+- takeScreenshot: post-onboarding-landing-home

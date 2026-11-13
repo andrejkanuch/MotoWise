@@ -3282,5 +3282,14 @@
     "newRoadsComputing": "Obliczanie…",
     "unlockPro": "Odblokuj z Pro",
     "newRoadsLockedA11y": "Nowe drogi w tej jeździe. Odblokuj z Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Twój plan serwisowy jest gotowy",
+      "body": "Harmonogram serwisowy producenta dla Twojego {{bike}} jest w garażu. Przypomnimy Ci przed każdym serwisem.",
+      "bodyNoBike": "Harmonogram serwisowy producenta dla Twojego motocykla jest w garażu. Przypomnimy Ci przed każdym serwisem.",
+      "open": "Zobacz mój plan",
+      "notNow": "Nie teraz"
+    }
   }
 }

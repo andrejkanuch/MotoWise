@@ -1,5 +1,6 @@
 # Full onboarding E2E (INVESTED variant — the superset that visits every screen).
 #
+# Optional env: KEEP_LANDING_SHEET="true" leaves a landing sheet over Home (see the end).
 # Optional env: NO_BIKE="true" skips bike setup ("I'll add my bike later"), so the
 # user finishes onboarding with an empty garage. Unset (the default) adds a Honda
 # Africa Twin, which every bike flow composed on this one relies on.
@@ -76,10 +77,37 @@ env:
           optional: true
 
 # What's New never auto-shows in a session that went through onboarding or
-# sign-in, so nothing covers Home here. flows/whats-new.yaml covers What's New.
+# sign-in. flows/whats-new.yaml covers What's New.
 
 # Success: onboarding complete -> Home dashboard.
 - extendedWaitUntil:
     visible:
       id: "home-screen"
     timeout: 120000
+
+# Landing sheet (issue 365 T16b, D11): a rider whose bike has an open recall or
+# an imported service plan gets ONE sheet over Home just after landing. Close it
+# so every flow composed on this one starts from a bare Home.
+# post-onboarding-landing.yaml sets KEEP_LANDING_SHEET="true" to inspect it.
+- runFlow:
+    when:
+      true: ${typeof KEEP_LANDING_SHEET === 'undefined' || KEEP_LANDING_SHEET !== 'true'}
+    commands:
+      - extendedWaitUntil:
+          visible:
+            id: "recall-sheet|oem-imported-sheet"
+          timeout: 6000
+          optional: true
+      - tapOn:
+          id: "service-plan-ready-dismiss"
+          optional: true
+      - runFlow:
+          when:
+            visible:
+              id: "recall-sheet"
+          commands:
+            - tapOn: "Go back"
+      - extendedWaitUntil:
+          visible:
+            id: "home-screen"
+          timeout: 10000

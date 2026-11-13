@@ -27,6 +27,7 @@ import {
   type RecallItem,
   splitRecalls,
 } from '../../lib/bike-hub/recall-acknowledgement';
+import { RECALL_SHEET_TEST_ID } from '../../lib/landing-sheet-queue';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { space } from '../../theme/spacing';
 import { radius, SYSTEM_WEIGHT, type } from '../../theme/type';
@@ -87,13 +88,12 @@ export default function RecallsScreen() {
     );
   };
 
-  const bg = theme.bg;
   const card = theme.surface;
   const textColor = theme.ink;
   const mutedText = theme.ink3;
 
   return (
-    <View style={{ flex: 1, backgroundColor: bg }}>
+    <View testID={RECALL_SHEET_TEST_ID} style={{ flex: 1, backgroundColor: theme.bg }}>
       <View
         style={{
           paddingTop: insets.top + 8,

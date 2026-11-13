@@ -3215,5 +3215,14 @@
     "newRoadsComputing": "Calcolo in corso…",
     "unlockPro": "Sblocca con Pro",
     "newRoadsLockedA11y": "Strade nuove in questa uscita. Sblocca con Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Il tuo piano di manutenzione è pronto",
+      "body": "Il piano di manutenzione del costruttore per la tua {{bike}} è nel tuo garage. Ti avviseremo prima di ogni tagliando.",
+      "bodyNoBike": "Il piano di manutenzione del costruttore per la tua moto è nel tuo garage. Ti avviseremo prima di ogni tagliando.",
+      "open": "Vedi il mio piano",
+      "notNow": "Non ora"
+    }
   }
 }

@@ -3215,5 +3215,14 @@
     "newRoadsComputing": "Calculando…",
     "unlockPro": "Desbloquear com o Pro",
     "newRoadsLockedA11y": "Estradas novas neste rolê. Desbloquear com o Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Seu plano de manutenção está pronto",
+      "body": "O plano de manutenção do fabricante para sua {{bike}} já está na sua garagem. Vamos te lembrar antes de cada revisão.",
+      "bodyNoBike": "O plano de manutenção do fabricante para sua moto já está na sua garagem. Vamos te lembrar antes de cada revisão.",
+      "open": "Ver meu plano",
+      "notNow": "Agora não"
+    }
   }
 }

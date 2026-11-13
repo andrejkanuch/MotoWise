@@ -3152,5 +3152,14 @@
     "newRoadsComputing": "Wird berechnet…",
     "unlockPro": "Mit Pro freischalten",
     "newRoadsLockedA11y": "Neue Straßen bei dieser Fahrt. Mit Pro freischalten"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Dein Wartungsplan ist bereit",
+      "body": "Der Wartungsplan des Herstellers für deine {{bike}} ist in deiner Garage. Wir erinnern dich vor jeder fälligen Wartung.",
+      "bodyNoBike": "Der Wartungsplan des Herstellers für dein Motorrad ist in deiner Garage. Wir erinnern dich vor jeder fälligen Wartung.",
+      "open": "Plan ansehen",
+      "notNow": "Nicht jetzt"
+    }
   }
 }
