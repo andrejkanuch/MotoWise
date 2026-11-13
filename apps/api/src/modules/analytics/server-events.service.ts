@@ -205,7 +205,20 @@ export class ServerEventsService {
   }
 }
 
-/** One event: the user id only with a stored "yes", else the event's constant bucket. */
+/** UTC midnight of `iso` (or of now): the only time a no-consent event carries. */
+export function utcDayStart(iso: string | undefined, now: Date = new Date()): string {
+  const at = iso ? new Date(iso) : now;
+  const day = Number.isNaN(at.getTime()) ? now : at;
+  // toISOString is always UTC, so its date part is the UTC day.
+  return `${day.toISOString().slice(0, 10)}T00:00:00.000Z`;
+}
+
+/**
+ * One event: the user id only with a stored "yes", else the event's constant bucket.
+ * A no-consent event's time is cut to the UTC day (as the RevenueCat webhook does):
+ * an exact time plus distance and duration could be matched back to the rider's
+ * row outside PostHog. The day keeps weekly buckets right.
+ */
 export function buildServerEvent(
   event: ServerEventName,
   userId: string,
@@ -214,10 +227,11 @@ export function buildServerEvent(
   timestamp?: string,
 ): PostHogCaptureEvent {
   const consented = hasExplicitAnalyticsConsent(decision);
+  const sentAt = consented ? timestamp : utcDayStart(timestamp);
   return {
     event,
     distinct_id: consented ? userId : NO_CONSENT_DISTINCT_ID[event],
-    ...(timestamp && { timestamp }),
+    ...(sentAt && { timestamp: sentAt }),
     properties: {
       ...properties,
       emitted_by: EMITTED_BY_SERVER_MUTATION,

@@ -141,7 +141,7 @@ Recipe: `queries/db/README.md` (every Monday, read-only, each file `BEGIN READ O
 | 2026-11-13 | `fs-ob1e-two-bikes.sql` | bikes in last 60 d | 2 accounts |
 | 2026-11-13 | `fs-r2-5-short-make.sql` | onboarding bikes, last 60 d / all time | 6/175 / 10/366 |
 
-**#365 T05e — FS-PO4b source of truth is `fs-po4b-first-ride.sql`, not `ride_saved`.** `ride_saved` is sent only when a rider saves (`RidesService.endRide`); rides the server ends (`closeStaleRides`, idle sweep) send nothing, and a rider whose first ride was swept gets `is_first = false` later. The PostHog share `ride_saved{is_first, below_min}` / `ride_saved{is_first}` undercounts sub-floor first rides and is a trend signal only (plan §5A.4 note).
+**#365 T05e — FS-PO4b source of truth is `fs-po4b-first-ride.sql`, not `ride_saved`.** `ride_saved` is sent only when a rider saves (`RidesService.endRide`); rides the server ends (`closeStaleRides`, idle sweep) send nothing, and a rider whose first ride was swept gets `is_first = false` later. Its `below_min` also counts rides under 30 s (the SQL tests distance only), and it covers every rider, not a sign-up cohort. So the PostHog share `ride_saved{is_first, below_min}` / `ride_saved{is_first}` is not directly comparable to the SQL and can differ in either direction; it is a trend signal only (plan §5A.4 note).
 
 ## 6. Experiment 1 ledger — "first-ride plan" (D13 signed 2026-11-12; D16)
 

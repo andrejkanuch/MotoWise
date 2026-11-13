@@ -8,6 +8,7 @@ import {
   NO_CONSENT_DISTINCT_ID,
   SERVER_EVENT,
   ServerEventsService,
+  utcDayStart,
 } from '../server-events.service';
 
 const USER_ID = '11111111-1111-1111-1111-111111111111';
@@ -267,6 +268,30 @@ describe('ServerEventsService', () => {
       distance_m: null,
       save_trigger: 'unknown',
     });
+  });
+
+  it('a no-consent event carries only the UTC day; a consented one the exact time', async () => {
+    const declined = makeAdmin({ preferences: { privacy: { analyticsEnabled: false } } });
+    const consented = makeAdmin({ preferences: { privacy: { analyticsEnabled: true } } });
+    const { events } = stubFetch();
+
+    await new ServerEventsService(declined.client, WITH_TOKEN).captureRideSaved(USER_ID, RIDE);
+    await new ServerEventsService(declined.client, WITH_TOKEN).captureOnboardingBikeCreated(
+      USER_ID,
+      BIKE,
+    );
+    await new ServerEventsService(consented.client, WITH_TOKEN).captureRideSaved(USER_ID, RIDE);
+
+    expect(events[0].timestamp).toBe('2026-11-13T00:00:00.000Z');
+    expect(events[1].timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T00:00:00\.000Z$/);
+    expect(events[2].timestamp).toBe(RIDE.endedAt);
+  });
+
+  it('utcDayStart falls back to today for a missing or unreadable time', () => {
+    const now = new Date('2026-11-13T22:15:00.000Z');
+    expect(utcDayStart('2026-11-12T23:59:59.999Z', now)).toBe('2026-11-12T00:00:00.000Z');
+    expect(utcDayStart(undefined, now)).toBe('2026-11-13T00:00:00.000Z');
+    expect(utcDayStart('not a date', now)).toBe('2026-11-13T00:00:00.000Z');
   });
 
   it('ride_saved is dropped, not guessed, when the first-ride count fails', async () => {
