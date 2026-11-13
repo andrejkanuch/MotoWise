@@ -617,7 +617,8 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Type** release · **Size** S · **Depends** T01, T04a, T04b, T04c, T05a, T05b, T05c, T05d, T07b, T08–T17 (merged) · **Blocks** T35, T14b, T15b, T36, T38 · **Release** store builds per `docs/runbooks/mobile-release.md`
   (D17: no OTA of this content; an OTA only for a crash/data-loss hotfix per `docs/runbooks/mobile-ota.md`, `--environment production`, owner go-ahead) · **Constraints** D14, D17.
 - **What.** Version bump in `apps/mobile/app.config.ts`; `ACTIVATION_FIX_LEVEL = 2` (level 1 is not used, §3A.0 rule 2); release notes list task ids;
-  pre-promotion E2E: `onboarding-paywall-verify.yaml` both arms (required by the runbook), `onboarding.yaml`, plus every new flow from T07–T17.
+  pre-promotion E2E: `onboarding-paywall-verify.yaml` both arms (required by the runbook; iOS build from the `e2e-simulator-paywall` profile, vendor SDKs on, owner go-ahead),
+  `onboarding.yaml`, plus every new flow from T07–T17 (iOS flows on `e2e-simulator`; the Android-only `onboarding-complete-relaunch.yaml` and `diagnose-offline.yaml` on `e2e-android`; both vendor SDKs off).
   On go-live per platform: annotation + §6 row (T03 procedure). Android also carries the FCM config from PR #393 (vc99 line). **vc99 (validation, V3 §2):** vc98 is in Play
   production, so D14's condition is met, but vc99 is a **draft on internal named "3.26.0"** (not even delivered to testers). Steps: (a) rename the release to "3.28.0 (99)";
   (b) roll it to internal and verify a push token registers (`push_token_registered` with `platform='android'`, and a `device_push_tokens` row); (c) promote to production with the
