@@ -1,5 +1,5 @@
 /**
- * Where a diagnosis started (#365 T05b, FS-PO2d): the `entry` property of
+ * Where a diagnosis started (issue 365 T05b, FS-PO2d): the `entry` property of
  * `diagnostic_started`, and the route param that carries it.
  */
 export const DIAGNOSTIC_ENTRY = {

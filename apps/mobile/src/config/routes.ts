@@ -26,7 +26,7 @@ export const HOME_ROUTE = {
   RIDER_INSIGHTS_RECAP: '/(tabs)/(home)/home/rider-insights/recap',
 } as const;
 
-// #365 T05b
+// Issue 365 T05b
 /** The diagnose list opened by Home's "Diagnose" tool, so its Start counts as `home_tool`. */
 export function diagnoseListFromHomeHref() {
   return {

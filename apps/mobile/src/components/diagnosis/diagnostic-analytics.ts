@@ -9,7 +9,7 @@ import { hasGraphQLCode } from '@/lib/graphql-errors';
 import { MetaAnalytics } from '@/lib/meta-analytics';
 import { isNetworkError } from '@/lib/network-error';
 
-// #365 T05b (FS-PO2a/b/d): where a diagnosis started and why one failed.
+// Issue 365 T05b (FS-PO2a/b/d): where a diagnosis started and why one failed.
 
 const DIAGNOSTIC_ENTRIES: readonly string[] = Object.values(DIAGNOSTIC_ENTRY);
 
