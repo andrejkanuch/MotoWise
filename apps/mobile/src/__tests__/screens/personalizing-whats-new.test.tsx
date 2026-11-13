@@ -38,6 +38,7 @@ jest.mock('../../lib/analytics', () => ({
 jest.mock('../../lib/onboarding-analytics', () => ({
   trackOnboardingEvent: jest.fn(),
   trackOnboardingFlowEvent: jest.fn(),
+  trackOnboardingCompletion: jest.fn(),
 }));
 jest.mock('../../lib/meta-analytics', () => ({
   MetaAnalytics: { trackCompleteRegistration: jest.fn() },

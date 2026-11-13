@@ -8,7 +8,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { AuthDivider, AuthField, OAuthButtons } from '../../components/auth/auth-field';
 import { EMAIL_CODE_SOURCE, EmailCodeStep } from '../../components/auth/email-code-step';
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
-import { AUTH_EMAIL_REDIRECT_TO } from '../../config/auth';
+import { AUTH_EMAIL_MODE, AUTH_EMAIL_REDIRECT_TO, AUTH_SURFACE } from '../../config/auth';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
 import { useOAuthSignIn } from '../../hooks/use-oauth-sign-in';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
@@ -20,6 +20,7 @@ import { space } from '../../theme/spacing';
 import { triggerImpact } from '../../utils/haptics';
 
 const LOGIN_ROUTE: Href = '/(auth)/login';
+const SURFACE = AUTH_SURFACE.REGISTER;
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
@@ -41,6 +42,10 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
+    trackEvent(AnalyticsEvent.AUTH_EMAIL_SUBMITTED, {
+      surface: SURFACE,
+      mode: AUTH_EMAIL_MODE.SIGNUP,
+    });
     setLoading(true);
     // The code step verifies against the normalized address; sign up with the same one.
     const address = normalizeEmail(email);
@@ -77,7 +82,7 @@ export default function RegisterScreen() {
           openCodeStep({ email: address, password });
         }
       } else if (data.user && data.session) {
-        trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'email' });
+        trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'email', surface: SURFACE });
       }
     } catch (err) {
       captureException(err);
@@ -87,7 +92,7 @@ export default function RegisterScreen() {
     }
   };
 
-  const { onApple, onGoogle } = useOAuthSignIn();
+  const { onApple, onGoogle } = useOAuthSignIn(SURFACE);
 
   const canSubmit = email.length > 0 && password.length > 0 && fullName.length > 0 && !loading;
 
@@ -112,6 +117,7 @@ export default function RegisterScreen() {
       {codeStep ? (
         <EmailCodeStep
           email={codeStep.email}
+          surface={SURFACE}
           source={EMAIL_CODE_SOURCE.SIGNUP}
           password={codeStep.password}
           initialCooldownMs={codeStep.initialCooldownMs}

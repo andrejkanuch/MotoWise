@@ -48,6 +48,7 @@ jest.mock('../../lib/analytics', () => ({
 jest.mock('../../lib/onboarding-analytics', () => ({
   trackOnboardingEvent: jest.fn(),
   trackOnboardingFlowEvent: jest.fn(),
+  trackOnboardingCompletion: jest.fn(),
 }));
 jest.mock('../../lib/notifications', () => ({ setupNotificationChannels: jest.fn() }));
 jest.mock('../../lib/push-token', () => ({ registerForPushNotifications: jest.fn() }));
