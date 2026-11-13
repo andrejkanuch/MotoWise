@@ -2082,7 +2082,7 @@
     "rideAlertsChannel": "Peringatan perjalanan",
     "autoEndedTitle": "Perjalanan disimpan",
     "autoEndedBody": "Anda tidak bergerak selama {{minutes}} menit, jadi kami mengakhiri perjalanan dan menyimpannya sampai titik Anda berhenti.",
-    "notSavedToast": "Tidak disimpan: perjalanan di bawah {{seconds}} d atau {{meters}} m tidak disimpan",
+    "notSavedToast": "Tidak disimpan: perjalanan di bawah {{meters}} m tidak disimpan",
     "autoDiscardedTitle": "Perjalanan tidak disimpan",
     "autoDiscardedBody": "Perjalanan Anda terlalu singkat untuk disimpan",
     "serviceTitle": "MotoVault sedang merekam perjalanan Anda",

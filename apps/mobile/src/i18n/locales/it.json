@@ -2115,7 +2115,7 @@
     "rideAlertsChannel": "Avvisi giro",
     "autoEndedTitle": "Giro salvato",
     "autoEndedBody": "Eri fermo da {{minutes}} minuti, quindi abbiamo terminato il giro e l'abbiamo salvato fino al punto in cui ti sei fermato.",
-    "notSavedToast": "Non salvato: i giri sotto {{seconds}} s o {{meters}} m non vengono conservati",
+    "notSavedToast": "Non salvato: i giri sotto {{meters}} m non vengono conservati",
     "autoDiscardedTitle": "Giro non salvato",
     "autoDiscardedBody": "Il tuo giro era troppo breve per essere salvato",
     "serviceTitle": "MotoVault sta registrando il tuo giro",

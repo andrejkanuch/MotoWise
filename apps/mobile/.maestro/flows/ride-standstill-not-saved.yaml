@@ -60,10 +60,11 @@ env:
 - tapOn:
     id: ride-guard-end-anyway
 
-# 5. No summary, no "RIDE SAVED": Home with the "Not saved" toast.
-- assertNotVisible: ".*RIDE SAVED.*"
+# 5. No summary, no "RIDE SAVED": Home with the "Not saved" toast. Wait for the
+#    toast straight after the tap: it is timed (15 s on E2E builds, 4 s in store
+#    builds) and a tap can take ~6 s to settle on a loaded host.
 - extendedWaitUntil:
-    visible: "Not saved: rides under 30 s or 50 m aren't kept"
+    visible: "Not saved: rides under 50 m aren't kept"
     timeout: 10000
 - takeScreenshot: ride-standstill-not-saved-toast
 - assertNotVisible: ".*RIDE SAVED.*"

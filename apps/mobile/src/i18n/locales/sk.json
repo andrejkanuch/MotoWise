@@ -2148,7 +2148,7 @@
     "rideAlertsChannel": "Upozornenia na jazdu",
     "autoEndedTitle": "Jazda uložená",
     "autoEndedBody": "{{minutes}} minút si sa nepohol, preto sme jazdu ukončili a uložili po miesto, kde si zastavil.",
-    "notSavedToast": "Neuložené: jazdy kratšie ako {{seconds}} s alebo {{meters}} m sa neukladajú",
+    "notSavedToast": "Neuložené: jazdy kratšie ako {{meters}} m sa neukladajú",
     "autoDiscardedTitle": "Jazda neuložená",
     "autoDiscardedBody": "Tvoja jazda bola príliš krátka na uloženie",
     "serviceTitle": "MotoVault nahráva tvoju jazdu",

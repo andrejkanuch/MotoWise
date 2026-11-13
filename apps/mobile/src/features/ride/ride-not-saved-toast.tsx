@@ -5,14 +5,20 @@ import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, Text, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { useTabBarClearance } from '../../hooks/use-tab-bar-clearance';
+import { isE2eRun } from '../../lib/e2e-build';
 import { useRideNoticeStore } from '../../stores/ride-notice.store';
 import { useEditorialTheme } from '../../theme/editorial';
 import { space } from '../../theme/spacing';
 import { radius, type } from '../../theme/type';
-import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../../utils/ride-constants';
+import { MIN_RIDE_DISTANCE_M } from '../../utils/ride-constants';
 
 /** Long enough to read two lines; the rider is not asked to act on it. */
 const VISIBLE_MS = 4_000;
+/**
+ * E2E builds keep the toast up longer: a Maestro tap can take ~6 s to settle on a
+ * loaded host, which outlasts the 4 s a rider gets (issue 365 T09 device check).
+ */
+const E2E_VISIBLE_MS = 15_000;
 const ICON_SIZE = 20;
 
 /**
@@ -26,15 +32,13 @@ export function RideNotSavedToast() {
   const notSavedAt = useRideNoticeStore((s) => s.notSavedAt);
   const clearNotSaved = useRideNoticeStore((s) => s.clearNotSaved);
   const bottom = useTabBarClearance(space.sm);
-  const message = t('rideHud.notSavedToast', {
-    seconds: MIN_RIDE_ELAPSED_S,
-    meters: MIN_RIDE_DISTANCE_M,
-  });
+  // Only the 50 m floor discards: a ride over 50 m but under 30 s is kept.
+  const message = t('rideHud.notSavedToast', { meters: MIN_RIDE_DISTANCE_M });
 
   useEffect(() => {
     if (notSavedAt == null) return;
     AccessibilityInfo.announceForAccessibility(message);
-    const timer = setTimeout(clearNotSaved, VISIBLE_MS);
+    const timer = setTimeout(clearNotSaved, isE2eRun() ? E2E_VISIBLE_MS : VISIBLE_MS);
     return () => clearTimeout(timer);
   }, [notSavedAt, clearNotSaved, message]);
 

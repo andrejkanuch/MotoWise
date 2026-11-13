@@ -2115,7 +2115,7 @@
     "rideAlertsChannel": "Avisos de rodada",
     "autoEndedTitle": "Rodada guardada",
     "autoEndedBody": "Llevabas {{minutes}} minutos sin moverte, así que terminamos tu rodada y la guardamos hasta donde te detuviste.",
-    "notSavedToast": "No se guardó: no conservamos rodadas de menos de {{seconds}} s o {{meters}} m",
+    "notSavedToast": "No se guardó: no conservamos rodadas de menos de {{meters}} m",
     "autoDiscardedTitle": "Rodada no guardada",
     "autoDiscardedBody": "Tu rodada fue demasiado corta para guardarla",
     "serviceTitle": "MotoVault está grabando tu rodada",

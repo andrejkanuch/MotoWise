@@ -2082,7 +2082,7 @@
     "rideAlertsChannel": "राइड अलर्ट",
     "autoEndedTitle": "राइड सेव हो गई",
     "autoEndedBody": "आप {{minutes}} मिनट से नहीं चले थे, इसलिए हमने आपकी राइड खत्म करके आपके रुकने तक सेव कर दी।",
-    "notSavedToast": "सेव नहीं हुई: {{seconds}} से या {{meters}} मी से छोटी राइड नहीं रखी जातीं",
+    "notSavedToast": "सेव नहीं हुई: {{meters}} मी से छोटी राइड नहीं रखी जातीं",
     "autoDiscardedTitle": "राइड सेव नहीं हुई",
     "autoDiscardedBody": "आपकी राइड सेव करने के लिए बहुत छोटी थी",
     "serviceTitle": "MotoVault आपकी राइड रिकॉर्ड कर रहा है",

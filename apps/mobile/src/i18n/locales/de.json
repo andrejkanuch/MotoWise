@@ -2082,7 +2082,7 @@
     "rideAlertsChannel": "Fahrt-Hinweise",
     "autoEndedTitle": "Fahrt gespeichert",
     "autoEndedBody": "Du hast dich {{minutes}} Minuten nicht bewegt. Wir haben deine Fahrt beendet und bis zu deinem Halt gespeichert.",
-    "notSavedToast": "Nicht gespeichert: Fahrten unter {{seconds}} s oder {{meters}} m werden nicht behalten",
+    "notSavedToast": "Nicht gespeichert: Fahrten unter {{meters}} m werden nicht behalten",
     "autoDiscardedTitle": "Fahrt nicht gespeichert",
     "autoDiscardedBody": "Deine Fahrt war zu kurz zum Speichern",
     "serviceTitle": "MotoVault zeichnet deine Fahrt auf",

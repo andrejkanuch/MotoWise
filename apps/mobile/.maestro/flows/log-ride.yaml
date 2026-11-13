@@ -6,8 +6,9 @@
 #   - the ride is started from the ride FAB in the tab bar (`id: tab-ride-fab`);
 #     the ride UI is addressed by testIDs (#365 T05c, features/ride/ride-test-ids.ts).
 #   - `setLocation` gives the sim a GPS fix so the pre-flight GPS check passes;
-#     `travel` then moves it ~400 m at 10 m/s (~40 s), so the ride is over both
-#     floors (30 s / 50 m). Since issue 365 T09 a ride under 50 m ended from the
+#     `travel` then moves it ~400 m. Android honours `speed: 10` (~40 s); iOS
+#     ignores it and finishes in ~20 s, under the 30 s floor, so the flow waits
+#     15 s more before ending to clear both floors (30 s / 50 m) on both platforms. Since issue 365 T09 a ride under 50 m ended from the
 #     guard is discarded ("End without saving"), so a standstill ride no longer
 #     reaches "RIDE SAVED" (that case is ride-standstill-not-saved.yaml).
 #   - the "unfinished ride" banner's End button reads "End Ride" but its a11y
@@ -60,7 +61,8 @@ env:
     timeout: 30000
 - takeScreenshot: log-ride-recording
 
-# 5. Ride: ~400 m north at 10 m/s (~40 s), over both floors (30 s / 50 m).
+# 5. Ride: ~400 m north. ~40 s on Android (speed is honoured), ~20 s on iOS
+#    (speed is ignored).
 - travel:
     points:
       - "37.33182,-122.03118"
@@ -69,6 +71,12 @@ env:
       - "37.33452,-122.03118"
       - "37.33542,-122.03118"
     speed: 10
+# Keep recording another 15 s so iOS also clears the 30 s floor (no sleep in
+# Maestro: wait for text that never shows).
+- extendedWaitUntil:
+    visible: "issue-365-t09-never-shown"
+    timeout: 15000
+    optional: true
 
 # 6. End the ride: it's a HOLD, not a tap ("Hold to end ride"). Over the floors,
 #    so no guard sheet.

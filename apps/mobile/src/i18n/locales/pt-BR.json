@@ -2115,7 +2115,7 @@
     "rideAlertsChannel": "Alertas de rolê",
     "autoEndedTitle": "Rolê salvo",
     "autoEndedBody": "Você estava parado há {{minutes}} minutos, então encerramos o rolê e salvamos até onde você parou.",
-    "notSavedToast": "Não salvo: rolês com menos de {{seconds}} s ou {{meters}} m não são mantidos",
+    "notSavedToast": "Não salvo: rolês com menos de {{meters}} m não são mantidos",
     "autoDiscardedTitle": "Rolê não salvo",
     "autoDiscardedBody": "Seu rolê foi curto demais para ser salvo",
     "serviceTitle": "O MotoVault está gravando seu rolê",

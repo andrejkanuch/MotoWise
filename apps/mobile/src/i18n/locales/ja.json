@@ -2082,7 +2082,7 @@
     "rideAlertsChannel": "ライド通知",
     "autoEndedTitle": "ライドを保存しました",
     "autoEndedBody": "{{minutes}}分間移動がなかったため、ライドを終了し、停車した地点まで保存しました。",
-    "notSavedToast": "保存されませんでした：{{seconds}}秒または{{meters}}m未満のライドは保存されません",
+    "notSavedToast": "保存されませんでした：{{meters}}m未満のライドは保存されません",
     "autoDiscardedTitle": "ライドは保存されませんでした",
     "autoDiscardedBody": "ライドが短すぎるため保存できませんでした",
     "serviceTitle": "MotoVaultがライドを記録中",

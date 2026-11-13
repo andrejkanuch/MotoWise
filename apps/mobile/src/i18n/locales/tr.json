@@ -2082,7 +2082,7 @@
     "rideAlertsChannel": "Sürüş uyarıları",
     "autoEndedTitle": "Sürüş kaydedildi",
     "autoEndedBody": "{{minutes}} dakikadır hareket etmediğin için sürüşünü bitirdik ve durduğun yere kadar kaydettik.",
-    "notSavedToast": "Kaydedilmedi: {{seconds}} sn veya {{meters}} m altındaki sürüşler saklanmaz",
+    "notSavedToast": "Kaydedilmedi: {{meters}} m altındaki sürüşler saklanmaz",
     "autoDiscardedTitle": "Sürüş kaydedilmedi",
     "autoDiscardedBody": "Sürüşün kaydedilemeyecek kadar kısaydı",
     "serviceTitle": "MotoVault sürüşünü kaydediyor",

@@ -2188,7 +2188,7 @@
     "rideAlertsChannel": "Ride alerts",
     "autoEndedTitle": "Ride saved",
     "autoEndedBody": "You hadn't moved for {{minutes}} minutes, so we ended your ride and saved it up to where you stopped.",
-    "notSavedToast": "Not saved: rides under {{seconds}} s or {{meters}} m aren't kept",
+    "notSavedToast": "Not saved: rides under {{meters}} m aren't kept",
     "autoDiscardedTitle": "Ride not saved",
     "autoDiscardedBody": "Your ride was too short to save",
     "serviceTitle": "MotoVault is recording your ride",
