@@ -3,6 +3,7 @@
  * Use these instead of magic strings in router.push / router.replace / deepLink.
  */
 
+import { DIAGNOSTIC_ENTRY, DIAGNOSTIC_ENTRY_PARAM } from './diagnostic-entry';
 import { WHATS_NEW_SOURCE, type WhatsNewSource } from './whats-new';
 
 /** Main tab routes */
@@ -24,6 +25,15 @@ export const HOME_ROUTE = {
   RIDER_INSIGHTS_DETAIL: '/(tabs)/(home)/home/rider-insights/[group]',
   RIDER_INSIGHTS_RECAP: '/(tabs)/(home)/home/rider-insights/recap',
 } as const;
+
+// #365 T05b
+/** The diagnose list opened by Home's "Diagnose" tool, so its Start counts as `home_tool`. */
+export function diagnoseListFromHomeHref() {
+  return {
+    pathname: '/(tabs)/(diagnose)',
+    params: { [DIAGNOSTIC_ENTRY_PARAM]: DIAGNOSTIC_ENTRY.HOME_TOOL },
+  } as const;
+}
 
 /** Garage sub-routes */
 export const GARAGE_ROUTE = {

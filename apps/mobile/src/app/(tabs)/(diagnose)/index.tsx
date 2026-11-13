@@ -4,7 +4,7 @@ import {
   type MyMotorcyclesQuery,
 } from '@motovault/graphql';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   AlertTriangle,
   ChevronRight,
@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { diagnoseListEntry } from '@/components/diagnosis/diagnostic-analytics';
 import {
   DIAGNOSTIC_STATUS,
   formatDiagnosisDate,
@@ -28,6 +29,7 @@ import {
 import { QuotaNote } from '@/components/diagnosis/quota-note';
 import { SeverityChip, useSeverityLabel } from '@/components/diagnosis/severity-chip';
 import { useStartDiagnosis } from '@/components/diagnosis/use-start-diagnosis';
+import { DIAGNOSTIC_ENTRY_PARAM } from '@/config/diagnostic-entry';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { queryKeys } from '@/lib/query-keys';
@@ -103,7 +105,8 @@ export default function DiagnoseScreen() {
     trackEvent(AnalyticsEvent.DIAGNOSTIC_LIST_VIEWED);
   }, []);
 
-  const startDiagnosis = useStartDiagnosis();
+  const entryParam = useLocalSearchParams()[DIAGNOSTIC_ENTRY_PARAM];
+  const startDiagnosis = useStartDiagnosis(diagnoseListEntry(entryParam));
   const handleNewDiagnostic = () => {
     triggerImpact();
     startDiagnosis();
