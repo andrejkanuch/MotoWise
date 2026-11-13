@@ -74,6 +74,10 @@ export const MODAL_ROUTE = {
   ADD_BIKE: '/(modals)/add-bike',
   /** What's New; pass `{ source: WhatsNewSource }`. */
   WHATS_NEW: '/(modals)/whats-new',
+  /** A bike's safety recalls; pass `{ motorcycleId, bikeName? }`. */
+  RECALLS: '/(modals)/recalls',
+  /** "Service plan ready" over Home after onboarding; pass `{ motorcycleId, bikeName? }`. */
+  SERVICE_PLAN_READY: '/(modals)/service-plan-ready',
 } as const;
 
 /** The What's New route opened from `source`, for `router.push`. */

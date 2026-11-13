@@ -69,6 +69,7 @@ const FEATURE_AREA_RULES: readonly (readonly [segment: string, area: FeatureArea
   ['complete-task', FEATURE_AREA.MAINTENANCE],
   ['bike-tasks', FEATURE_AREA.MAINTENANCE],
   ['recalls', FEATURE_AREA.MAINTENANCE],
+  ['service-plan-ready', FEATURE_AREA.MAINTENANCE],
 
   // Rides
   ['start-ride', FEATURE_AREA.RIDES],

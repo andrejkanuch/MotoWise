@@ -3221,5 +3221,14 @@
     "newRoadsComputing": "Calcul en cours…",
     "unlockPro": "Débloquer avec Pro",
     "newRoadsLockedA11y": "Routes nouvelles sur cette sortie. Débloquer avec Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Ton plan d'entretien est prêt",
+      "body": "Le plan d'entretien constructeur de ta {{bike}} est dans ton garage. On te préviendra avant chaque entretien.",
+      "bodyNoBike": "Le plan d'entretien constructeur de ta moto est dans ton garage. On te préviendra avant chaque entretien.",
+      "open": "Voir mon plan",
+      "notNow": "Plus tard"
+    }
   }
 }

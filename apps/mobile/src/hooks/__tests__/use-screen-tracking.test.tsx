@@ -17,6 +17,10 @@ jest.mock('../../lib/analytics', () => ({
   trackScreen: jest.fn(),
 }));
 jest.mock('../../lib/onboarding-experiment', () => ({ getOnboardingVariant: () => 'invested' }));
+const mockNoteLanding = jest.fn();
+jest.mock('../../lib/landing-sheet-queue', () => ({
+  landingSheetQueue: { noteLanding: () => mockNoteLanding() },
+}));
 
 import { renderHook } from '@testing-library/react-native';
 import { AnalyticsEvent, trackEvent, trackScreen } from '../../lib/analytics';
@@ -53,5 +57,7 @@ describe('useScreenTracking — post_onboarding_landed', () => {
         }),
       ],
     ]);
+    // The landing opens the landing-sheet queue's session once (issue 365 T16b).
+    expect(mockNoteLanding).toHaveBeenCalledTimes(1);
   });
 });

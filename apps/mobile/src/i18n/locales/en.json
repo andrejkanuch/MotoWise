@@ -3158,5 +3158,14 @@
     "newRoadsComputing": "Working it out…",
     "unlockPro": "Unlock with Pro",
     "newRoadsLockedA11y": "New roads on this ride. Unlock with Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Your service plan is ready",
+      "body": "The manufacturer's service schedule for your {{bike}} is in your garage. We'll remind you before each service is due.",
+      "bodyNoBike": "The manufacturer's service schedule for your bike is in your garage. We'll remind you before each service is due.",
+      "open": "See my plan",
+      "notNow": "Not now"
+    }
   }
 }
