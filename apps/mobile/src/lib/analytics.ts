@@ -1,7 +1,7 @@
 import type { CaptureEvent, JsonType } from '@posthog/core';
 import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
-import PostHog from 'posthog-react-native';
+import PostHog, { PostHogPersistedProperty } from 'posthog-react-native';
 import { Settings } from 'react-native-fbsdk-next';
 import {
   CONSENT_STATE,
@@ -105,12 +105,21 @@ export const posthogClient: PostHog = new PostHog(POSTHOG_API_KEY || 'placeholde
   // preview/production builds, mirroring the Sentry `enabled: !__DEV__` gate
   // above. `disabled: true` makes all capture/screen/replay calls safe no-ops.
   disabled: __DEV__ || !POSTHOG_API_KEY,
+  // Push stays with expo-notifications. Since 4.62 the SDK (with the native
+  // plugin installed) registers the APNs/FCM token with PostHog and captures
+  // `$push_notification_opened` natively — that event bypasses `before_send`.
+  // Both are off; the iOS launch hook is skipped by the
+  // `com.posthog.posthog.CAPTURE_PUSH_NOTIFICATION_OPENED` Info.plist key in
+  // app.config.ts.
+  capturePushNotificationSubscriptions: false,
+  capturePushNotificationOpened: false,
   // Session replay only in release builds (redundant with `disabled` in dev,
-  // but explicit). The recorder is CONSENT-GATED: the SDK auto-starts replay on
-  // init based only on `enableSessionReplay` + remote config — it does NOT check
-  // the user's opt-out — so we immediately `stopSessionRecording()` after init
-  // unless last-known consent is true, and `setAnalyticsEnabled` is the single
-  // source of truth that starts/stops the recorder thereafter (see todo 184).
+  // but explicit). The recorder is CONSENT-GATED: SDKs before 4.81 auto-started
+  // replay on init from `enableSessionReplay` + remote config without checking
+  // the opt-out; 4.81+ checks the persisted opt-out, but that loads
+  // asynchronously, so we still `stopSessionRecording()` after init unless
+  // last-known consent is true, and `setAnalyticsEnabled` is the single source
+  // of truth that starts/stops the recorder thereafter (see todo 184).
   //
   // Masking is best-effort, NOT a guarantee that no PII is captured:
   //  - `maskAllTextInputs` masks `TextInput` only — read-only `<Text>` (VIN,
@@ -147,9 +156,10 @@ function registerReleaseMarker() {
 // Right after creation, so it is queued before any event the app captures.
 registerReleaseMarker();
 
-// Default replay OFF until consent is confirmed. The SDK auto-starts the
-// recorder at construction (gated only by `enableSessionReplay`/remote config,
-// NOT by opt-out), so without this a pre-consent user — including the
+// Default replay OFF until consent is confirmed. The SDK may auto-start the
+// recorder at construction (before 4.81 it ignored opt-out; since then it reads
+// the persisted opt state, which a fresh or pre-3.21 install may not have yet),
+// so without this a pre-consent user — including the
 // cold-start/login/onboarding window before the server `me` query resolves —
 // would be recorded. We stop immediately unless the last-known consent
 // (persisted locally) is true, then `setAnalyticsEnabled` takes over.
@@ -560,9 +570,26 @@ export function getAnalyticsDistinctId(): string | undefined {
   return posthogClient.getDistinctId();
 }
 
+/**
+ * What `reset()` keeps. Passing a list replaces the SDK's own default list
+ * (install build/version, device id), so those are repeated here. The opt state
+ * is kept too: the base reset clears it, which turns a rider who switched
+ * analytics off this launch back to `defaultOptIn`, and from 4.81 the SDK then
+ * restarts the native session replay on its own. Consent here is per device,
+ * not per account, so sign-out must not change it.
+ */
+function resetKeptProperties(): PostHogPersistedProperty[] {
+  return [
+    PostHogPersistedProperty.InstalledAppBuild,
+    PostHogPersistedProperty.InstalledAppVersion,
+    PostHogPersistedProperty.DeviceId,
+    PostHogPersistedProperty.OptedOut,
+  ];
+}
+
 export function resetUser() {
   if (posthogClient) {
-    posthogClient.reset();
+    posthogClient.reset(resetKeptProperties());
     // reset() clears every super property; the release marker belongs to the
     // launch, not the account, so it goes straight back on.
     registerReleaseMarker();

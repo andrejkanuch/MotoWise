@@ -127,6 +127,12 @@ const mockCallOrder: string[] = [];
 
 jest.mock('posthog-react-native', () => ({
   __esModule: true,
+  PostHogPersistedProperty: {
+    InstalledAppBuild: 'installed_app_build',
+    InstalledAppVersion: 'installed_app_version',
+    DeviceId: 'device_id',
+    OptedOut: 'opted_out',
+  },
   default: class PostHogMock {
     constructor(_key: string, options: Record<string, unknown>) {
       mockConstructorOptions = options;
@@ -270,6 +276,30 @@ describe('release marker wiring (lib/analytics.ts)', () => {
     expect(mockRegister).toHaveBeenCalledWith(
       expect.objectContaining({ activation_fix_level: ACTIVATION_FIX_LEVEL }),
     );
+  });
+
+  // The base reset clears the persisted opt-out; from SDK 4.81 that also restarts
+  // native session replay for a rider who switched analytics off this launch.
+  it('keeps the opt state and install markers through sign-out', () => {
+    const analytics = launch('granted');
+    const client = analytics.posthogClient as unknown as { reset: jest.Mock };
+    analytics.resetUser();
+    expect(client.reset).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        'opted_out',
+        'installed_app_build',
+        'installed_app_version',
+        'device_id',
+      ]),
+    );
+  });
+
+  it('leaves push registration and push-open capture to expo-notifications', () => {
+    launch('granted');
+    expect(mockConstructorOptions).toMatchObject({
+      capturePushNotificationSubscriptions: false,
+      capturePushNotificationOpened: false,
+    });
   });
 
   // The SDK captures `Application Installed`/`Opened` as soon as its storage has
