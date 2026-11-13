@@ -1554,7 +1554,7 @@ the bug and only protects the fixed behaviour.
 | # | Version / runtime + hotfix OTA id / API | Go-live date | Platform | `activation_fix_level` | Tasks + spec ids shipped | PostHog annotation id | Notes (staged %, E2E run link, publish branch) |
 |---|---|---|---|---|---|---|---|
 | 0 | 3.26.0 (b93 Android / b106 iOS), 3.27.0 (iOS b108; Android vc95 internal only), 3.28.0 (iOS b111 from 11-11; Android vc98 from ~11-12) | before 2026-11-12 | both | null | — (baseline) | — | Riders 14 d, per-person platform: Android 3.26.0 108, 3.28.0 5; iOS 3.26.0 37, 3.27.0 14, 3.28.0 11 [SOURCE: V3 P1]. Play production 3.28.0 vc98 (review cleared ~11-12, 80%); vc99 = internal draft named "3.26.0"; App Store 3.28.0 b111, nothing in review [SOURCE: V3 §2–3]. Latest OTA groups: 3.28.0 `fece7a3c`, 3.26.0 `bd05b306`; none on 3.27.0 |
-| 1 | | | | | | | |
+| 1 | API `49db3863` (Render `dep-dbrh42m7bikc73f0ebg0`) | 2026-11-13 | server | null (`lvl n/a`) | T05e (#471) — measurement for FS-R2-5, FS-PO4b: server events `onboarding_bike_created`, `ride_saved` | `204938`; text `#365 fixes: server api 49db3863 lvl n/a — FS-R2-5, FS-PO4b (T05e measurement: onboarding_bike_created, ride_saved)` | Live 13:37 UTC; reaches every app version at once. Measurement only: §6.1 rows for FS-R2-5 (T25b) and FS-PO4b (T09) stay `open`. `ride_saved` misses server-ended rides; FS-PO4b stays on the weekly DB check (§5A.4) |
 | 2 | | | | | | | |
 
 **Template — example row, NOT a real go-live (#365 T03a).** Copy its shape; build numbers, dates and ids are placeholders. Procedure: `docs/runbooks/mobile-release.md` → "#365 release marking".
