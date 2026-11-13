@@ -87,17 +87,20 @@ interface AuthState {
 /**
  * Onboarding completion for the session the auth listener just reported. A
  * signed-in user whose id matches the persisted flag has completed onboarding;
- * a different user (or no user) drops the flag.
+ * a different user (or no user) drops the flag. The in-memory completion only
+ * carries over while the session stays with the same user (token refresh), so a
+ * direct switch to another account never inherits the previous rider's answer.
  */
 export function onboardingCompletionForSession(
-  state: Pick<AuthState, 'onboardingCompleted' | 'onboardingCompletedForUserId'>,
+  state: Pick<AuthState, 'session' | 'onboardingCompleted' | 'onboardingCompletedForUserId'>,
   session: Session | null,
 ): Pick<AuthState, 'onboardingCompleted' | 'onboardingCompletedForUserId'> {
   const userId = session?.user?.id;
   if (!userId) return { onboardingCompleted: false, onboardingCompletedForUserId: null };
   const flagIsThisUser = state.onboardingCompletedForUserId === userId;
+  const sameUser = state.session?.user?.id === userId;
   return {
-    onboardingCompleted: state.onboardingCompleted || flagIsThisUser,
+    onboardingCompleted: (sameUser && state.onboardingCompleted) || flagIsThisUser,
     onboardingCompletedForUserId: flagIsThisUser ? userId : null,
   };
 }

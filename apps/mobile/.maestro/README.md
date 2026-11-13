@@ -120,10 +120,11 @@ the flows below.
   on-device validation.** `test:e2e:log-past-work`.
 - **`flows/onboarding-complete-relaunch.yaml`** — onboarding completion survives a cold start (issue 365
   T14, FS-OB1e). Composes `onboarding.yaml`, then `stopApp` → airplane mode on → `launchApp` (no
-  `clearState`) → Home (`home-screen`), never "Let's get started". Tagged `android` (`setAirplaneMode`
-  is Android-only); a guard only, since the stale-`me` race is covered by
-  `src/__tests__/navigation-gate.test.tsx`. **Authored from source, pending on-device validation.**
-  `test:e2e:onboarding-complete-relaunch`.
+  `clearState`) → the tab bar (`tab-home`; a cold start can land on any tab), never "Let's get
+  started". Airplane mode is turned off again in `onFlowComplete`. Tagged `android`
+  (`setAirplaneMode` is Android-only); the stale-`me` race itself is covered by
+  `src/__tests__/navigation-gate.test.tsx`. **Validated on an Android emulator 2026-11-13: fails on
+  main (Welcome screen), passes with the fix.** `test:e2e:onboarding-complete-relaunch`.
 - **`flows/add-bike.yaml`** — add a motorcycle from the garage. Composes `onboarding.yaml` with
   `NO_BIKE: "true"` (bike setup → "Not sure of the details?" → "I'll add my bike later" → no-bike
   value screen), so the free test user reaches an empty garage and "Add your first bike" opens the

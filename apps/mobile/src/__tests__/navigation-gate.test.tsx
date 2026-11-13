@@ -101,6 +101,24 @@ describe('NavigationGate onboarding completion across a cold start (FS-OB1e)', (
     expect(useAuthStore.getState().onboardingCompletedForUserId).toBeNull();
   });
 
+  it("does not carry one rider's in-memory completion to another account", () => {
+    completeOnboardingAs('u1');
+    // A direct account switch with no SIGNED_OUT in between.
+    useAuthStore.getState().setSession(sessionFor('u2'));
+
+    expect(useAuthStore.getState().onboardingCompleted).toBe(false);
+    expect(useAuthStore.getState().onboardingCompletedForUserId).toBeNull();
+    expect(gateGroup({ onboardingCompleted: false })).toBe(GATE.ONBOARDING);
+  });
+
+  it('keeps completion across a token refresh for the same rider', () => {
+    completeOnboardingAs('u1');
+    useAuthStore.getState().setSession(sessionFor('u1'));
+
+    expect(useAuthStore.getState().onboardingCompleted).toBe(true);
+    expect(useAuthStore.getState().onboardingCompletedForUserId).toBe('u1');
+  });
+
   it('clears the flag on sign-out', async () => {
     completeOnboardingAs('u1');
     useAuthStore.getState().setSession(null);
