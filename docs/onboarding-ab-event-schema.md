@@ -136,6 +136,13 @@ New event names, fired by T21 (constants only until then: `PAYWALL_GATE_EVENTS` 
 | `paywall_suppressed` | `feature`, `surface`, `reason: feature_cap \| session_cap \| error_cooldown` |
 | `limit_sheet_viewed` | `feature`, `surface` |
 
+### #365 T05b — diagnostics (post-onboarding, from 3.29.0)
+
+| Event | When | Properties |
+|---|---|---|
+| `diagnostic_started` | Once per entry into the diagnose form: the tap that opens it (`useStartDiagnosis`), or, for the quick action, the form's entry gate. No longer on every focus of the form (before 3.29.0 it re-fired on each refocus) | `entry: 'list' \| 'detail' \| 'quick_action' \| 'home_tool'` (`DIAGNOSTIC_ENTRY`, `apps/mobile/src/config/diagnostic-entry.ts`). Not fired when the used free diagnosis sends the rider to the paywall instead |
+| `diagnostic_failed` | A submit failed for any reason other than a free rider's monthly limit (that one is `diagnostic_limit_reached`) | `reason: 'offline' \| 'timeout' \| 'throttled' \| 'server' \| 'limit'` (`DIAGNOSTIC_FAILURE_REASON`, from a typed mapping, never the server text); `elapsed_s` (submit tap → failure, one decimal); `offline` (the pre-3.29 boolean, kept) |
+
 ## Metrics → PostHog definitions
 
 - **Primary — install → trial start:** funnel `onboarding_started` → `paywall_result` where `paywall_result = purchased`. (Trial = purchase of the trial-bearing package; refine with RC webhook events if needed.)

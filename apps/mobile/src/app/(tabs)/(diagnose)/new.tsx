@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
+import { trackDiagnosticFailed } from '@/components/diagnosis/diagnostic-analytics';
 import { useDiagnosticEntryGate } from '@/components/diagnosis/use-diagnostic-entry-gate';
 import { recordDiagnosisSubmitted } from '@/components/diagnosis/use-diagnostic-quota';
 import { useDiagnosticColors } from '@/components/diagnostic-flow/diagnostic-colors';
@@ -30,8 +31,6 @@ import { AnalyticsEvent, captureException, trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { GRAPHQL_ERROR_CODE } from '@/lib/graphql-error-classification';
 import { hasGraphQLCode } from '@/lib/graphql-errors';
-import { MetaAnalytics } from '@/lib/meta-analytics';
-import { isNetworkError } from '@/lib/network-error';
 import { useDiagnosticFlowStore } from '@/stores/diagnostic-flow.store';
 import { space } from '@/theme/spacing';
 
@@ -66,15 +65,12 @@ export default function NewDiagnosticScreen() {
 
   const store = useDiagnosticFlowStore;
 
-  // Reset store on focus (but not if a submission is in progress)
+  // Reset store on focus (but not if a submission is in progress). `diagnostic_started`
+  // is counted per entry instead, by useStartDiagnosis / useDiagnosticEntryGate.
   useFocusEffect(
     useCallback(() => {
       const { isSubmitting } = useDiagnosticFlowStore.getState();
-      if (!isSubmitting) {
-        reset();
-        trackEvent(AnalyticsEvent.DIAGNOSTIC_STARTED);
-        MetaAnalytics.trackStartDiagnostic();
-      }
+      if (!isSubmitting) reset();
     }, [reset]),
   );
 
@@ -159,6 +155,7 @@ export default function NewDiagnosticScreen() {
     if (state.isSubmitting || !state.hasProblemInput()) return;
     state.setIsSubmitting(true);
     state.setSubmitError(null);
+    const submittedAtMs = Date.now();
     trackEvent(AnalyticsEvent.DIAGNOSTIC_SUBMITTED, { has_photo: !!state.photoUri });
 
     try {
@@ -222,7 +219,7 @@ export default function NewDiagnosticScreen() {
         trackEvent(AnalyticsEvent.DIAGNOSTIC_LIMIT_REACHED);
         requirePro('full_ai_diagnostics');
       } else {
-        trackEvent(AnalyticsEvent.DIAGNOSTIC_FAILED, { offline: isNetworkError(error) });
+        trackDiagnosticFailed(error, submittedAtMs);
         captureException(error, { source: 'diagnose.submitDiagnostic', message });
       }
       state.setSubmitError(message);
