@@ -60,10 +60,7 @@ const DATA_RULES: ReadonlyMap<string, (signals: ChecklistSignals) => boolean> = 
     CHECKLIST_ITEM_ID.COMPLETE_BIKE,
     ({ bikes }) => bikes?.some((bike) => Boolean(bike.primaryPhotoUrl)) ?? false,
   ],
-  [
-    CHECKLIST_ITEM_ID.FIRST_RIDE,
-    ({ rides }) => rides?.some(isRealRide) ?? false,
-  ],
+  [CHECKLIST_ITEM_ID.FIRST_RIDE, ({ rides }) => rides?.some(isRealRide) ?? false],
   [
     CHECKLIST_ITEM_ID.FIRST_EXPENSE,
     ({ expenseCounts }) => expenseCounts.some((count) => (count ?? 0) > 0),

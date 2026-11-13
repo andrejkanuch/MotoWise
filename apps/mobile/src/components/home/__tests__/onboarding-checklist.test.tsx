@@ -308,9 +308,7 @@ describe('Get Started card, taps', () => {
       fireEvent.press(screen.getByTestId(`checklist-row-${CHECKLIST_ITEM_ID.BROWSE_ROUTES}`));
     });
 
-    expect(useChecklistStore.getState().completedItems).toEqual([
-      CHECKLIST_ITEM_ID.BROWSE_ROUTES,
-    ]);
+    expect(useChecklistStore.getState().completedItems).toEqual([CHECKLIST_ITEM_ID.BROWSE_ROUTES]);
   });
 
   it('a saved ride under the floors does not tick the first ride', async () => {
