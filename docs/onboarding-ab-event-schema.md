@@ -116,6 +116,26 @@ One event per visit to the bike-setup step (`trackOnboardingEvent`, so it also c
 | `model_fetch_ms` | int \| null | Duration of the last models fetch cycle that finished during the visit: from the first attempt to the final success or failure, so retries, the backoff between them and any offline pause are included (read from the query's `fetchStatus`); `null` when the list came from cache or no fetch finished |
 | `year_changed` | bool | The year at leave differs from the year at visit start |
 
+### #365 T05a
+
+From 3.29.0, `paywall_present_requested`, `paywall_viewed` and `paywall_result` (and the `purchase_*` / `paywall_dismissed` / `subscription_restored` events built from them) also carry, on every surface including the onboarding paywall (props only; its behaviour is unchanged):
+
+| Property | Values |
+|---|---|
+| `trigger` | `auto` (the app presented it: gates, limits, onboarding) \| `rider_tap` (an explicit Upgrade surface; today `profile_subscriptions_row`) |
+| `gate_policy` | `none` until the T21 cap ships, then `capped_v1` |
+| `session_paywall_index` | 1-based count of presents in the session; in memory, reset on cold start or after > 30 min in the background. A request that joins one already in flight is not counted |
+| `minutes_since_onboarding_completed` | whole minutes since `onboarding_completed` in this app run; `null` if onboarding was not completed in this run |
+
+These events are fired only by `apps/mobile/src/lib/subscription.ts` (guarded by `src/__tests__/paywall-event-call-sites-contract.test.ts`). The receipt-scan gate no longer fires its own `paywall_present_requested`; its paywall events carry `entry_surface` (the scan's launch surface, or `null`) next to `surface: use_pro_gate` and `limit_key: MAX_RECEIPT_SCANS_PER_MONTH`.
+
+New event names, fired by T21 (constants only until then: `PAYWALL_GATE_EVENTS` in `packages/analytics`, `PAYWALL_GATE_EVENT` in `apps/mobile/src/lib/paywall-session.ts`; T21 (issue 430) moves them into `AnalyticsEvent` with their call sites and deletes the mobile map, since that catalog admits only constants that are fired):
+
+| Event | Properties |
+|---|---|
+| `paywall_suppressed` | `feature`, `surface`, `reason: feature_cap \| session_cap \| error_cooldown` |
+| `limit_sheet_viewed` | `feature`, `surface` |
+
 ## Metrics → PostHog definitions
 
 - **Primary — install → trial start:** funnel `onboarding_started` → `paywall_result` where `paywall_result = purchased`. (Trial = purchase of the trial-bearing package; refine with RC webhook events if needed.)

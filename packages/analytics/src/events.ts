@@ -127,6 +127,45 @@ export const RegionPageViewedSchema = z.object({
   routeCount: z.number().int().nonnegative().optional(),
 });
 
+// Issue 365 T05a — mobile paywall contract (fired by apps/mobile `lib/subscription.ts`;
+// the two events below by the T21 session cap). Kept out of ANALYTICS_EVENTS,
+// which types the web `track()` client.
+export const PAYWALL_GATE_EVENTS = {
+  PAYWALL_SUPPRESSED: 'paywall_suppressed',
+  LIMIT_SHEET_VIEWED: 'limit_sheet_viewed',
+} as const;
+
+export const PAYWALL_TRIGGER = { AUTO: 'auto', RIDER_TAP: 'rider_tap' } as const;
+export const PAYWALL_GATE_POLICY = { NONE: 'none', CAPPED_V1: 'capped_v1' } as const;
+export const PAYWALL_SUPPRESSED_REASON = {
+  FEATURE_CAP: 'feature_cap',
+  SESSION_CAP: 'session_cap',
+  ERROR_COOLDOWN: 'error_cooldown',
+} as const;
+
+/** Added to `paywall_present_requested`, `paywall_viewed` and `paywall_result`. */
+export const PaywallSessionPropertiesSchema = z.object({
+  trigger: z.enum([PAYWALL_TRIGGER.AUTO, PAYWALL_TRIGGER.RIDER_TAP]),
+  gate_policy: z.enum([PAYWALL_GATE_POLICY.NONE, PAYWALL_GATE_POLICY.CAPPED_V1]),
+  session_paywall_index: z.number().int().positive(),
+  minutes_since_onboarding_completed: z.number().int().nonnegative().nullable(),
+});
+
+export const PaywallSuppressedSchema = z.object({
+  feature: z.string(),
+  surface: z.string(),
+  reason: z.enum([
+    PAYWALL_SUPPRESSED_REASON.FEATURE_CAP,
+    PAYWALL_SUPPRESSED_REASON.SESSION_CAP,
+    PAYWALL_SUPPRESSED_REASON.ERROR_COOLDOWN,
+  ]),
+});
+
+export const LimitSheetViewedSchema = z.object({
+  feature: z.string(),
+  surface: z.string(),
+});
+
 // issue 365 T04c — mobile onboarding bike-setup visit summary. Counts and enums only.
 const BikePickedViaSchema = z.enum([
   'list',
