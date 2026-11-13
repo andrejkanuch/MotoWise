@@ -6,6 +6,7 @@ import type {
   AuthOAuthResultSchema,
   AuthOAuthStartedSchema,
   AuthPostSigninWaitSchema,
+  BikeSetupSummarySchema,
   ExplorePageViewedSchema,
   FilterAppliedSchema,
   GpxDownloadAttemptedSchema,
@@ -32,6 +33,8 @@ export type SignupStartedProperties = z.infer<typeof SignupStartedSchema>;
 export type SearchPerformedProperties = z.infer<typeof SearchPerformedSchema>;
 export type ExplorePageViewedProperties = z.infer<typeof ExplorePageViewedSchema>;
 export type RegionPageViewedProperties = z.infer<typeof RegionPageViewedSchema>;
+// issue 365 T04c
+export type BikeSetupSummaryProperties = z.infer<typeof BikeSetupSummarySchema>;
 // Mobile auth events (MOBILE_AUTH_EVENTS); not part of the web `track()` map.
 export type AuthOAuthStartedProperties = z.infer<typeof AuthOAuthStartedSchema>;
 export type AuthOAuthResultProperties = z.infer<typeof AuthOAuthResultSchema>;
@@ -60,6 +63,8 @@ export type AnalyticsEventMap = {
   search_performed: SearchPerformedProperties;
   explore_page_viewed: ExplorePageViewedProperties;
   region_page_viewed: RegionPageViewedProperties;
+  // issue 365 T04c
+  bike_setup_summary: BikeSetupSummaryProperties;
 };
 
 // ---------------------------------------------------------------------------

@@ -15,6 +15,8 @@ export const ANALYTICS_EVENTS = {
   SEARCH_PERFORMED: 'search_performed',
   EXPLORE_PAGE_VIEWED: 'explore_page_viewed',
   REGION_PAGE_VIEWED: 'region_page_viewed',
+  // issue 365 T04c
+  BIKE_SETUP_SUMMARY: 'bike_setup_summary',
 } as const;
 
 // Issue 365 T04b — mobile onboarding navigation, resume and gate events. Sent by
@@ -125,6 +127,29 @@ export const RegionPageViewedSchema = z.object({
   routeCount: z.number().int().nonnegative().optional(),
 });
 
+// issue 365 T04c — mobile onboarding bike-setup visit summary. Counts and enums only.
+const BikePickedViaSchema = z.enum([
+  'list',
+  'search',
+  'custom',
+  'chip',
+  'intent',
+  'restored',
+  'none',
+]);
+
+export const BikeSetupSummarySchema = z.object({
+  outcome: z.enum(['completed', 'skipped', 'back', 'left']),
+  duration_ms: z.number().int().nonnegative(),
+  make_queries: z.number().int().nonnegative(),
+  model_queries: z.number().int().nonnegative(),
+  make_picked_via: BikePickedViaSchema,
+  model_picked_via: BikePickedViaSchema,
+  model_list_size: z.number().int().nonnegative(),
+  model_fetch_ms: z.number().int().nonnegative().nullable(),
+  year_changed: z.boolean(),
+});
+
 /**
  * Maps each event name to its Zod schema for runtime validation.
  */
@@ -139,6 +164,8 @@ export const EVENT_SCHEMAS = {
   [ANALYTICS_EVENTS.SEARCH_PERFORMED]: SearchPerformedSchema,
   [ANALYTICS_EVENTS.EXPLORE_PAGE_VIEWED]: ExplorePageViewedSchema,
   [ANALYTICS_EVENTS.REGION_PAGE_VIEWED]: RegionPageViewedSchema,
+  // issue 365 T04c
+  [ANALYTICS_EVENTS.BIKE_SETUP_SUMMARY]: BikeSetupSummarySchema,
 } as const;
 
 // #365 T04a — mobile auth events. The app captures them through its own

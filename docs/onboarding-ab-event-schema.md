@@ -102,6 +102,20 @@ email or ids. `onboarding_back`, `onboarding_welcome_mounted` and `onboarding_re
 `lastViewedScreen`, `lastViewedAt` and `codeStepPending` are new optional fields of the persisted
 onboarding store with defaults, so a v9 state loads unchanged (no version bump; T13a owns v10).
 
+### #365 T04c — `bike_setup_summary`
+
+One event per visit to the bike-setup step (`trackOnboardingEvent`, so it also carries `variant`, `step: bike_setup`, `step_index`). A visit starts when the screen gains focus (first mount, or coming Back to it after Continue) and ends exactly once. Fired by `components/onboarding/bike-setup/use-bike-setup-telemetry.ts`; counters come from `make-grid.tsx` and `model-picker.tsx`. Counts and enums only: the typed search text is never sent. `bike_added` is unchanged.
+
+| Property | Type | Notes |
+|---|---|---|
+| `outcome` | `completed \| skipped \| back \| left` | `completed` = Continue or a make-only quick chip; `skipped` = Skip; `back` = Back button, Android hardware Back or iOS swipe; `left` = the screen went away another way (stack replaced), the app sat in the background > 30 min (counted up to the moment it went away), or the process died during the visit (reported on the next mount of the step) |
+| `duration_ms` | int | Visit start → leave, wall clock (a background under 30 min is included) |
+| `make_queries` / `model_queries` | int | Searches started in the make / model search field: counted when the field goes from empty to non-empty, not per keystroke |
+| `make_picked_via` / `model_picked_via` | `list \| search \| custom \| chip \| intent \| restored \| none` | How the selection on screen at leave was made: `list` = default list row (no query), `search` = a row of typed results, `custom` = "Other make" / "Use '<typed>'", `chip` = make-only quick chip (make only), `intent` = web→app pending intent, `restored` = bike draft from an earlier visit, `none` = nothing picked. Changing the make resets the model to `none` |
+| `model_list_size` | int | Models loaded for the current make/year at leave (0 for a custom make or before a make is picked) |
+| `model_fetch_ms` | int \| null | Duration of the last models fetch cycle that finished during the visit: from the first attempt to the final success or failure, so retries, the backoff between them and any offline pause are included (read from the query's `fetchStatus`); `null` when the list came from cache or no fetch finished |
+| `year_changed` | bool | The year at leave differs from the year at visit start |
+
 ## Metrics → PostHog definitions
 
 - **Primary — install → trial start:** funnel `onboarding_started` → `paywall_result` where `paywall_result = purchased`. (Trial = purchase of the trial-bearing package; refine with RC webhook events if needed.)
