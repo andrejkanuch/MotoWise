@@ -1,7 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { ShieldCheck } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -18,7 +17,8 @@ import {
   OnboardingShell,
   OnboardingTextButton,
 } from '../../components/onboarding/onboarding-shell';
-import { AUTH_EMAIL_REDIRECT_TO } from '../../config/auth';
+import { useAccountAdvance } from '../../components/onboarding/use-account-advance';
+import { AUTH_EMAIL_MODE, AUTH_EMAIL_REDIRECT_TO, AUTH_SURFACE } from '../../config/auth';
 import { getPreviousRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
 import { useOAuthSignIn } from '../../hooks/use-oauth-sign-in';
@@ -28,7 +28,6 @@ import { signUpConsentMetadata } from '../../lib/analytics-consent';
 import { classifyAuthError, EMAIL_AUTH_ERROR, normalizeEmail } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
-import { meOptions } from '../../lib/query-options';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -37,6 +36,7 @@ import { space } from '../../theme/spacing';
 import { radius, type } from '../../theme/type';
 
 const IS_IOS = process.env.EXPO_OS === 'ios';
+const SURFACE = AUTH_SURFACE.ONBOARDING_ACCOUNT;
 
 /**
  * Post-paywall account step. Onboarding + the paywall run anonymously; the
@@ -83,7 +83,6 @@ export default function AccountScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
-  const advancedRef = useRef(false);
 
   // Back from the code step returns to the email form: the address stays, the
   // password is typed again. Android hardware back does the same instead of
@@ -104,53 +103,17 @@ export default function AccountScreen() {
     });
   }, [isPro]);
 
-  // Server onboarding state for the just-authenticated account. Shares the root
-  // NavigationGate's cache key, so this is usually a cache hit (no extra fetch).
-  // Drives the advance decision below; the returning-user case hinges on it.
-  const meQuery = useQuery({ ...meOptions(), enabled: !!session });
+  // Once a session exists: wait for the server onboarding state, then advance.
+  useAccountAdvance(!!session, goNext);
 
-  // A session appearing here means the account was created / signed in — record
-  // it and advance. _layout keeps the onboarding stack mounted mid-sign-in, and
-  // already calls loginRevenueCat(uuid) + identifyUser, so the anonymous
-  // purchase aliases automatically.
-  //
-  // BUT: this screen also accepts returning users (Apple/Google don't separate
-  // sign-up from sign-in, and the "Already have an account?" link lands here on
-  // OAuth). For an account that has ALREADY completed onboarding, advancing into
-  // the notifications step would flash it for ~1-2s before the root gate detects
-  // onboardingCompleted and redirects to the app — the user can't actually act
-  // on it. So we wait for the server onboarding state and only continue the flow
-  // for accounts that still need it; already-onboarded accounts fall through to
-  // the NavigationGate's (tabs) redirect with no flash.
-  useEffect(() => {
-    if (!session || advancedRef.current) return;
-    // Wait for the server onboarding state to settle (unless it errored — then we
-    // can't know, so proceed with the flow rather than strand the user here).
-    if (meQuery.isLoading && !meQuery.isError) return;
-
-    const alreadyOnboarded =
-      (meQuery.data?.me?.preferences as { onboardingCompleted?: boolean } | null | undefined)
-        ?.onboardingCompleted === true;
-
-    advancedRef.current = true;
-    // `account_created` used to fire here. Retired 2026-08-24: emitted from ONE
-    // onboarding screen, it measured screen traversal rather than signup (154
-    // events against 320 real signups) and became the broken denominator under
-    // every activation tile. Signup is now counted server-side off the
-    // public.users insert — see migration 00174 and SignupEventsService. The
-    // client-side `user_signed_up` stays because it carries `auth_method` at the
-    // moment of the auth call; the constant is kept so historical events still
-    // resolve in PostHog.
-
-    // Already-onboarded → let the root gate redirect to (tabs); don't push the
-    // notifications step. New accounts → continue the onboarding flow.
-    if (!alreadyOnboarded) goNext();
-  }, [session, goNext, meQuery.isLoading, meQuery.isError, meQuery.data]);
-
-  const { onApple, onGoogle } = useOAuthSignIn();
+  const { onApple, onGoogle } = useOAuthSignIn(SURFACE);
 
   const handleEmail = async () => {
     setBusy(true);
+    trackEvent(AnalyticsEvent.AUTH_EMAIL_SUBMITTED, {
+      surface: SURFACE,
+      mode: AUTH_EMAIL_MODE.SIGNUP,
+    });
     // The code step verifies against this exact address, so sign up with it too.
     const address = normalizeEmail(email);
     try {
@@ -195,7 +158,7 @@ export default function AccountScreen() {
         // OAuth paths fire USER_SIGNED_UP from useOAuthSignIn; the email-in-onboarding
         // path must too, otherwise onboarding email signups never reach the
         // canonical signup metric (the Executive "Daily Signups" denominator).
-        trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'email' });
+        trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'email', surface: SURFACE });
       }
       // data.session present → onAuthStateChange fires → session effect advances.
     } catch (err) {
@@ -270,6 +233,7 @@ export default function AccountScreen() {
         {codeStep ? (
           <EmailCodeStep
             email={codeStep.email}
+            surface={SURFACE}
             source={EMAIL_CODE_SOURCE.SIGNUP}
             password={codeStep.password}
             initialCooldownMs={codeStep.initialCooldownMs}
