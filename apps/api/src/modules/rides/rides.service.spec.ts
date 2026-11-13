@@ -19,6 +19,7 @@ describe('RidesService', () => {
   let service: RidesService;
   let mockUserClient: ReturnType<typeof createMockClient>;
   let mockEventEmitter: { emit: ReturnType<typeof vi.fn> };
+  let mockServerEvents: { captureRideSaved: ReturnType<typeof vi.fn> };
 
   const userId = 'user-123';
 
@@ -147,11 +148,13 @@ describe('RidesService', () => {
     vi.clearAllMocks();
     mockUserClient = createMockClient();
     mockEventEmitter = { emit: vi.fn() };
+    mockServerEvents = { captureRideSaved: vi.fn().mockResolvedValue(undefined) };
 
     service = new RidesService(
       mockUserClient as never,
       mockUserClient as never,
       mockEventEmitter as never,
+      mockServerEvents as never,
     );
   });
 
@@ -423,6 +426,59 @@ describe('RidesService', () => {
   });
 
   describe('endRide', () => {
+    // #365 T05e: ride_saved (consent and payload: analytics/__tests__/server-events.service.spec.ts)
+    const shortEnd = {
+      rideId: 'ride-123',
+      endedAt: '2026-03-22T14:00:20Z',
+      distanceM: 12,
+      pausedDurationS: 0,
+      autoPausedDurationS: 0,
+      endSource: 'rider_phone' as const,
+    };
+
+    it('captures ride_saved once with the saved ride facts', async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', ended_at: shortEnd.endedAt, distance_m: 12 },
+      });
+
+      await service.endRide(userId, shortEnd);
+
+      expect(mockServerEvents.captureRideSaved).toHaveBeenCalledTimes(1);
+      expect(mockServerEvents.captureRideSaved).toHaveBeenCalledWith(userId, {
+        rideId: 'ride-123',
+        startedAt: fakeRow.started_at,
+        endedAt: shortEnd.endedAt,
+        distanceM: 12,
+        durationS: 20,
+        endSource: 'rider_phone',
+      });
+    });
+
+    it('does not capture ride_saved again on an idempotent retry', async () => {
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'Row not found', code: 'PGRST116' },
+      });
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', ended_at: shortEnd.endedAt, distance_m: 12 },
+      });
+
+      await service.endRide(userId, shortEnd);
+
+      expect(mockServerEvents.captureRideSaved).not.toHaveBeenCalled();
+    });
+
+    it('a failed ride_saved capture never fails endRide', async () => {
+      mockUserClient._pushResult({
+        data: { ...fakeRow, status: 'completed', ended_at: shortEnd.endedAt, distance_m: 12 },
+      });
+      mockServerEvents.captureRideSaved.mockRejectedValueOnce(new Error('boom'));
+
+      await expect(service.endRide(userId, shortEnd)).resolves.toMatchObject({
+        ride: { id: 'ride-123', status: 'completed' },
+      });
+    });
+
     it('should update with all stats and return mapped ride', async () => {
       const completedRow = {
         ...fakeRow,

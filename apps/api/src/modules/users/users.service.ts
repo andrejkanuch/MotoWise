@@ -18,6 +18,7 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { PG_ERROR } from '../../common/supabase/unwrap';
+import { ServerEventsService } from '../analytics/server-events.service';
 import { EmailService } from '../email/email.service';
 import { MetaEventsService } from '../meta/meta-events.service';
 import { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
@@ -80,6 +81,7 @@ export class UsersService {
     private readonly emailService: EmailService,
     private readonly metaEventsService: MetaEventsService,
     private readonly oemSchedulesService: OemSchedulesService,
+    private readonly serverEvents: ServerEventsService,
   ) {}
 
   private mapRow(row: Tables<'users'>): User {
@@ -209,7 +211,7 @@ export class UsersService {
       }),
     };
 
-    const { error } = await this.supabase.rpc('complete_onboarding', {
+    const { data: onboarding, error } = await this.supabase.rpc('complete_onboarding', {
       p_user_id: userId,
       p_preferences: preferences,
       p_bike_make: input.bikeMake ?? null,
@@ -229,6 +231,20 @@ export class UsersService {
     }
 
     const user = await this.findById(userId);
+
+    // #365 T05e: the RPC returns the bike it created or found (a sequential repeat
+    // with the same bike finds it, T06 item 5). Fire and forget; never fails the mutation.
+    if (input.bikeMake && (onboarding as { motorcycle_id?: string | null } | null)?.motorcycle_id) {
+      this.serverEvents
+        .captureOnboardingBikeCreated(userId, {
+          make: input.bikeMake,
+          model: input.bikeModel,
+          mileageUnit: input.bikeMileageUnit,
+        })
+        .catch((err) => {
+          this.logger.warn(`onboarding_bike_created capture failed for ${userId}: ${err}`);
+        });
+    }
 
     // Import only the OEM maintenance tasks the user accepted during onboarding swipe.
     // The RPC created the motorcycle — find it and selectively import.

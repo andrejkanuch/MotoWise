@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AnalyticsModule } from '../analytics/analytics.module';
 import { MetaModule } from '../meta/meta.module';
 import { OemSchedulesModule } from '../oem-schedules/oem-schedules.module';
 import { WebhooksModule } from '../webhooks/webhooks.module';
@@ -7,7 +8,7 @@ import { UsersResolver } from './users.resolver';
 import { UsersService } from './users.service';
 
 @Module({
-  imports: [WebhooksModule, MetaModule, OemSchedulesModule],
+  imports: [WebhooksModule, MetaModule, OemSchedulesModule, AnalyticsModule],
   providers: [UsersResolver, UsersService, DataExportService],
   exports: [UsersService],
 })
