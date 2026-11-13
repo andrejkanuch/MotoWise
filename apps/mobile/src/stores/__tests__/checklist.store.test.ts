@@ -9,9 +9,12 @@
 jest.mock('react-native-mmkv', () => require('../../test/mocks').makeMmkvMock());
 jest.mock('../../lib/analytics', () => require('../../test/mocks').mockAnalytics());
 
+import { RideStatus } from '@motovault/graphql';
+import { type ChecklistSignals, deriveCompletedItems } from '../../lib/checklist-signals';
 import {
   ALL_CHECKLIST_ITEMS,
   CHECKLIST_ITEM_ID,
+  type ChecklistState,
   migrateChecklistState,
   useChecklistStore,
 } from '../checklist.store';
@@ -31,7 +34,7 @@ describe('migrateChecklistState (cumulative v2 -> v4)', () => {
         { ...expenseSource, deepLink: '/(tabs)/(garage)' }, // stale pre-v3 link
         ...ALL_CHECKLIST_ITEMS.filter((i) => i.id !== CHECKLIST_ITEM_ID.FIRST_EXPENSE),
       ],
-      completedItems: [CHECKLIST_ITEM_ID.FIRST_RIDE],
+      completedItems: [CHECKLIST_ITEM_ID.BROWSE_ROUTES],
       dismissed: false,
       initialized: true,
     };
@@ -42,7 +45,7 @@ describe('migrateChecklistState (cumulative v2 -> v4)', () => {
     const expense = result.items.find((i) => i.id === CHECKLIST_ITEM_ID.FIRST_EXPENSE);
     expect(expense?.deepLink).toBe(expenseSource.deepLink);
     // progress + card visibility preserved
-    expect(result.completedItems).toEqual([CHECKLIST_ITEM_ID.FIRST_RIDE]);
+    expect(result.completedItems).toEqual([CHECKLIST_ITEM_ID.BROWSE_ROUTES]);
     expect(result.dismissed).toBe(false);
     expect(result.initialized).toBe(true);
     expect(result.items).toHaveLength(ALL_CHECKLIST_ITEMS.length);
@@ -143,6 +146,83 @@ describe('migrateChecklistState (cumulative v2 -> v4)', () => {
     expect(result.ownerUserId).toBeNull();
     expect(result.items).toEqual([expenseSource]);
     expect(result.completedItems).toEqual([CHECKLIST_ITEM_ID.FIRST_EXPENSE]);
+  });
+});
+
+/**
+ * FS-PO10 (issue 365 T10): before v6 the "first ride" row ticked on a tap and on
+ * any saved ride, however short. v6 unticks it for everyone and points the row
+ * at Start Ride; the next signal read ticks it again only from a saved ride that
+ * meets both ride floors (>= 30 s and >= 50 m).
+ */
+describe('migrateChecklistState v6 (first ride)', () => {
+  const rideSource = ALL_CHECKLIST_ITEMS.find((i) => i.id === CHECKLIST_ITEM_ID.FIRST_RIDE);
+  if (!rideSource) throw new Error('FIRST_RIDE source item missing');
+  const staleRideItem = {
+    ...rideSource,
+    labelKey: 'checklist.seeFirstRideStats',
+    deepLink: '/(tabs)/(profile)/rides',
+  };
+  const v5State = {
+    items: [staleRideItem, expenseSource],
+    completedItems: [CHECKLIST_ITEM_ID.FIRST_RIDE, CHECKLIST_ITEM_ID.FIRST_EXPENSE],
+    dismissed: false,
+    initialized: true,
+    ownerUserId: RIDER_A,
+  };
+  const noSignals: ChecklistSignals = {
+    bikes: undefined,
+    rides: undefined,
+    expenseCounts: [],
+    receiptScansUsed: undefined,
+  };
+
+  /** What the card shows after the migration and one signal read. */
+  function doneAfterSignalRead(state: ChecklistState, signals: ChecklistSignals): string[] {
+    const open = state.items
+      .map((item) => item.id)
+      .filter((id) => !state.completedItems.includes(id));
+    return [...state.completedItems, ...deriveCompletedItems(open, signals)];
+  }
+
+  it('unticks first_ride when no saved ride meets the floors', () => {
+    const migrated = migrateChecklistState(v5State, 5);
+    const junkRides = [
+      { status: RideStatus.Completed, durationS: 12, distanceM: 0 },
+      { status: RideStatus.Completed, durationS: 600, distanceM: 20 },
+    ];
+
+    const done = doneAfterSignalRead(migrated, { ...noSignals, rides: junkRides });
+
+    expect(done).not.toContain(CHECKLIST_ITEM_ID.FIRST_RIDE);
+    // Other progress is kept.
+    expect(done).toContain(CHECKLIST_ITEM_ID.FIRST_EXPENSE);
+    expect(migrated.ownerUserId).toBe(RIDER_A);
+  });
+
+  it('ticks first_ride again from one real ride (>= 30 s and >= 50 m)', () => {
+    const migrated = migrateChecklistState(v5State, 5);
+    const rides = [
+      { status: RideStatus.Completed, durationS: 5, distanceM: 0 },
+      { status: RideStatus.Completed, durationS: 30, distanceM: 50 },
+    ];
+
+    expect(doneAfterSignalRead(migrated, { ...noSignals, rides })).toContain(
+      CHECKLIST_ITEM_ID.FIRST_RIDE,
+    );
+  });
+
+  it('points the persisted first-ride row at Start Ride with the new label', () => {
+    const migrated = migrateChecklistState(v5State, 5);
+    const row = migrated.items.find((i) => i.id === CHECKLIST_ITEM_ID.FIRST_RIDE);
+
+    expect(row?.labelKey).toBe('checklist.recordFirstRide');
+    expect(row?.deepLink).toBe('/(modals)/start-ride');
+  });
+
+  it('leaves an already-v6 state as it is', () => {
+    const v6State = { ...v5State, items: [rideSource, expenseSource] };
+    expect(migrateChecklistState(v6State, 6)).toEqual(v6State);
   });
 });
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { GARAGE_ROUTE, MODAL_ROUTE, PROFILE_ROUTE, TAB_ROUTE } from '../config/routes';
+import { GARAGE_ROUTE, MODAL_ROUTE, TAB_ROUTE } from '../config/routes';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 
@@ -64,10 +64,12 @@ export interface ChecklistState {
 /** All possible checklist items — ordered by goal relevance */
 export const ALL_CHECKLIST_ITEMS: ChecklistItem[] = [
   {
+    // Opens Start Ride (owner decision D4). Ticked only by a saved ride over the
+    // ride floors (`lib/checklist-signals.ts`), never by the tap.
     id: CHECKLIST_ITEM_ID.FIRST_RIDE,
-    labelKey: 'checklist.seeFirstRideStats',
+    labelKey: 'checklist.recordFirstRide',
     icon: 'MapPin',
-    deepLink: PROFILE_ROUTE.RIDES,
+    deepLink: MODAL_ROUTE.START_RIDE,
     goalRelation: 'track_rides',
   },
   {
@@ -127,6 +129,11 @@ export const ALL_CHECKLIST_ITEMS: ChecklistItem[] = [
  *    `LAST_USER_ID` is cleared on sign-out in those builds too. Adopting matches
  *    the pre-v5 behaviour, and the common case (the owner still signed in when
  *    the app updates) is claimed by the right rider.
+ *  - v6 (issue 365 T10, FS-PO10): the "first ride" row gets its new label and
+ *    Start Ride link from source, and `first_ride` is unticked. Before v6 a tap
+ *    or any saved ride, however short, ticked it. The store cannot see the
+ *    rider's rides, so the card's next signal read ticks it again, but only
+ *    from a saved ride over both ride floors.
  * Items with no matching source pass through unchanged. Exported for unit testing.
  */
 export function migrateChecklistState(persisted: unknown, version: number): ChecklistState {
@@ -146,7 +153,13 @@ export function migrateChecklistState(persisted: unknown, version: number): Chec
       items = [...items, scanItem];
     }
   }
-  return { ...prev, items, ownerUserId };
+  let completedItems = prev.completedItems ?? [];
+  if (version < 6) {
+    const rideItem = ALL_CHECKLIST_ITEMS.find((ci) => ci.id === CHECKLIST_ITEM_ID.FIRST_RIDE);
+    items = items.map((item) => (rideItem && item.id === rideItem.id ? rideItem : item));
+    completedItems = completedItems.filter((id) => id !== CHECKLIST_ITEM_ID.FIRST_RIDE);
+  }
+  return { ...prev, items, completedItems, ownerUserId };
 }
 
 /** Build a personalized checklist ordered by the user's goals */
@@ -227,7 +240,7 @@ export const useChecklistStore = create<ChecklistState>()(
     }),
     {
       name: 'checklist-state',
-      version: 5,
+      version: 6,
       storage: createJSONStorage(() => createZustandMMKVStorage('checklist-store')),
       partialize: ({ initialize, claimForUser, completeItem, dismiss, reset, ...data }) => data,
       migrate: migrateChecklistState,

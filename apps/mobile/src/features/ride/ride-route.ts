@@ -1,11 +1,12 @@
 import { type Href, useRouter } from 'expo-router';
 import { useCallback } from 'react';
+import { MODAL_ROUTE } from '../../config/routes';
 import { useRideStore } from '../../stores/ride.store';
 import { buildRideSummaryHref, readEndedRideSummary } from './ride-controller';
 
 export const RIDE_ROUTE = {
   HUD: '/(modals)/ride-hud',
-  START: '/(modals)/start-ride',
+  START: MODAL_ROUTE.START_RIDE,
 } as const;
 export type RideRoute = (typeof RIDE_ROUTE)[keyof typeof RIDE_ROUTE];
 

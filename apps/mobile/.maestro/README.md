@@ -150,6 +150,10 @@ the flows below.
   `start-ride-screen`, `start-ride-button`, `ride-hud-root`, `ride-guard-sheet`,
   `ride-guard-variant-default`, `ride-guard-keep`, `ride-guard-end-anyway`;
   `src/features/ride/ride-test-ids.ts`). `test:e2e:log-ride`.
+- **`flows/checklist-first-ride.yaml`** — FS-PO10 (issue 365 T10): the Get Started "Record your
+  first ride" row (`checklist-row-first_ride`) opens Start Ride (`start-ride-screen`) and is still
+  unticked after closing it. **Authored from source 2026-11-14, pending on-device validation.**
+  `test:e2e:checklist-first-ride`.
 - **`flows/bike-hub-overview.yaml`** — the redesigned bike screen (bike-detail redesign R1): four
   segments, Overview "Log" pill → Log sheet → Note sheet → save, the Notes screen with delete + Undo,
   and the Odometer sheet from the header chip. Needs a backend with migrations 00180–00182 (see

@@ -2213,7 +2213,7 @@
   "checklist": {
     "getStarted": "शुरू करें",
     "progressLabel": "{{total}} में से {{completed}}",
-    "seeFirstRideStats": "अपनी पहली राइड के स्टैट्स देखें",
+    "recordFirstRide": "अपनी पहली राइड रिकॉर्ड करें",
     "findRouteNearYou": "अपने पास कोई रूट खोजें",
     "trackFirstExpense": "अपना पहला खर्चा ट्रैक करें",
     "completeBikeProfile": "अपनी बाइक की प्रोफ़ाइल पूरी करें",

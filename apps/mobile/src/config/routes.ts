@@ -78,6 +78,8 @@ export const MODAL_ROUTE = {
   RECALLS: '/(modals)/recalls',
   /** "Service plan ready" over Home after onboarding; pass `{ motorcycleId, bikeName? }`. */
   SERVICE_PLAN_READY: '/(modals)/service-plan-ready',
+  /** Start Ride. Opening "the ride" from a tap goes through `features/ride/ride-route.ts`. */
+  START_RIDE: '/(modals)/start-ride',
 } as const;
 
 /** The What's New route opened from `source`, for `router.push`. */

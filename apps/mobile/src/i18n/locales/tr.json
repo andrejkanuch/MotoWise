@@ -2213,7 +2213,7 @@
   "checklist": {
     "getStarted": "Başlayalım",
     "progressLabel": "{{completed}}/{{total}}",
-    "seeFirstRideStats": "İlk sürüş istatistiklerini gör",
+    "recordFirstRide": "İlk sürüşünü kaydet",
     "findRouteNearYou": "Yakınında bir rota bul",
     "trackFirstExpense": "İlk harcamanı kaydet",
     "completeBikeProfile": "Motor profilini tamamla",

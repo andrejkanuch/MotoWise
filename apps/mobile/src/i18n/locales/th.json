@@ -2213,7 +2213,7 @@
   "checklist": {
     "getStarted": "เริ่มต้นใช้งาน",
     "progressLabel": "{{completed}} จาก {{total}}",
-    "seeFirstRideStats": "ดูสถิติการขับขี่ครั้งแรก",
+    "recordFirstRide": "บันทึกการขับขี่ครั้งแรกของคุณ",
     "findRouteNearYou": "หาเส้นทางใกล้คุณ",
     "trackFirstExpense": "บันทึกค่าใช้จ่ายแรก",
     "completeBikeProfile": "กรอกโปรไฟล์รถให้ครบ",

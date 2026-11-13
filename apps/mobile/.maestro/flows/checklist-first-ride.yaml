@@ -1,0 +1,64 @@
+# FS-PO10 (issue 365 T10, owner decision D4): the Get Started card's "first
+# ride" row opens Start Ride and stays unticked. Only a saved ride over both ride
+# floors (30 s and 50 m) ticks it; a tap never does.
+#
+# Red on main before T10: the row read "See your first ride stats", ticked
+# itself on the tap and opened the (empty) rides list, so step 3 times out.
+#
+# Ids from source: `checklist-row-<id>` (components/home/onboarding-checklist.tsx,
+# T05d), `start-ride-screen` (features/ride/ride-test-ids.ts, T05c),
+# `home-screen`. The Start Ride close button's a11y label is "Close".
+#
+# Prereqs: as onboarding.yaml (a LOCAL E2E build with RevenueCat, PostHog and
+# Meta keys empty; never a store build or a production OTA). A brand-new account
+# has no rides, so the row starts unticked.
+# Run: pnpm --filter @motovault/mobile test:e2e:checklist-first-ride (light, then
+# dark appearance; screenshots below are taken in both by the device stage).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+# 1. A new account, onboarded, on a bare Home (onboarding.yaml closes any
+#    landing sheet).
+- runFlow: onboarding.yaml
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 20000
+
+# 2. The first-ride row: new label, not ticked.
+- scrollUntilVisible:
+    element:
+      id: "checklist-row-first_ride"
+    direction: DOWN
+    timeout: 15000
+- assertVisible:
+    id: "checklist-row-first_ride"
+    checked: false
+- assertVisible: "Record your first ride"
+- takeScreenshot: checklist-first-ride-home
+
+# 3. A tap opens Start Ride.
+- tapOn:
+    id: "checklist-row-first_ride"
+- extendedWaitUntil:
+    visible:
+      id: "start-ride-screen"
+    timeout: 10000
+- takeScreenshot: checklist-first-ride-start-ride
+
+# 4. Close Start Ride without riding: back on Home, the row is still unticked.
+- tapOn: "Close"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      id: "checklist-row-first_ride"
+    direction: DOWN
+    timeout: 15000
+- assertVisible:
+    id: "checklist-row-first_ride"
+    checked: false
+- takeScreenshot: checklist-first-ride-after-close
