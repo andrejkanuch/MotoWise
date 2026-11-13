@@ -65,6 +65,25 @@ interface OnboardingState {
   /** V2: tracks last completed screen for resume-after-kill */
   lastCompletedScreen: OnboardingRoute | null;
   /**
+   * issue 365 T04b: the step last on screen and when (epoch ms), written on every
+   * step focus, plus whether an email code step was open on it. Read by the
+   * `onboarding_resumed` event only. New optional fields: an older (v9) state
+   * loads unchanged and takes the defaults below, so no version bump; T13a owns v10.
+   */
+  lastViewedScreen: OnboardingRoute | null;
+  lastViewedAt: number | null;
+  codeStepPending: boolean;
+  setLastViewedScreen: (screen: OnboardingRoute, at: number) => void;
+  /** No-op outside an onboarding run (no step viewed yet), e.g. the (auth) login code step. */
+  setCodeStepPending: (pending: boolean) => void;
+  /**
+   * issue 365 T04b: the root gate opened (tabs), so no onboarding run is in
+   * progress. Drops the resume point and the last viewed step; a rider who signed
+   * in from onboarding's sign-in step never reaches personalizing's reset().
+   * No-op when nothing is on record.
+   */
+  clearResumePoint: () => void;
+  /**
    * Self-reported acquisition channel from the post-paywall "How did you hear
    * about us?" step (attribution). Persisted so it survives a resume-after-kill;
    * mirrored to PostHog ($set_once) + RevenueCat (custom attr) at selection time.
@@ -163,6 +182,9 @@ const initialState = {
   currency: null as Currency | null,
   acceptedOemScheduleIds: [] as string[],
   lastCompletedScreen: null as OnboardingRoute | null,
+  lastViewedScreen: null as OnboardingRoute | null,
+  lastViewedAt: null as number | null,
+  codeStepPending: false,
   heardFrom: null as string | null,
   pendingIntent: null as PendingIntent | null,
   intentResolved: false,
@@ -193,6 +215,24 @@ export const useOnboardingStore = create<OnboardingState>()(
       setLastServiceDate: (date) => set({ lastServiceDate: date }),
       setCurrency: (currency) => set({ currency }),
       setLastCompletedScreen: (screen) => set({ lastCompletedScreen: screen }),
+      // A new step on screen ends any code step the previous one had open.
+      setLastViewedScreen: (lastViewedScreen, lastViewedAt) =>
+        set({ lastViewedScreen, lastViewedAt, codeStepPending: false }),
+      setCodeStepPending: (codeStepPending) => {
+        if (get().lastViewedScreen === null || get().codeStepPending === codeStepPending) return;
+        set({ codeStepPending });
+      },
+      clearResumePoint: () => {
+        const { lastCompletedScreen, lastViewedScreen, lastViewedAt, codeStepPending } = get();
+        if (!lastCompletedScreen && !lastViewedScreen && lastViewedAt === null && !codeStepPending)
+          return;
+        set({
+          lastCompletedScreen: null,
+          lastViewedScreen: null,
+          lastViewedAt: null,
+          codeStepPending: false,
+        });
+      },
       setHeardFrom: (heardFrom) => set({ heardFrom }),
       setPendingIntent: (pendingIntent) => set({ pendingIntent }),
       setIntentResolved: (intentResolved) => set({ intentResolved }),
@@ -229,6 +269,9 @@ export const useOnboardingStore = create<OnboardingState>()(
         setLastServiceDate,
         setCurrency,
         setLastCompletedScreen,
+        setLastViewedScreen,
+        setCodeStepPending,
+        clearResumePoint,
         setHeardFrom,
         setPendingIntent,
         setIntentResolved,

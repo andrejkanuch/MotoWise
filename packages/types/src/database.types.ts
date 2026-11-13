@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.1"
   }
   graphql_public: {
     Tables: {
@@ -2841,6 +2841,75 @@ export type Database = {
         }
         Relationships: []
       }
+      ref_country_parts: {
+        Row: {
+          geom: unknown
+          id: number
+          iso_a2: string
+          kind: string
+          name: string
+        }
+        Insert: {
+          geom: unknown
+          id?: never
+          iso_a2: string
+          kind: string
+          name: string
+        }
+        Update: {
+          geom?: unknown
+          id?: never
+          iso_a2?: string
+          kind?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      ref_places: {
+        Row: {
+          admin1_code: string | null
+          geom: unknown
+          geonameid: number
+          iso_a2: string
+          name: string
+          population: number | null
+        }
+        Insert: {
+          admin1_code?: string | null
+          geom: unknown
+          geonameid: number
+          iso_a2: string
+          name: string
+          population?: number | null
+        }
+        Update: {
+          admin1_code?: string | null
+          geom?: unknown
+          geonameid?: number
+          iso_a2?: string
+          name?: string
+          population?: number | null
+        }
+        Relationships: []
+      }
+      ref_regions: {
+        Row: {
+          admin1_code: string
+          iso_a2: string
+          name: string
+        }
+        Insert: {
+          admin1_code: string
+          iso_a2: string
+          name: string
+        }
+        Update: {
+          admin1_code?: string
+          iso_a2?: string
+          name?: string
+        }
+        Relationships: []
+      }
       revenuecat_webhook_events: {
         Row: {
           app_user_id: string
@@ -2968,6 +3037,58 @@ export type Database = {
           },
           {
             foreignKeyName: "ride_kudos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ride_private_details: {
+        Row: {
+          created_at: string
+          passenger: boolean | null
+          purpose: string | null
+          ride_id: string
+          time_zone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          passenger?: boolean | null
+          purpose?: string | null
+          ride_id: string
+          time_zone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          passenger?: boolean | null
+          purpose?: string | null
+          ride_id?: string
+          time_zone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_private_details_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: true
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_private_details_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_private_details_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -3143,6 +3264,160 @@ export type Database = {
           },
         ]
       }
+      ride_stats: {
+        Row: {
+          avg_moving_speed_mps: number | null
+          band_km: Json | null
+          bends_count: number | null
+          bends_per_km: number | null
+          cells: number[] | null
+          climb_m: number | null
+          computed_at: string
+          countries: string[] | null
+          descent_m: number | null
+          distance_m: number
+          elapsed_s: number
+          end_place: string | null
+          gps_metrics: Json | null
+          gps_quality: number | null
+          input_source: string
+          lean_bands: Json | null
+          local_date: string
+          local_dow: number
+          local_start_hour: number
+          max_altitude_m: number | null
+          max_speed_mps: number | null
+          min_altitude_m: number | null
+          motorcycle_id: string | null
+          moving_time_s: number | null
+          night_m: number | null
+          ride_id: string
+          start_cell: number | null
+          start_place: string | null
+          start_region: string | null
+          stats_version: number
+          stop_count: number | null
+          stops: Json | null
+          temp_max_c: number | null
+          temp_min_c: number | null
+          time_zone: string
+          user_id: string
+          weather: Json | null
+          weather_fetched_at: string | null
+          wet: boolean | null
+          wp_count: number | null
+          wp_truncated: boolean | null
+        }
+        Insert: {
+          avg_moving_speed_mps?: number | null
+          band_km?: Json | null
+          bends_count?: number | null
+          bends_per_km?: number | null
+          cells?: number[] | null
+          climb_m?: number | null
+          computed_at?: string
+          countries?: string[] | null
+          descent_m?: number | null
+          distance_m: number
+          elapsed_s: number
+          end_place?: string | null
+          gps_metrics?: Json | null
+          gps_quality?: number | null
+          input_source: string
+          lean_bands?: Json | null
+          local_date: string
+          local_dow: number
+          local_start_hour: number
+          max_altitude_m?: number | null
+          max_speed_mps?: number | null
+          min_altitude_m?: number | null
+          motorcycle_id?: string | null
+          moving_time_s?: number | null
+          night_m?: number | null
+          ride_id: string
+          start_cell?: number | null
+          start_place?: string | null
+          start_region?: string | null
+          stats_version: number
+          stop_count?: number | null
+          stops?: Json | null
+          temp_max_c?: number | null
+          temp_min_c?: number | null
+          time_zone: string
+          user_id: string
+          weather?: Json | null
+          weather_fetched_at?: string | null
+          wet?: boolean | null
+          wp_count?: number | null
+          wp_truncated?: boolean | null
+        }
+        Update: {
+          avg_moving_speed_mps?: number | null
+          band_km?: Json | null
+          bends_count?: number | null
+          bends_per_km?: number | null
+          cells?: number[] | null
+          climb_m?: number | null
+          computed_at?: string
+          countries?: string[] | null
+          descent_m?: number | null
+          distance_m?: number
+          elapsed_s?: number
+          end_place?: string | null
+          gps_metrics?: Json | null
+          gps_quality?: number | null
+          input_source?: string
+          lean_bands?: Json | null
+          local_date?: string
+          local_dow?: number
+          local_start_hour?: number
+          max_altitude_m?: number | null
+          max_speed_mps?: number | null
+          min_altitude_m?: number | null
+          motorcycle_id?: string | null
+          moving_time_s?: number | null
+          night_m?: number | null
+          ride_id?: string
+          start_cell?: number | null
+          start_place?: string | null
+          start_region?: string | null
+          stats_version?: number
+          stop_count?: number | null
+          stops?: Json | null
+          temp_max_c?: number | null
+          temp_min_c?: number | null
+          time_zone?: string
+          user_id?: string
+          weather?: Json | null
+          weather_fetched_at?: string | null
+          wet?: boolean | null
+          wp_count?: number | null
+          wp_truncated?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_stats_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: true
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_stats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_stats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ride_summaries: {
         Row: {
           created_at: string
@@ -3186,6 +3461,55 @@ export type Database = {
             columns: ["ride_id"]
             isOneToOne: false
             referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ride_tracks: {
+        Row: {
+          built_at: string
+          ride_id: string
+          route: unknown
+          source: string
+          stats_version: number
+          user_id: string
+        }
+        Insert: {
+          built_at?: string
+          ride_id: string
+          route: unknown
+          source: string
+          stats_version: number
+          user_id: string
+        }
+        Update: {
+          built_at?: string
+          ride_id?: string
+          route?: unknown
+          source?: string
+          stats_version?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_tracks_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: true
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_tracks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_tracks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -3246,6 +3570,7 @@ export type Database = {
           distance_m: number | null
           elevation_gain: number | null
           elevation_loss: number | null
+          end_source: string | null
           ended_at: string | null
           gps_quality: number | null
           id: string
@@ -3263,6 +3588,7 @@ export type Database = {
           route_thumbnail_uri: string | null
           started_at: string
           status: string
+          track_updated_at: string | null
           updated_at: string
           user_id: string
           visibility: Database["public"]["Enums"]["content_visibility"]
@@ -3279,6 +3605,7 @@ export type Database = {
           distance_m?: number | null
           elevation_gain?: number | null
           elevation_loss?: number | null
+          end_source?: string | null
           ended_at?: string | null
           gps_quality?: number | null
           id?: string
@@ -3296,6 +3623,7 @@ export type Database = {
           route_thumbnail_uri?: string | null
           started_at: string
           status?: string
+          track_updated_at?: string | null
           updated_at?: string
           user_id: string
           visibility?: Database["public"]["Enums"]["content_visibility"]
@@ -3312,6 +3640,7 @@ export type Database = {
           distance_m?: number | null
           elevation_gain?: number | null
           elevation_loss?: number | null
+          end_source?: string | null
           ended_at?: string | null
           gps_quality?: number | null
           id?: string
@@ -3329,6 +3658,7 @@ export type Database = {
           route_thumbnail_uri?: string | null
           started_at?: string
           status?: string
+          track_updated_at?: string | null
           updated_at?: string
           user_id?: string
           visibility?: Database["public"]["Enums"]["content_visibility"]
@@ -4625,6 +4955,7 @@ export type Database = {
           handle: string | null
           id: string
           is_public: boolean
+          is_synthetic: boolean
           measurement_system: string
           onboarding_completed_at: string | null
           preferences: Json | null
@@ -4655,6 +4986,7 @@ export type Database = {
           handle?: string | null
           id: string
           is_public?: boolean
+          is_synthetic?: boolean
           measurement_system?: string
           onboarding_completed_at?: string | null
           preferences?: Json | null
@@ -4685,6 +5017,7 @@ export type Database = {
           handle?: string | null
           id?: string
           is_public?: boolean
+          is_synthetic?: boolean
           measurement_system?: string
           onboarding_completed_at?: string | null
           preferences?: Json | null
@@ -5022,6 +5355,7 @@ export type Database = {
       }
       cron_trigger_maintenance_due_push: { Args: never; Returns: undefined }
       cron_trigger_ride_idle_check: { Args: never; Returns: undefined }
+      cron_trigger_ride_stats_sweep: { Args: never; Returns: undefined }
       cron_trigger_signup_events: { Args: never; Returns: undefined }
       disablelongtransactions: { Args: never; Returns: string }
       document_vault_bytes_used: { Args: never; Returns: number }
@@ -5223,6 +5557,10 @@ export type Database = {
         }
         Returns: string
       }
+      log_ride_end_odometer: {
+        Args: { p_ride_id: string; p_unit: string; p_value: number }
+        Returns: Record<string, unknown>
+      }
       longtransactionsenabled: { Args: never; Returns: boolean }
       mark_article_read: {
         Args: { p_article_id: string; p_user_id: string }
@@ -5358,6 +5696,69 @@ export type Database = {
         }[]
       }
       resolve_trip_by_token: { Args: { p_token: string }; Returns: Json }
+      ride_duration_s: {
+        Args: { p_ride: Database["public"]["Tables"]["rides"]["Row"] }
+        Returns: number
+      }
+      ride_is_qualifying: {
+        Args: { p_ride: Database["public"]["Tables"]["rides"]["Row"] }
+        Returns: boolean
+      }
+      ride_new_roads: {
+        Args: { p_ride_id: string; p_user_id: string }
+        Returns: number
+      }
+      ride_stats_places: {
+        Args: {
+          p_end_lat: number
+          p_end_lng: number
+          p_route: string
+          p_start_lat: number
+          p_start_lng: number
+        }
+        Returns: Json
+      }
+      ride_stats_stale_count: {
+        Args: { p_older_than: string; p_stats_version: number }
+        Returns: number
+      }
+      ride_stats_stale_rides: {
+        Args: { p_exclude: string[]; p_limit: number; p_stats_version: number }
+        Returns: {
+          is_synthetic: boolean
+          ride_id: string
+          stale_since: string
+          user_id: string
+        }[]
+      }
+      ride_track_points: {
+        Args: { p_max_points?: number; p_ride_id: string }
+        Returns: {
+          accuracy: number[]
+          altitude: number[]
+          heading: number[]
+          latitude: number[]
+          longitude: number[]
+          recorded_at: string[]
+          speed_mps: number[]
+          total_points: number
+        }[]
+      }
+      rider_insights_season: {
+        Args: {
+          p_from: string
+          p_groups?: string[]
+          p_to: string
+          p_tolerance?: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      rider_personal_records: { Args: { p_user_id: string }; Returns: Json }
+      rider_ride_overview: {
+        Args: { p_tz?: string; p_user_id: string }
+        Returns: Json
+      }
       rotate_trip_share_token: { Args: { p_trip_id: string }; Returns: string }
       search_blog_posts: {
         Args: { loc?: string; query: string }

@@ -15,13 +15,22 @@ when a local build is not possible. The first local Android build fills ~5–8 G
 
 | Build | Command | Backend | Use for |
 |---|---|---|---|
-| iOS simulator | `eas build -p ios --profile e2e-simulator` (download the `.tar.gz`, `xcrun simctl install booted <app>`) or `pnpm --filter @motovault/mobile ios --configuration Release` | production | onboarding / paywall flows (`OB_VARIANT=invested`) |
+| iOS simulator | `eas build -p ios --profile e2e-simulator` (download the `.tar.gz`, `xcrun simctl install booted <app>`) | production (vendor SDKs off) | every iOS flow except the paywall gate (`OB_VARIANT=invested`) |
+| iOS simulator, paywall gate | `eas build -p ios --profile e2e-simulator-paywall` | production, **vendor SDKs on** | `onboarding-paywall-verify.yaml` only (the #326 promotion gate, #365 T18) |
 | Android APK, production backend | `eas build -p android --profile e2e-android` | production | read-only flows, flows that clean up their own account |
 | Android APK, local stack | `eas build -p android --profile e2e-android-local` | local Supabase `http://10.0.2.2:54321` + local API `http://10.0.2.2:4000/graphql` (cleartext allowed only in this build via `E2E_LOCAL_STACK=1`) | seeded flows (diagnosis used, limits) — see `features/bike-detail-shell-overview/local-stack.md` |
 | Android, real store binary | `bundletool build-apks --mode=universal` on the production AAB, sign with a local debug key, `adb install` | production | read-only red runs only: never sign up, sign in or create rows |
 
-The Android E2E profiles set `EXPO_PUBLIC_E2E_NO_VENDOR_SDKS=1` (`src/lib/e2e-build.ts`: RevenueCat not configured, PostHog without a key, Meta events dropped; EAS rejects empty keys in `eas.json`) (no test traffic in those dashboards; paywall flows need `e2e-simulator`). All E2E profiles set `EXPO_PUBLIC_E2E_RUN=1`: every PostHog event from such a build carries the super property `e2e_run: true` (`src/lib/analytics-release-marker.ts`), which every #365 metric excludes. Any new E2E profile must set it too. They also set
+> **Warning:** any run of `e2e-simulator-paywall` writes to production analytics (PostHog events, the
+> `onboarding_paywall_2026q4` experiment exposure, RevenueCat, Meta) and needs the owner's go-ahead.
+
+Every E2E profile except `e2e-simulator-paywall` sets `EXPO_PUBLIC_E2E_NO_VENDOR_SDKS=1` (`src/lib/e2e-build.ts`: RevenueCat not configured, PostHog without a key, Meta events dropped; EAS rejects empty keys in `eas.json`), so they send no test traffic to those dashboards. `e2e-simulator-paywall` keeps them on because the paywall gate needs the real RevenueCat paywall and PostHog flag. `src/lib/__tests__/sentry-environment.test.ts` fails for any new `e2e-*` profile without the switch, unless it is added to that test's allow-list on purpose. All E2E profiles set `EXPO_PUBLIC_E2E_RUN=1`: every PostHog event from such a build carries the super property `e2e_run: true` (`src/lib/analytics-release-marker.ts`), which every #365 metric excludes. Any new E2E profile must set it too. They also set
 `EAS_NO_FROZEN_LOCKFILE=1` (the EAS upload has no `apps/api/package.json`, so a frozen install fails).
+
+Both iOS profiles still point at the **production backend** (no local URLs in `eas.json`). For device
+checks, bundle the JS against local backend URLs instead (the T04b recipe in the PR #469 device-check
+comment: swap the embedded bundle via `npx expo export:embed` with the local Supabase/API URLs and
+`EXPO_PUBLIC_E2E_NO_VENDOR_SDKS=1`), unless a flow specifically needs production.
 
 Devices on the dev machine (2026-11-12): iOS simulator **"MV iPhone"** (iPhone 16, iOS 27.2,
 `xcrun simctl list devices available`); Android emulators from `emulator -list-avds`
@@ -83,7 +92,8 @@ the flows below.
   `garage_first`. Every other onboarding flow closes the paywall with `optional: true`, so they
   pass without one. A release build cannot be forced onto an arm, so the runner repeats the flow
   pinned to each arm until both have a passing run (`MAX_TRIES` per arm, default 6); pass
-  `EXPECTED_ARM` to run one arm only. Run it via:
+  `EXPECTED_ARM` to run one arm only. Install an `e2e-simulator-paywall` build (it writes to
+  production analytics: owner's go-ahead first). Run it via:
   ```bash
   DEVICE=<simulator udid> pnpm --filter @motovault/mobile test:e2e:onboarding-paywall
   ```

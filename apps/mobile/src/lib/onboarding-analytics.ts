@@ -1,7 +1,8 @@
 import type { JsonType } from '@posthog/core';
 import { getStepIndex, OB_STEP_NAME, type OnboardingRoute } from '../config/onboarding';
-import { type AnalyticsEventName, trackEvent } from './analytics';
+import { AnalyticsEvent, type AnalyticsEventName, trackEvent } from './analytics';
 import { getOnboardingVariant } from './onboarding-experiment';
+import { recordOnboardingCompleted } from './paywall-session';
 
 // -------------------------------------------------------------------
 // Onboarding funnel analytics
@@ -39,4 +40,13 @@ export function trackOnboardingFlowEvent(
   properties?: Record<string, JsonType>,
 ) {
   trackEvent(event, { variant: getOnboardingVariant(), ...properties });
+}
+
+/**
+ * Track `onboarding_completed` and start the clock that paywall events report as
+ * `minutes_since_onboarding_completed` (issue 365 T05a).
+ */
+export function trackOnboardingCompletion(properties?: Record<string, JsonType>) {
+  recordOnboardingCompleted();
+  trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_COMPLETED, properties);
 }

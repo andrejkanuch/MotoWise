@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ServerEventsService } from './server-events.service';
 import { SignupEventsController } from './signup-events.controller';
 import { SignupEventsService } from './signup-events.service';
 
@@ -9,7 +10,7 @@ import { SignupEventsService } from './signup-events.service';
  */
 @Module({
   controllers: [SignupEventsController],
-  providers: [SignupEventsService],
-  exports: [SignupEventsService],
+  providers: [SignupEventsService, ServerEventsService],
+  exports: [SignupEventsService, ServerEventsService],
 })
 export class AnalyticsModule {}

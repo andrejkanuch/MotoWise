@@ -516,11 +516,15 @@ export function useScanFlow(params: UseScanFlowParams): ScanFlow {
     // Onboarding first scan is quota-exempt (KTD-10) — skip the paywall gate.
     // Otherwise requireAccess presents the paywall as a side effect and returns
     // false when the free monthly scan count is exhausted — we STOP before the camera.
-    if (!isOnboarding && !requireAccess('MAX_RECEIPT_SCANS_PER_MONTH', quota.used)) {
+    // The paywall's own events carry the entry surface; do not fire a second
+    // paywall_present_requested here (issue 365 T05a).
+    if (
+      !isOnboarding &&
+      !requireAccess('MAX_RECEIPT_SCANS_PER_MONTH', quota.used, {
+        entry_surface: entrySurface ?? null,
+      })
+    ) {
       dispatch({ type: 'GATE_REFUSED' });
-      trackEvent(AnalyticsEvent.PAYWALL_PRESENT_REQUESTED, {
-        surface: entrySurface ?? 'receipt_scan_gate',
-      });
       return;
     }
 

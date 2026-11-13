@@ -75,7 +75,7 @@ export interface MotorcycleModelDto {
 }
 
 // NHTSA vPIC returns MakeName in ALL CAPS — match exactly
-const POPULAR_MAKES = new Set([
+export const POPULAR_MAKES = new Set([
   'HONDA',
   'YAMAHA',
   'KAWASAKI',

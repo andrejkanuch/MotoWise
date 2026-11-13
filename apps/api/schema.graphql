@@ -2925,6 +2925,16 @@ type User {
   preferences: JSON
   publicUsername: String
   role: UserRole!
+
+  """
+  Only on the completeOnboarding result: OEM service-plan tasks the onboarding bike has; null elsewhere
+  """
+  servicePlanTaskCount: Int
+
+  """
+  Only on the completeOnboarding result: service-plan tier (model | make | generic); null elsewhere
+  """
+  servicePlanTier: String
   showSavedPublicly: Boolean
   subscriptionTier: String
   updatedAt: String!

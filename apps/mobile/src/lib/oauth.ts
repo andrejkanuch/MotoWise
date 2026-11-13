@@ -66,6 +66,59 @@ export function classifyOAuthError(err: unknown): OAuthErrorKind {
     : OAUTH_ERROR_KIND.unexpected;
 }
 
+// issue 365 T04a
+/** `outcome` on `auth_oauth_result` and `auth_error_alert_shown`. */
+export const OAUTH_OUTCOME = {
+  SUCCESS: 'success',
+  CANCELLED: 'cancelled',
+  IN_PROGRESS: 'in_progress',
+  NO_PLAY_SERVICES: 'no_play_services',
+  CANNOT_PRESENT: 'cannot_present',
+  ERROR: 'error',
+} as const;
+export type OAuthOutcome = (typeof OAUTH_OUTCOME)[keyof typeof OAUTH_OUTCOME];
+
+/** The analytics outcome of each failure kind. `expected` is a cancel. */
+export const OAUTH_KIND_OUTCOME: Readonly<Record<OAuthErrorKind, OAuthOutcome>> = {
+  [OAUTH_ERROR_KIND.inProgress]: OAUTH_OUTCOME.IN_PROGRESS,
+  [OAUTH_ERROR_KIND.noPlayServices]: OAUTH_OUTCOME.NO_PLAY_SERVICES,
+  [OAUTH_ERROR_KIND.cannotPresent]: OAUTH_OUTCOME.CANNOT_PRESENT,
+  [OAUTH_ERROR_KIND.expected]: OAUTH_OUTCOME.CANCELLED,
+  [OAUTH_ERROR_KIND.unexpected]: OAUTH_OUTCOME.ERROR,
+};
+
+/**
+ * `stage` on `auth_oauth_result`: how far the attempt got. `sheet` = the provider's
+ * sheet never handed back a token; `token_exchange` = it did, and the Supabase
+ * `signInWithIdToken` call was reached.
+ */
+export const OAUTH_STAGE = {
+  SHEET: 'sheet',
+  TOKEN_EXCHANGE: 'token_exchange',
+} as const;
+export type OAuthStage = (typeof OAUTH_STAGE)[keyof typeof OAUTH_STAGE];
+
+/** Timing marks a sign-in reports back to its caller. */
+export type OAuthMarks = {
+  /** The provider's sheet returned a token; the Supabase token exchange starts now. */
+  onSheetDone: () => void;
+};
+
+// A code is a short identifier token (`ERR_REQUEST_CANCELED`, `12501`,
+// `AuthRetryableFetchError`). Anything else could be free text and is dropped.
+const ERROR_CODE_TOKEN = /^[A-Za-z0-9_.-]{1,64}$/;
+
+/**
+ * `error_code` on auth events: the error's own code (provider SDK or Supabase), else
+ * its class name, and never its message. `null` when neither is a plain token.
+ */
+export function oauthErrorCode(err: unknown): string | null {
+  if (typeof err !== 'object' || err === null) return null;
+  const { code, name } = err as { code?: unknown; name?: unknown };
+  const candidate = code !== undefined && code !== null ? String(code) : name;
+  return typeof candidate === 'string' && ERROR_CODE_TOKEN.test(candidate) ? candidate : null;
+}
+
 /** Returns true for auth errors that are expected user-facing outcomes, not bugs. */
 export function isExpectedAuthError(err: unknown): boolean {
   return classifyOAuthError(err) !== OAUTH_ERROR_KIND.unexpected;
@@ -123,7 +176,7 @@ GoogleSignin.configure({
   iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
 });
 
-export async function signInWithApple(): Promise<OAuthResult> {
+export async function signInWithApple(marks?: OAuthMarks): Promise<OAuthResult> {
   const nonce = Crypto.randomUUID();
   const hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, nonce);
   const credential = await AppleAuthentication.signInAsync({
@@ -134,6 +187,7 @@ export async function signInWithApple(): Promise<OAuthResult> {
     nonce: hashedNonce,
   });
   if (!credential.identityToken) throw new Error('No identity token');
+  marks?.onSheetDone();
   const { data, error } = await supabase.auth.signInWithIdToken({
     provider: 'apple',
     token: credential.identityToken,
@@ -152,17 +206,17 @@ export async function signInWithApple(): Promise<OAuthResult> {
 // the result would double-count it.
 let googleSignInInFlight = false;
 
-export async function signInWithGoogle(): Promise<OAuthResult> {
+export async function signInWithGoogle(marks?: OAuthMarks): Promise<OAuthResult> {
   if (googleSignInInFlight) throw new GoogleSignInInProgressError();
   googleSignInInFlight = true;
   try {
-    return await runGoogleSignIn();
+    return await runGoogleSignIn(marks);
   } finally {
     googleSignInInFlight = false;
   }
 }
 
-async function runGoogleSignIn(): Promise<OAuthResult> {
+async function runGoogleSignIn(marks?: OAuthMarks): Promise<OAuthResult> {
   await GoogleSignin.hasPlayServices();
   const response = await GoogleSignin.signIn();
 
@@ -172,6 +226,7 @@ async function runGoogleSignIn(): Promise<OAuthResult> {
 
   const idToken = response.data.idToken;
   if (!idToken) throw new Error('No ID token from Google Sign-In');
+  marks?.onSheetDone();
 
   const { data, error } = await supabase.auth.signInWithIdToken({
     provider: 'google',

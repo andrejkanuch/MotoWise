@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MaintenancePushService } from './maintenance-push.service';
 
 // Captures messages handed to Expo + lets each test choose the send outcome.
-const mockSentMessages: Array<{ title?: string; body?: string }> = [];
+const mockSentMessages: Array<{ title?: string; body?: string; data?: unknown }> = [];
 const mockExpo = {
   sendResult: 'ok' as 'ok' | 'throw' | 'errorTicket' | 'deviceNotRegistered' | 'firstOkRestError',
 };
@@ -41,20 +41,39 @@ vi.mock('expo-server-sdk', () => ({
 
 /**
  * Minimal chainable Supabase stub: every builder method returns the same object,
- * which is awaited to `result`. Records delete() calls per table.
+ * which is awaited to the table's result. A `table.op` key (`maintenance_push_log.insert`)
+ * overrides the table's result for that operation only. Records delete() calls per table.
  */
-function makeAdminClient(resultsByTable: Record<string, { data?: unknown; error?: unknown }>) {
+type StubResult = { data?: unknown; error?: unknown };
+/** An array is a sequence of results, one per awaited query (for paged reads). */
+function makeAdminClient(resultsByTable: Record<string, StubResult | StubResult[]>) {
   const from = vi.fn((table: string) => {
-    const result = resultsByTable[table] ?? { data: [], error: null };
+    let op = 'select';
     const builder: Record<string, unknown> = {};
-    for (const m of ['select', 'insert', 'delete', 'in', 'is', 'eq', 'limit']) {
+    for (const m of [
+      'select',
+      'insert',
+      'delete',
+      'in',
+      'is',
+      'eq',
+      'gte',
+      'limit',
+      'order',
+      'range',
+    ]) {
       builder[m] = vi.fn(() => {
         if (m === 'delete') mockDeletes.push(table);
+        if (m === 'insert' || m === 'delete') op = m;
         return builder;
       });
     }
     // biome-ignore lint/suspicious/noThenProperty: intentional thenable stub — Supabase query builders are awaited directly, so the mock must resolve on await.
-    builder.then = (resolve: (v: unknown) => unknown) => resolve(result);
+    builder.then = (resolve: (v: unknown) => unknown) => {
+      const result = resultsByTable[`${table}.${op}`] ?? resultsByTable[table];
+      const next = Array.isArray(result) ? result.shift() : result;
+      return resolve(next ?? { data: [], error: null });
+    };
     return builder;
   });
   return { from } as unknown as SupabaseClient;
@@ -114,7 +133,7 @@ describe('MaintenancePushService.sendDuePush', () => {
         error: null,
       },
       users: { data: [{ id: 'u1', preferences: {} }], error: null },
-      maintenance_push_log: { error: { code: '23505', message: 'duplicate key' } },
+      'maintenance_push_log.insert': { error: { code: '23505', message: 'duplicate key' } },
     });
     const summary = await new MaintenancePushService(admin).sendDuePush(1);
     expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 1, failed: 0, noToken: 0 });
@@ -223,7 +242,7 @@ describe('MaintenancePushService.sendDuePush', () => {
         error: null,
       },
       users: { data: [{ id: 'u1', preferences: {} }], error: null },
-      maintenance_push_log: { error: { code: '23502', message: 'not-null violation' } },
+      'maintenance_push_log.insert': { error: { code: '23502', message: 'not-null violation' } },
     });
     const summary = await new MaintenancePushService(admin).sendDuePush(1);
     expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 0, failed: 0, noToken: 0 });
@@ -248,5 +267,124 @@ describe('MaintenancePushService.sendDuePush', () => {
     });
     await expect(new MaintenancePushService(admin).sendDuePush(1)).rejects.toBeTruthy();
     expect(mockDeletes).not.toContain('maintenance_push_log');
+  });
+
+  // activation T07a, D7 reminder cap: at most one push per bike, and none for a bike pushed
+  // in the last 7 days. ~10 imported tasks can fall due on the same anniversary.
+  describe('per-bike reminder cap (D7)', () => {
+    const task = (id: string, motorcycleId: string, title = `Task ${id}`) => ({
+      id,
+      user_id: 'u1',
+      title,
+      due_date: '2026-07-01',
+      motorcycle_id: motorcycleId,
+    });
+    const baseTables = (tasks: unknown[], recent: unknown[] = []) => ({
+      maintenance_tasks: { data: tasks, error: null },
+      device_push_tokens: {
+        data: [{ user_id: 'u1', token: 'ExponentPushToken[abc]' }],
+        error: null,
+      },
+      users: { data: [{ id: 'u1', preferences: { locale: 'en' } }], error: null },
+      motorcycles: {
+        data: [
+          { id: 'm1', nickname: null, make: 'Yamaha', model: 'MT-09' },
+          { id: 'm2', nickname: 'Blue', make: 'Honda', model: 'CB500F' },
+        ],
+        error: null,
+      },
+      'maintenance_push_log.select': { data: recent, error: null },
+      'maintenance_push_log.insert': { error: null },
+    });
+
+    it('sends ONE push naming the count when 3 tasks are due the same day on one bike', async () => {
+      const admin = makeAdminClient(
+        baseTables([task('t1', 'm1'), task('t2', 'm1'), task('t3', 'm1')]),
+      );
+      const summary = await new MaintenancePushService(admin).sendDuePush(1);
+      expect(mockSentMessages).toHaveLength(1);
+      expect(mockSentMessages[0].body).toBe('3 services due on your MT-09. Tap to review.');
+      expect(mockSentMessages[0].data).toMatchObject({ motorcycleId: 'm1', taskCount: 3 });
+      // One dedup row per task, so a re-run stays idempotent per task.
+      expect(summary).toEqual({ tasksDue: 3, pushed: 3, skipped: 0, failed: 0, noToken: 0 });
+    });
+
+    it('keeps the single-task copy when only one task is due on the bike', async () => {
+      const admin = makeAdminClient(baseTables([task('t1', 'm1', 'Oil change')]));
+      await new MaintenancePushService(admin).sendDuePush(1);
+      expect(mockSentMessages).toHaveLength(1);
+      expect(mockSentMessages[0].body).toBe('Oil change is due soon. Tap to review.');
+    });
+
+    it('skips a bike that already had a maintenance push in the last 7 days', async () => {
+      const admin = makeAdminClient(
+        baseTables(
+          [task('t4', 'm1')],
+          [{ task_id: 't-earlier', maintenance_tasks: { motorcycle_id: 'm1' } }],
+        ),
+      );
+      const summary = await new MaintenancePushService(admin).sendDuePush(1);
+      expect(mockSentMessages).toHaveLength(0);
+      expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 1, failed: 0, noToken: 0 });
+    });
+
+    it('sends one push per bike when two bikes have tasks due', async () => {
+      const admin = makeAdminClient(
+        baseTables([task('t1', 'm1'), task('t2', 'm1'), task('t3', 'm2'), task('t4', 'm2')]),
+      );
+      await new MaintenancePushService(admin).sendDuePush(1);
+      expect(mockSentMessages).toHaveLength(2);
+      expect(mockSentMessages.map((m) => m.body).sort()).toEqual([
+        '2 services due on your Blue. Tap to review.',
+        '2 services due on your MT-09. Tap to review.',
+      ]);
+    });
+
+    it('pages the 7-day history, so a push past the first page still caps the bike', async () => {
+      const filler = Array.from({ length: 500 }, (_, i) => ({
+        id: `log-${i}`,
+        maintenance_tasks: { motorcycle_id: 'm-other' },
+      }));
+      const tables = {
+        ...baseTables([task('t4', 'm1')]),
+        'maintenance_push_log.select': [
+          { data: filler, error: null },
+          { data: [{ id: 'log-x', maintenance_tasks: { motorcycle_id: 'm1' } }], error: null },
+        ],
+      };
+      const summary = await new MaintenancePushService(makeAdminClient(tables)).sendDuePush(1);
+      expect(mockSentMessages).toHaveLength(0);
+      expect(summary).toEqual({ tasksDue: 1, pushed: 0, skipped: 1, failed: 0, noToken: 0 });
+    });
+
+    it('a recent push on one bike does not hold back another bike', async () => {
+      const admin = makeAdminClient(
+        baseTables(
+          [task('t1', 'm1'), task('t3', 'm2')],
+          [{ task_id: 't-earlier', maintenance_tasks: { motorcycle_id: 'm1' } }],
+        ),
+      );
+      const summary = await new MaintenancePushService(admin).sendDuePush(1);
+      expect(mockSentMessages).toHaveLength(1);
+      expect(mockSentMessages[0].data).toMatchObject({ motorcycleId: 'm2' });
+      expect(summary).toEqual({ tasksDue: 2, pushed: 1, skipped: 1, failed: 0, noToken: 0 });
+    });
+
+    it('throws (claiming nothing) when the 7-day lookup errors', async () => {
+      const admin = makeAdminClient({
+        ...baseTables([task('t1', 'm1')]),
+        'maintenance_push_log.select': { data: null, error: { message: 'timeout', code: '57014' } },
+      });
+      await expect(new MaintenancePushService(admin).sendDuePush(1)).rejects.toBeTruthy();
+      expect(mockSentMessages).toHaveLength(0);
+    });
+
+    it('releases every task claim of a bike whose combined push failed', async () => {
+      mockExpo.sendResult = 'throw';
+      const admin = makeAdminClient(baseTables([task('t1', 'm1'), task('t2', 'm1')]));
+      const summary = await new MaintenancePushService(admin).sendDuePush(1);
+      expect(summary).toEqual({ tasksDue: 2, pushed: 0, skipped: 0, failed: 2, noToken: 0 });
+      expect(mockDeletes).toContain('maintenance_push_log');
+    });
   });
 });

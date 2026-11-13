@@ -13,6 +13,7 @@ import {
 import { EMAIL_CODE_SOURCE, EmailCodeStep } from '../../components/auth/email-code-step';
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
+import { AUTH_EMAIL_MODE, AUTH_SURFACE } from '../../config/auth';
 import { OB_ROUTE } from '../../config/onboarding';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
 import { useOAuthSignIn } from '../../hooks/use-oauth-sign-in';
@@ -20,9 +21,12 @@ import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytic
 import { classifyAuthError, EMAIL_AUTH_ERROR, sendSignupCode } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
+import { markOnboardingButtonBack } from '../../lib/onboarding-back-marker';
 import { supabase } from '../../lib/supabase';
 import { space } from '../../theme/spacing';
 import { SYSTEM_WEIGHT, type } from '../../theme/type';
+
+const SURFACE = AUTH_SURFACE.ONBOARDING_SIGN_IN;
 
 /**
  * Returning-user sign-in, reachable from Welcome's "Log in" and the account
@@ -85,10 +89,14 @@ export default function OnboardingSignInScreen() {
     router.replace(OB_ROUTE.EXPERIENCE);
   };
 
-  const { onApple, onGoogle } = useOAuthSignIn();
+  const { onApple, onGoogle } = useOAuthSignIn(SURFACE);
 
   const handleEmail = async () => {
     setBusy(true);
+    trackEvent(AnalyticsEvent.AUTH_EMAIL_SUBMITTED, {
+      surface: SURFACE,
+      mode: AUTH_EMAIL_MODE.SIGNIN,
+    });
     setNotFound(false);
     setSendFailed(false);
     try {
@@ -106,7 +114,7 @@ export default function OnboardingSignInScreen() {
           Alert.alert(t('common.error'), userFriendlyError(error));
         }
       } else {
-        trackEvent(AnalyticsEvent.USER_SIGNED_IN, { auth_method: 'email' });
+        trackEvent(AnalyticsEvent.USER_SIGNED_IN, { auth_method: 'email', surface: SURFACE });
       }
     } catch (err) {
       captureException(err);
@@ -118,10 +126,16 @@ export default function OnboardingSignInScreen() {
 
   const canSubmit = email.length > 0 && password.length > 0 && !busy;
 
+  // The chevron's pop is reported as `onboarding_back` with `trigger: button`.
+  const handleBack = () => {
+    markOnboardingButtonBack();
+    router.back();
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <OnboardingShell
-        onBack={codeStep ? backFromCodeStep : () => router.back()}
+        onBack={codeStep ? backFromCodeStep : handleBack}
         // EmailCodeStep has its own header; the screen's heading steps aside.
         title={codeStep ? undefined : t('onboarding.obSignInTitle')}
         subtitle={codeStep ? undefined : t('onboarding.obSignInSubtitle')}
@@ -142,6 +156,7 @@ export default function OnboardingSignInScreen() {
         {codeStep ? (
           <EmailCodeStep
             email={codeStep.email}
+            surface={SURFACE}
             source={EMAIL_CODE_SOURCE.SIGNIN_UNCONFIRMED}
             password={codeStep.password}
             initialCooldownMs={codeStep.initialCooldownMs}

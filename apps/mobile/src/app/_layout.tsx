@@ -62,6 +62,7 @@ import {
 import { useWhatsNewGate } from '../features/whats-new/use-whats-new-gate';
 import { useAccountLocaleSync } from '../hooks/use-account-locale-sync';
 import { useAnalyticsSuperProperties } from '../hooks/use-analytics-super-properties';
+import { useGateRoutedTracking } from '../hooks/use-gate-routed-tracking';
 import { useLaunchLanguage } from '../hooks/use-launch-language';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import { useReviewAppOpenScoring } from '../hooks/use-review-app-open-scoring';
@@ -130,6 +131,7 @@ import {
   snoozeTaskNotification,
 } from '../lib/notifications';
 import { resolveOnboardingVariant } from '../lib/onboarding-experiment';
+import { trackAuthSessionLost } from '../lib/onboarding-nav-analytics';
 import { isServerOnboardingComplete } from '../lib/onboarding-paywall';
 import { resolvePendingIntent } from '../lib/pending-intent-reader';
 import {
@@ -408,11 +410,10 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
     return () => clearTimeout(timeout);
   }, []);
 
-  // Hold the splash (render nothing) until auth + the `me` query resolve, so the
-  // guards below evaluate against settled state — otherwise a returning,
-  // already-onboarded user would briefly route through (onboarding) before `me`
-  // confirms completion. Exception: when the session appears MID-onboarding
-  // (post-paywall account step signs the user in), keep the stack mounted —
+  // Hold the splash (render nothing) until auth + the `me` query resolve, so the guards below
+  // evaluate against settled state — otherwise a returning, already-onboarded user would briefly
+  // route through (onboarding) before `me` confirms completion. Exception: when the session appears
+  // MID-onboarding (post-paywall account step signs the user in), keep the stack mounted —
   // unmounting would reset onboarding navigation state.
   const holding =
     !meWaitExpired &&
@@ -424,18 +425,16 @@ function NavigationGate({ onSettled }: { onSettled: () => void }) {
     if (!holding) onSettled();
   }, [holding, onSettled]);
 
-  if (holding) {
-    return null;
-  }
-
   const isSignedIn = !!session;
 
-  // Auth hydration answers three questions, not two: signed in, signed out, and
-  // "we do not know yet". The safety timeout used to collapse the third into the
-  // second by dropping `isLoading` while `session` was still null, so a signed-in
-  // rider on a slow cold start was routed straight to /login. The gate now routes
-  // on the hydration state itself. (BUG-4 Q1)
+  // Auth hydration answers three questions, not two: signed in, signed out, and "we do not know
+  // yet". The safety timeout used to collapse the third into the second by dropping `isLoading`
+  // while `session` was still null, so a signed-in rider on a slow cold start was routed straight
+  // to /login. The gate now routes on the hydration state itself. (BUG-4 Q1)
   const gateInput: AuthGateInput = { isSignedIn, isAnonOnboarding, hydration };
+  useGateRoutedTracking({ holding, gateInput, onboardingCompleted, meQuery }); // issue 365 T04b
+
+  if (holding) return null;
 
   // Hydration timed out with no answer: say so, rather than rendering a login
   // screen at a rider who may well be signed in. Bounded — the screen offers an
@@ -623,6 +622,7 @@ function RootLayout() {
         // device starts clean, the same one keeps their ticks across sign-out.
         useChecklistStore.getState().claimForUser(sessionUserId);
       } else {
+        if (decision.shouldClearLocalData) trackAuthSessionLost(_event); // before resetUser
         if (decision.shouldResetUser) {
           // Reset only when we PREVIOUSLY had a user in this app session. On a
           // cold-start anonymous launch, onAuthStateChange fires with a null

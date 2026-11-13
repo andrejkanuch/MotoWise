@@ -10,12 +10,22 @@ const mockPresentPaywall = jest.fn();
 jest.mock('@/lib/subscription', () => ({
   presentPaywall: (...args: unknown[]) => mockPresentPaywall(...args),
 }));
+jest.mock('@/lib/analytics', () => ({
+  AnalyticsEvent: {},
+  captureException: jest.fn(),
+  trackEvent: jest.fn(),
+}));
+jest.mock('@/lib/meta-analytics', () => ({ MetaAnalytics: { trackStartDiagnostic: jest.fn() } }));
 const mockPush = jest.fn();
-jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ push: mockPush }),
+  useLocalSearchParams: () => ({}),
+}));
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
+import { DIAGNOSTIC_ENTRY } from '@/config/diagnostic-entry';
 import { queryKeys } from '@/lib/query-keys';
 import { useSubscriptionStore } from '@/stores/subscription.store';
 import { useDiagnosticEntryGate } from '../use-diagnostic-entry-gate';
@@ -148,16 +158,18 @@ describe('useDiagnosticEntryGate after the form is gone', () => {
 describe('useStartDiagnosis', () => {
   it('opens the flow while the quota is still unknown (server limit is the backstop)', async () => {
     mockFetcher.mockReturnValue(new Promise(() => {}));
-    const { result } = await renderHook(() => useStartDiagnosis(), { wrapper });
+    const { result } = await renderHook(() => useStartDiagnosis(DIAGNOSTIC_ENTRY.LIST), {
+      wrapper,
+    });
 
     await act(async () => result.current());
-    expect(mockPush).toHaveBeenCalledWith('/(diagnose)/new');
+    expect(mockPush).toHaveBeenCalledWith(expect.objectContaining({ pathname: '/(diagnose)/new' }));
   });
 
   it('opens the paywall instead of the flow once the diagnosis is used', async () => {
     mockFetcher.mockResolvedValue(quota(1));
     const { result } = await renderHook(
-      () => ({ start: useStartDiagnosis(), quota: useDiagnosticQuota() }),
+      () => ({ start: useStartDiagnosis(DIAGNOSTIC_ENTRY.LIST), quota: useDiagnosticQuota() }),
       { wrapper },
     );
     await waitFor(() => expect(result.current.quota.isKnown).toBe(true));

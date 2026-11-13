@@ -8,7 +8,9 @@ import { MAKE_COLORS, POPULAR_MAKES } from '@/config/brand-dna';
 import { space } from '@/theme/spacing';
 import { type } from '@/theme/type';
 import { useOnboardingColors } from '../onboarding-colors';
+import { BIKE_PICKED_VIA } from './bike-setup-telemetry';
 import { MakeBadge, PickerGroup, PickerLabel, PickerRow, PickerSearchField } from './picker-ui';
+import type { BikeSetupTelemetry } from './use-bike-setup-telemetry';
 
 type Make = MotorcycleMakesQuery['motorcycleMakes'][number];
 type MakeStat = MakeStatsQuery['makeStats'][number];
@@ -18,6 +20,7 @@ interface MakeGridProps {
   stats: MakeStat[];
   onSelect: (make: Make) => void;
   onSelectOther: () => void;
+  telemetry: BikeSetupTelemetry;
 }
 
 function findStat(stats: MakeStat[], makeName: string): MakeStat | undefined {
@@ -25,7 +28,7 @@ function findStat(stats: MakeStat[], makeName: string): MakeStat | undefined {
   return stats.find((s) => s.make.toLowerCase() === lower);
 }
 
-export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProps) {
+export function MakeGrid({ makes, stats, onSelect, onSelectOther, telemetry }: MakeGridProps) {
   const oc = useOnboardingColors();
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
@@ -74,7 +77,10 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
         title={m.makeName}
         detail={stat && stat.riders > 0 ? String(stat.riders) : undefined}
         leading={<MakeBadge makeName={m.makeName} color={MAKE_COLORS[m.makeName]} />}
-        onPress={() => onSelect(m)}
+        onPress={() => {
+          telemetry.noteMakePicked(isSearching ? BIKE_PICKED_VIA.SEARCH : BIKE_PICKED_VIA.LIST);
+          onSelect(m);
+        }}
         chevron
       />
     );
@@ -85,7 +91,10 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
       <View style={{ gap: space.xs }}>
         <PickerSearchField
           value={query}
-          onChangeText={setQuery}
+          onChangeText={(text) => {
+            telemetry.noteMakeQuery(query, text);
+            setQuery(text);
+          }}
           placeholder={t('onboarding.v2MakeGridSearchPlaceholder')}
         />
         {/* Live social-proof teaser — real rider count, only when we have data */}
@@ -118,7 +127,10 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
           accessibilityLabel="Other make"
           leading={<Plus size={18} color={oc.warm2} />}
           accent
-          onPress={onSelectOther}
+          onPress={() => {
+            telemetry.noteMakePicked(BIKE_PICKED_VIA.CUSTOM);
+            onSelectOther();
+          }}
         />
       </PickerGroup>
     </Animated.View>
