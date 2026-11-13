@@ -118,6 +118,12 @@ the flows below.
   log-mode shape (Odometer / Date completed / "Log it", Priority hidden), logs a completed record,
   confirms it lands under History, and cleans up. **Authored from source 2026-07-16, pending
   on-device validation.** `test:e2e:log-past-work`.
+- **`flows/onboarding-complete-relaunch.yaml`** — onboarding completion survives a cold start (issue 365
+  T14, FS-OB1e). Composes `onboarding.yaml`, then `stopApp` → airplane mode on → `launchApp` (no
+  `clearState`) → Home (`home-screen`), never "Let's get started". Tagged `android` (`setAirplaneMode`
+  is Android-only); a guard only, since the stale-`me` race is covered by
+  `src/__tests__/navigation-gate.test.tsx`. **Authored from source, pending on-device validation.**
+  `test:e2e:onboarding-complete-relaunch`.
 - **`flows/add-bike.yaml`** — add a motorcycle from the garage. Composes `onboarding.yaml` with
   `NO_BIKE: "true"` (bike setup → "Not sure of the details?" → "I'll add my bike later" → no-bike
   value screen), so the free test user reaches an empty garage and "Add your first bike" opens the

@@ -148,6 +148,7 @@ describe('partializeAuthState', () => {
       'localeSchema',
       'mapOrientation',
       'measurementSystem',
+      'onboardingCompletedForUserId',
     ]);
     expect('session' in persisted).toBe(false);
     expect('isLoading' in persisted).toBe(false);

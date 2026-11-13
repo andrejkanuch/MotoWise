@@ -50,6 +50,15 @@ interface AuthState {
   colorScheme: ColorScheme;
   onboardingCompleted: boolean;
   /**
+   * Persisted: the user id that finished onboarding on this install (issue 365
+   * T14, FS-OB1e). `onboardingCompleted` itself is per-launch, and the persisted
+   * `me` cache can still say "not completed" after a kill right after "Open my
+   * garage", so without this a finished rider could be routed back into
+   * onboarding on the next cold start. Counts only for the same user; cleared on
+   * sign-out and when a different user signs in.
+   */
+  onboardingCompletedForUserId: string | null;
+  /**
    * Persisted: true once ANY session has existed on this install. Drives the
    * anonymous-onboarding gate — fresh installs onboard before auth (A/B 2026),
    * while returning users who sign out land on the (auth) login screen.
@@ -75,6 +84,24 @@ interface AuthState {
   setMapOrientation: (orientation: MapOrientation) => void;
 }
 
+/**
+ * Onboarding completion for the session the auth listener just reported. A
+ * signed-in user whose id matches the persisted flag has completed onboarding;
+ * a different user (or no user) drops the flag.
+ */
+export function onboardingCompletionForSession(
+  state: Pick<AuthState, 'onboardingCompleted' | 'onboardingCompletedForUserId'>,
+  session: Session | null,
+): Pick<AuthState, 'onboardingCompleted' | 'onboardingCompletedForUserId'> {
+  const userId = session?.user?.id;
+  if (!userId) return { onboardingCompleted: false, onboardingCompletedForUserId: null };
+  const flagIsThisUser = state.onboardingCompletedForUserId === userId;
+  return {
+    onboardingCompleted: state.onboardingCompleted || flagIsThisUser,
+    onboardingCompletedForUserId: flagIsThisUser ? userId : null,
+  };
+}
+
 /** Exactly the keys persisted to MMKV — excludes `session`/`isLoading`/`onboardingCompleted`. */
 export function partializeAuthState(state: AuthState) {
   return {
@@ -85,6 +112,7 @@ export function partializeAuthState(state: AuthState) {
     currency: state.currency,
     mapOrientation: state.mapOrientation,
     hasAuthenticatedBefore: state.hasAuthenticatedBefore,
+    onboardingCompletedForUserId: state.onboardingCompletedForUserId,
   };
 }
 
@@ -133,12 +161,13 @@ export const useAuthStore = create<AuthState>()(
       localeSchema: LOCALE_SCHEMA.SYSTEM_AWARE,
       colorScheme: 'system',
       onboardingCompleted: false,
+      onboardingCompletedForUserId: null,
       hasAuthenticatedBefore: false,
       measurementSystem: detectMeasurementSystem(),
       currency: 'USD',
       mapOrientation: MAP_ORIENTATIONS.NORTH,
       setSession: (session) =>
-        set({
+        set((state) => ({
           session,
           // ANY answer from the auth listener is authoritative, including null.
           // supabase-js guarantees INITIAL_SESSION fires exactly once per
@@ -148,8 +177,9 @@ export const useAuthStore = create<AuthState>()(
           // un-sticks UNRESOLVED.
           hydration: AUTH_HYDRATION.RESOLVED,
           isLoading: false,
-          ...(session === null ? { onboardingCompleted: false } : { hasAuthenticatedBefore: true }),
-        }),
+          ...onboardingCompletionForSession(state, session),
+          ...(session !== null && { hasAuthenticatedBefore: true }),
+        })),
       setLoading: (isLoading) => set({ isLoading }),
       markHydrationUnresolved: () =>
         set((state) =>
@@ -159,7 +189,13 @@ export const useAuthStore = create<AuthState>()(
             : state,
         ),
       forceHydrationResolved: () => set({ hydration: AUTH_HYDRATION.RESOLVED, isLoading: false }),
-      setOnboardingCompleted: (onboardingCompleted) => set({ onboardingCompleted }),
+      setOnboardingCompleted: (onboardingCompleted) =>
+        set({
+          onboardingCompleted,
+          onboardingCompletedForUserId: onboardingCompleted
+            ? (get().session?.user?.id ?? null)
+            : null,
+        }),
       setLocale: (locale) => {
         if (languageControl() === LANGUAGE_CONTROL.OS_API) setAppLocales(appLocalesFor(locale));
         applyLocalePreference(locale);
