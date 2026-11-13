@@ -109,34 +109,57 @@ env:
           timeout: 30000
       - tapOn: "Continue"
 
-# 6a'. BIKE_MAKE + BIKE_MODEL: that make and model, in BIKE_YEAR when given. The
-# year stepper appears once the make is picked; it starts three years back, so
-# "Previous year" steps down until the year shows. The model list is fetched for
-# the year, so the model is picked after it.
+# 6a'. BIKE_MAKE + BIKE_MODEL: that make and model, in BIKE_YEAR when given.
+# The year stepper appears once the make is picked; it starts three years back,
+# so "Previous year" steps down until the year shows. It sits below the model
+# list at the bottom edge, and the list reloads on every step (pushing the
+# stepper under the footer), so each pass scrolls it to the centre before
+# checking. Android reads the year as "Year, 2019", iOS as "2019". The model
+# list is fetched for the year, so the model is picked after it. The list shows
+# only six models until a query is typed, so the model is typed into the search
+# field and its row tapped below the field (the field's own text matches the
+# model name too).
 - runFlow:
     when:
       true: ${(typeof NO_BIKE === 'undefined' || NO_BIKE !== 'true') && (typeof MAKE_ONLY === 'undefined' || MAKE_ONLY !== 'true') && typeof BIKE_MODEL !== 'undefined'}
     commands:
-      - tapOn: ".*${BIKE_MAKE}.*"
+      # Whole-label match: Maestro text matching ignores case, and the search
+      # placeholder ("e.g. 'Yamaha MT-07'") sits above the tiles, so
+      # ".*Yamaha.*" tapped the search field instead of the YAMAHA tile.
+      - tapOn: "${BIKE_MAKE}"
       - runFlow:
           when:
             true: ${typeof BIKE_YEAR !== 'undefined'}
           commands:
-            - extendedWaitUntil:
-                visible: "Previous year"
-                timeout: 15000
             - repeat:
                 times: 15
-                while:
-                  notVisible: "${BIKE_YEAR}"
                 commands:
-                  - tapOn: "Previous year"
-            - assertVisible: "${BIKE_YEAR}"
+                  - scrollUntilVisible:
+                      element: "Previous year"
+                      direction: DOWN
+                      centerElement: true
+                      timeout: 15000
+                  - runFlow:
+                      when:
+                        notVisible: "(Year, )?${BIKE_YEAR}"
+                      commands:
+                        - tapOn: "Previous year"
+            - scrollUntilVisible:
+                element: "Previous year"
+                direction: DOWN
+                centerElement: true
+                timeout: 15000
+            - assertVisible: "(Year, )?${BIKE_YEAR}"
       - scrollUntilVisible:
-          element: "${BIKE_MODEL}"
-          direction: DOWN
-          timeout: 20000
-      - tapOn: "${BIKE_MODEL}"
+          element: "Search ${BIKE_MAKE} models.*"
+          direction: UP
+          timeout: 15000
+      - tapOn: "Search ${BIKE_MAKE} models.*"
+      - inputText: "${BIKE_MODEL}"
+      - tapOn:
+          text: "${BIKE_MODEL}"
+          below: "Search ${BIKE_MAKE} models.*"
+      - assertVisible: "Change model"
       - assertVisible: ".*${BIKE_MODEL}.*"
       - tapOn: "Add to my garage"
       - extendedWaitUntil:
