@@ -212,6 +212,12 @@
     "startCta": "Start a diagnosis",
     "quotaRemaining": "Free this month: {{count}} of {{limit}} diagnoses left",
     "quotaUsed": "This month's free diagnosis is used. It's back on {{date}}, or go Pro for unlimited.",
+    "limit": {
+      "usedBackOn": "This month's free diagnosis is used. It's back on {{date}}.",
+      "usedResetsNextMonth": "This month's free diagnosis is used. It resets next month.",
+      "seePro": "See Pro plans",
+      "done": "Done"
+    },
     "emptyExplainer": "Tell it what you hear, see or feel, and add a photo if you can. You get the likely causes, how urgent it is and the next steps.",
     "severityLevel": {
       "low": "Low",

@@ -212,6 +212,12 @@
     "startCta": "Iniciar un diagnóstico",
     "quotaRemaining": "Gratis este mes: te quedan {{count}} de {{limit}} diagnósticos",
     "quotaUsed": "Ya usaste el diagnóstico gratis de este mes. Se renueva el {{date}}, o hazte Pro para tener diagnósticos ilimitados.",
+    "limit": {
+      "usedBackOn": "Ya usaste el diagnóstico gratis de este mes. Vuelve el {{date}}.",
+      "usedResetsNextMonth": "Ya usaste el diagnóstico gratis de este mes. Se renueva el próximo mes.",
+      "seePro": "Ver planes Pro",
+      "done": "Listo"
+    },
     "emptyExplainer": "Cuenta lo que oyes, ves o sientes, y agrega una foto si puedes. Recibes las causas probables, qué tan urgente es y los siguientes pasos.",
     "severityLevel": {
       "low": "Baja",

@@ -212,6 +212,12 @@
     "startCta": "Lancer un diagnostic",
     "quotaRemaining": "Diagnostics gratuits restants ce mois-ci : {{count}} sur {{limit}}",
     "quotaUsed": "Ton diagnostic gratuit du mois est utilisé. Il revient le {{date}}, ou passe à Pro pour un accès illimité.",
+    "limit": {
+      "usedBackOn": "Ton diagnostic gratuit du mois est utilisé. Il revient le {{date}}.",
+      "usedResetsNextMonth": "Ton diagnostic gratuit du mois est utilisé. Il revient le mois prochain.",
+      "seePro": "Voir les offres Pro",
+      "done": "Terminé"
+    },
     "emptyExplainer": "Décris ce que tu entends, vois ou ressens, et ajoute une photo si tu peux. Tu obtiens les causes probables, le degré d'urgence et les prochaines étapes.",
     "severityLevel": {
       "low": "Faible",

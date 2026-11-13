@@ -188,6 +188,13 @@ the flows below.
   Set `DISTANCE_UNIT=mi` (or `km`) for the unit check; an imperial device must read "mi". Needs the
   T07a import on the backend; red on a build without it. **Authored from source 2026-11-13, pending
   on-device validation.** `test:e2e:service-plan`, `test:e2e:service-plan-make-only`.
+- **`flows/diagnose-limit-loop.yaml`** — the diagnose "Try Again" limit loop (issue 365 T08,
+  FS-PO2a). Seeded and Android only (tag `android`, `setAirplaneMode`): the runner plants a used
+  diagnosis (`E2E_SEED_DIAGNOSIS_USED=1`, local stack only), the flow reaches the form offline,
+  submits online and asserts the limit panel (`diagnose-limit-panel`, `-see-pro`, `-done`) with
+  no "Try Again". iOS is covered by the jest suite `new-limit.test.tsx`. **Validated on the
+  Android emulator 2026-11-14** (red on main, green on the fix). `test:e2e:diagnose-limit-loop` on the
+  `e2e-android-local` build.
 
   All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /
   `E2E_EMAIL_PREFIX` (set inline in the `test:e2e:*` package scripts) — no per-flow wrapper needed.

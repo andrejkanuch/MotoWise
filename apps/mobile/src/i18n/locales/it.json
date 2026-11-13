@@ -212,6 +212,12 @@
     "startCta": "Avvia una diagnosi",
     "quotaRemaining": "Gratis questo mese: {{count}} di {{limit}} diagnosi rimaste",
     "quotaUsed": "Hai usato la diagnosi gratuita di questo mese. Torna il {{date}}, oppure passa a Pro per diagnosi illimitate.",
+    "limit": {
+      "usedBackOn": "Hai usato la diagnosi gratuita di questo mese. Torna il {{date}}.",
+      "usedResetsNextMonth": "Hai usato la diagnosi gratuita di questo mese. Si rinnova il mese prossimo.",
+      "seePro": "Vedi i piani Pro",
+      "done": "Fatto"
+    },
     "emptyExplainer": "Racconta cosa senti, vedi o percepisci e aggiungi una foto se puoi. Ottieni le cause probabili, l'urgenza e i passi successivi.",
     "severityLevel": {
       "low": "Bassa",
