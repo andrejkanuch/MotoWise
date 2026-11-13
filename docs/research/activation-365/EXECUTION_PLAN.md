@@ -617,7 +617,8 @@ bump `ACTIVATION_FIX_LEVEL`: only the release cut does (§3A.0 rule 2), which al
 - **Type** release · **Size** S · **Depends** T01, T04a, T04b, T04c, T05a, T05b, T05c, T05d, T07b, T08–T17 (merged) · **Blocks** T35, T14b, T15b, T36, T38 · **Release** store builds per `docs/runbooks/mobile-release.md`
   (D17: no OTA of this content; an OTA only for a crash/data-loss hotfix per `docs/runbooks/mobile-ota.md`, `--environment production`, owner go-ahead) · **Constraints** D14, D17.
 - **What.** Version bump in `apps/mobile/app.config.ts`; `ACTIVATION_FIX_LEVEL = 2` (level 1 is not used, §3A.0 rule 2); release notes list task ids;
-  pre-promotion E2E: `onboarding-paywall-verify.yaml` both arms (required by the runbook), `onboarding.yaml`, plus every new flow from T07–T17.
+  pre-promotion E2E: `onboarding-paywall-verify.yaml` both arms (required by the runbook; iOS build from the `e2e-simulator-paywall` profile, vendor SDKs on, owner go-ahead),
+  `onboarding.yaml`, plus every new flow from T07–T17 (iOS flows on `e2e-simulator`; the Android-only `onboarding-complete-relaunch.yaml` and `diagnose-offline.yaml` on `e2e-android`; both vendor SDKs off).
   On go-live per platform: annotation + §6 row (T03 procedure). Android also carries the FCM config from PR #393 (vc99 line). **vc99 (validation, V3 §2):** vc98 is in Play
   production, so D14's condition is met, but vc99 is a **draft on internal named "3.26.0"** (not even delivered to testers). Steps: (a) rename the release to "3.28.0 (99)";
   (b) roll it to internal and verify a push token registers (`push_token_registered` with `platform='android'`, and a `device_push_tokens` row); (c) promote to production with the
@@ -1554,6 +1555,12 @@ the bug and only protects the fixed behaviour.
 | 1 | | | | | | | |
 | 2 | | | | | | | |
 
+**Template — example row, NOT a real go-live (#365 T03a).** Copy its shape; build numbers, dates and ids are placeholders. Procedure: `docs/runbooks/mobile-release.md` → "#365 release marking".
+
+| # | Version / runtime + hotfix OTA id / API | Go-live date | Platform | `activation_fix_level` | Tasks + spec ids shipped | PostHog annotation id | Notes (staged %, E2E run link, publish branch) |
+|---|---|---|---|---|---|---|---|
+| *ex.* | *3.29.0 (vc100) — Release A* | *2026-12-0X* | *android* | *2* | *T01, T04a–c, T05a–d, T07b–T17, T29 — FS-M, FS-OB1a, FS-PO2a, … (every spec whose §6.1 `Level` = 2)* | *`<id from annotation-create>`; text `#365 fixes: android 3.29.0 (vc100) lvl 2 — FS-M, FS-OB1a, …`* | *Play production staged 20%; onboarding-paywall E2E `<PR link>`; cut commit `<sha>`* |
+
 **How to read a row:** 2, 4 and 8 weeks after go-live, open the dashboard, filter `lvl` = this row's level vs the previous level, same calendar weeks, per platform;
 then the trailing-8-week comparison (§0). Record both in `experiments.md` under the row number.
 
@@ -1561,6 +1568,12 @@ then the trailing-8-week comparison (§0). Record both in `experiments.md` under
 
 Status values: `open` → `shipped` (in a release; level known) → `verified` (production metric met target on that level, read date given) / `regressed` / `not fixing`.
 This table is the only record of which level ships which spec (no code map; doc review item 13).
+
+**How to update (#365 T03a; full steps in `docs/runbooks/mobile-release.md` → "#365 release marking"):**
+- **Cut commit** (store build, or a hotfix OTA publish commit on a runtime ≥ 3.29.0): the same commit that sets `ACTIVATION_FIX_LEVEL` fills `Level` for every spec whose fix is in that build. A hotfix OTA on a runtime < 3.29.0 has no release marker: no level, §6 level cell `null`, annotation `lvl n/a`, never cherry-pick T01 (`docs/runbooks/mobile-ota.md`).
+- **Go-live, per platform** (separate docs commit): `Release row (§6)` = the new §6 row number(s), one per platform (e.g. `3 (android), 4 (ios)`); `Status` → `shipped`. The `Maestro run` cell takes the PR link of the spec's passing local run.
+- **2/4/8-week reads:** fill the read cell with date + result vs target (or `no verdict (season)` / `no verdict (thin Android cohort)`), the same line goes to `experiments.md` §8; `Status` → `verified` (target met; read date given) or `regressed`.
+- Never edit another spec's row in the same change unless it shipped in the same release. The example row below the table is a template, not a status.
 
 | Spec | Task(s) | Level | Release row (§6) | Maestro run (PR link) | 2-wk read | 4-wk read | 8-wk read | Status |
 |---|---|---|---|---|---|---|---|---|
@@ -1607,6 +1620,12 @@ This table is the only record of which level ships which spec (no code map; doc 
 | FS-PO16 | — (ledger, §10) | — | — | — | | | | not fixing now |
 | FS-PO17 | T16b | | | | | | | open |
 | FS-EXP1 | T30–T35, T40 | | | | | | | open |
+
+**Template — example row, NOT a real status (#365 T03a).** Shows FS-PO2a after a hypothetical Release A go-live on Android (§6 example row) and a 2-week read; placeholders in angle brackets.
+
+| Spec | Task(s) | Level | Release row (§6) | Maestro run (PR link) | 2-wk read | 4-wk read | 8-wk read | Status |
+|---|---|---|---|---|---|---|---|---|
+| *ex. FS-PO2a* | *T08* | *2* | *ex. (android)* | *`<T08 PR link>`* | *`<date>`: 0 limit loops on lvl 2 (target 0), n = `<riders>` android* | | | *shipped* |
 
 ---
 

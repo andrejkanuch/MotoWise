@@ -20,7 +20,13 @@
 # come from apps/mobile/.env, the service-role key from apps/api/.env; export
 # SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY to override (they
 # must match the build). Prereq: a standalone/preview build on a booted
-# simulator (see .maestro/README.md).
+# simulator (see .maestro/README.md). Local-stack override: see
+# run-onboarding-e2e.sh (SUPABASE_URL must match the build under test).
+#
+# The account the app creates is marked public.users.is_synthetic = true as
+# soon as part 1 records its id, and the id goes to the local E2E user ledger
+# (e2e-mark-synthetic.sh), so analytics baselines exclude it whether teardown
+# deletes it or TEST_EMAIL keeps it (#365 T02).
 #
 # The UI signup makes Supabase send a real confirmation email. TEST_EMAIL
 # defaults to Resend's delivered+<label>@resend.dev test address, which reports
@@ -29,6 +35,8 @@ set -eu
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 MOBILE_DIR=$(dirname "$SCRIPT_DIR")
+# shellcheck source=./e2e-mark-synthetic.sh
+. "$SCRIPT_DIR/e2e-mark-synthetic.sh"
 REPO_ROOT=$(cd "$MOBILE_DIR/../.." && pwd)
 APP_ID=${APP_ID:-com.motovault.app}
 E2E_VERIFY_FLOW=${E2E_VERIFY_FLOW:-onboarding-email-code-verify.yaml}
@@ -128,6 +136,9 @@ maestro $DEVICE_ARGS test "$MOBILE_DIR/.maestro/flows/onboarding-email-code-sign
 # lookup here: an address that had no account at preflight and is unique to
 # this run, created after the run started.
 USER_ID=$(user_id_for_email) || USER_ID=""
+if [ -n "$USER_ID" ]; then
+  mark_synthetic "$USER_ID" || exit 1
+fi
 [ "$PART1" -eq 0 ] || exit "$PART1"
 [ -n "$USER_ID" ] || { echo "error: part 1 passed but no new account exists for $TEST_EMAIL"; exit 1; }
 echo "  signed up user id=$USER_ID"

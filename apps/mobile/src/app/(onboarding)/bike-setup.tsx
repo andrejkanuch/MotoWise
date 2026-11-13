@@ -11,9 +11,18 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { BikePhotoField } from '../../components/onboarding/bike-setup/bike-photo-field';
+import {
+  BIKE_PICKED_VIA,
+  BIKE_SETUP_OUTCOME,
+} from '../../components/onboarding/bike-setup/bike-setup-telemetry';
+import {
+  detectTypeFromModel,
+  typeFromMake,
+} from '../../components/onboarding/bike-setup/bike-type';
 import { MakeGrid } from '../../components/onboarding/bike-setup/make-grid';
 import { ModelPicker } from '../../components/onboarding/bike-setup/model-picker';
 import { MakeBadge, PickerLabel } from '../../components/onboarding/bike-setup/picker-ui';
+import { useBikeSetupTelemetry } from '../../components/onboarding/bike-setup/use-bike-setup-telemetry';
 import { VariantSelector } from '../../components/onboarding/bike-setup/variant-selector';
 import { YearStepper } from '../../components/onboarding/bike-setup/year-stepper';
 import { OnboardingBikePlate } from '../../components/onboarding/onboarding-bike-plate';
@@ -39,40 +48,6 @@ import { isValidMakeName } from '../../utils/bike-make';
 import { triggerImpact } from '../../utils/haptics';
 
 const currentYear = new Date().getFullYear();
-
-// Map a brand's visual archetype (from getBrandDna) to a MotorcycleType so
-// make-only partial captures still get a sensible default type.
-const ARCHETYPE_TO_TYPE: Record<string, MotorcycleType> = {
-  sport: MotorcycleType.SPORTBIKE,
-  adv: MotorcycleType.DUAL_SPORT,
-  cruiser: MotorcycleType.CRUISER,
-};
-
-function typeFromMake(makeName: string): MotorcycleType {
-  const dna = getBrandDna(makeName);
-  return (dna && ARCHETYPE_TO_TYPE[dna.type]) ?? MotorcycleType.STANDARD;
-}
-
-function detectTypeFromModel(modelName: string): MotorcycleType | null {
-  const lower = modelName.toLowerCase();
-  if (/ninja|cbr|yzf-r|gsxr|gsx-r|zx|rc\d|panigale|rsv|daytona/i.test(lower))
-    return MotorcycleType.SPORTBIKE;
-  if (/vulcan|shadow|rebel|scout|sportster|fatboy|softail|dyna|iron\s?\d/i.test(lower))
-    return MotorcycleType.CRUISER;
-  if (/goldwing|gold wing|electra|road king|road glide|voyager|k\s?1600/i.test(lower))
-    return MotorcycleType.TOURING;
-  if (
-    /dr-z|drz|klx|crf|wr\d|xr\d|rally|tenere|versys|v-strom|vstrom|tiger|adventure|africa|gs\b|multistrada|africa twin/i.test(
-      lower,
-    )
-  )
-    return MotorcycleType.DUAL_SPORT;
-  if (/crf\d+f|yz\d+f|kx\d+|rm-z|rmz|tc\d|fc\d|sx|exc/i.test(lower))
-    return MotorcycleType.DIRT_BIKE;
-  if (/scooter|vespa|pcx|nmax|xmax|burgman|forza|metropolitan|scoopy/i.test(lower))
-    return MotorcycleType.SCOOTER;
-  return null;
-}
 
 export default function BikeSetupScreen() {
   const oc = useOnboardingColors();
@@ -121,6 +96,10 @@ export default function BikeSetupScreen() {
   const [variant, setVariant] = useState<MotorcycleVariant | null>(
     existingBikeData?.variant ?? null,
   );
+  const telemetry = useBikeSetupTelemetry({
+    year,
+    restored: { make: !!selectedMake, model: !!selectedMake && !!selectedModel },
+  });
 
   // ── Derived ─────────────────────────────────────────────────
   const yearNum = Number.parseInt(year, 10);
@@ -204,8 +183,10 @@ export default function BikeSetupScreen() {
       return;
     }
     setSelectedMake({ makeId: match.makeId, makeName: match.makeName });
+    telemetry.noteMakePicked(BIKE_PICKED_VIA.INTENT);
     if (pendingIntent.model) {
       setSelectedModel({ modelId: 0, modelName: pendingIntent.model });
+      telemetry.noteModelPicked(BIKE_PICKED_VIA.INTENT);
     }
   }, [
     pendingIntent,
@@ -215,6 +196,7 @@ export default function BikeSetupScreen() {
     makes,
     makesResult.isPending,
     setPendingIntent,
+    telemetry,
   ]);
 
   // First 4 popular makes (matched to real NHTSA make ids) for the partial-capture chips.
@@ -238,7 +220,9 @@ export default function BikeSetupScreen() {
     enabled: makeIdForModels > 0 && isValidYear,
     staleTime: Number.POSITIVE_INFINITY,
   });
+  telemetry.noteModelFetch(`${makeIdForModels}:${yearNum}`, modelsResult.fetchStatus !== 'idle');
   const models = modelsResult.data?.motorcycleModels ?? [];
+  telemetry.noteModelListSize(isCustomMake ? 0 : models.length);
 
   // ── Handlers ────────────────────────────────────────────────
   const handleSelectMake = (make: { makeId: number; makeName: string }) => {
@@ -257,6 +241,7 @@ export default function BikeSetupScreen() {
   };
 
   const handleChangeMake = () => {
+    telemetry.noteMakePicked(BIKE_PICKED_VIA.NONE);
     setSelectedMake(null);
     setIsCustomMake(false);
     setCustomMakeName('');
@@ -307,6 +292,7 @@ export default function BikeSetupScreen() {
       prefilled_from_intent: showIntentConfirm,
     });
 
+    telemetry.finish(BIKE_SETUP_OUTCOME.COMPLETED);
     goNext();
   };
 
@@ -351,6 +337,8 @@ export default function BikeSetupScreen() {
       bike_year: yearNum,
     });
 
+    telemetry.noteMakePicked(BIKE_PICKED_VIA.CHIP);
+    telemetry.finish(BIKE_SETUP_OUTCOME.COMPLETED);
     goNext();
   };
 
@@ -360,6 +348,7 @@ export default function BikeSetupScreen() {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, OB_SCREEN.BIKE_SETUP, {
       skipped_section: 'bike_setup',
     });
+    telemetry.finish(BIKE_SETUP_OUTCOME.SKIPPED);
     goNext();
   };
 
@@ -445,7 +434,10 @@ export default function BikeSetupScreen() {
   return (
     <OnboardingShell
       screen={OB_SCREEN.BIKE_SETUP}
-      onBack={onBack}
+      onBack={() => {
+        telemetry.finish(BIKE_SETUP_OUTCOME.BACK);
+        onBack();
+      }}
       title={headline.title}
       subtitle={headline.sub}
       footer={partialCapture}
@@ -476,6 +468,7 @@ export default function BikeSetupScreen() {
           stats={makeStats}
           onSelect={handleSelectMake}
           onSelectOther={handleSelectOther}
+          telemetry={telemetry}
         />
       ) : (
         /* ═══ Stage B: the bike becomes a plate, then model / year / extras ═══ */
@@ -545,6 +538,7 @@ export default function BikeSetupScreen() {
               selectedModel={selectedModel}
               onSelect={handleSelectModel}
               onDismiss={() => setSelectedModel(null)}
+              telemetry={telemetry}
             />
           )}
 
