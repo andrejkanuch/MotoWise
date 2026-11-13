@@ -79,7 +79,7 @@ jest.mock('../../lib/supabase', () => ({
 
 // The screen reads `bikeData` from the onboarding store for its Back route.
 jest.mock('../../stores/onboarding.store', () => ({
-  useOnboardingStore: { getState: () => ({ bikeData: null }) },
+  useOnboardingStore: { getState: () => ({ bikeData: null, setCodeStepPending: () => {} }) },
 }));
 jest.mock('../../stores/auth.store', () => {
   const { create } = require('zustand');

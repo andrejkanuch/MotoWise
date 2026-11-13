@@ -618,6 +618,15 @@ export const AnalyticsEvent = {
   // Activation Goal 7 — a receipt scan completed during onboarding (KTD-10 quota-exempt).
   ONBOARDING_SCAN_COMPLETED: 'receipt_scan_onboarding_completed',
   ONBOARDING_RESUMED: 'onboarding_resumed',
+  // #365 T04b — onboarding navigation, resume and gate events (lib/onboarding-nav-analytics.ts).
+  /** A Back between onboarding steps: `from`, `to`, `trigger`, `ms_on_screen`. */
+  ONBOARDING_BACK: 'onboarding_back',
+  /** Welcome mounted: `reason` (initial | back | remount), `had_progress`. */
+  ONBOARDING_WELCOME_MOUNTED: 'onboarding_welcome_mounted',
+  /** Root gate's first routing in a launch: `group`, `onboarding_completed_source`, `me_age_s`. */
+  GATE_ROUTED: 'gate_routed',
+  /** A session ended and local data was cleared: `during_onboarding`, `last_step`. */
+  AUTH_SESSION_LOST: 'auth_session_lost',
   // Onboarding A/B (2026) funnel — see docs/onboarding-ab-event-schema.md
   BIKE_ADDED: 'bike_added',
   REVEAL_VIEWED: 'reveal_viewed',

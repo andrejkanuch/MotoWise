@@ -4,11 +4,17 @@
 export { identify, reset, setUserProperties, track } from './client';
 export {
   ANALYTICS_EVENTS,
+  AuthSessionLostSchema,
   EVENT_SCHEMAS,
   ExplorePageViewedSchema,
   FilterAppliedSchema,
+  GateRoutedSchema,
   GpxDownloadAttemptedSchema,
   GpxDownloadAttemptedSchema as GPXDownloadAttemptedSchema,
+  MOBILE_ONBOARDING_NAV_EVENTS,
+  OnboardingBackSchema,
+  OnboardingResumedSchema,
+  OnboardingWelcomeMountedSchema,
   RegionPageViewedSchema,
   RouteSavedSchema,
   RouteSearchedSchema,
