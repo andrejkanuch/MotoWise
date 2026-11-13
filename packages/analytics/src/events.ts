@@ -17,6 +17,55 @@ export const ANALYTICS_EVENTS = {
   REGION_PAGE_VIEWED: 'region_page_viewed',
 } as const;
 
+// Issue 365 T04b — mobile onboarding navigation, resume and gate events. Sent by
+// apps/mobile (`AnalyticsEvent` in src/lib/analytics.ts; helpers in
+// src/lib/onboarding-nav-analytics.ts), not by this web client. Names and
+// property shapes are listed here as the shared catalog; schema doc:
+// docs/onboarding-ab-event-schema.md, "issue 365 T04b".
+export const MOBILE_ONBOARDING_NAV_EVENTS = {
+  ONBOARDING_BACK: 'onboarding_back',
+  ONBOARDING_WELCOME_MOUNTED: 'onboarding_welcome_mounted',
+  ONBOARDING_RESUMED: 'onboarding_resumed',
+  GATE_ROUTED: 'gate_routed',
+  AUTH_SESSION_LOST: 'auth_session_lost',
+} as const;
+
+export const OnboardingBackSchema = z.object({
+  from: z.string().nullable(),
+  /** A step name, or 'exit' when Android Back leaves the app from the stack root. */
+  to: z.string().nullable(),
+  trigger: z.enum(['hardware', 'gesture', 'button']),
+  ms_on_screen: z.number().int().nonnegative().nullable(),
+});
+
+export const OnboardingWelcomeMountedSchema = z.object({
+  reason: z.enum(['initial', 'back', 'remount']),
+  had_progress: z.boolean(),
+});
+
+/** The T04b additions; `last_completed` and `resume_target` predate them. */
+export const OnboardingResumedSchema = z.object({
+  last_completed: z.string(),
+  resume_target: z.string(),
+  resumed_from_screen: z.string().nullable(),
+  away_s: z.number().int().nonnegative().nullable(),
+  cold_start: z.boolean(),
+  pending_code_step: z.union([z.literal(0), z.literal(1)]),
+  had_session: z.union([z.literal(0), z.literal(1)]),
+});
+
+export const GateRoutedSchema = z.object({
+  group: z.enum(['restoring', 'auth', 'onboarding', 'tabs', 'none']),
+  onboarding_completed_source: z.enum(['local', 'me_cache', 'me_network', 'none']),
+  me_age_s: z.number().int().nullable(),
+});
+
+export const AuthSessionLostSchema = z.object({
+  during_onboarding: z.boolean(),
+  last_step: z.string().nullable(),
+  auth_event: z.string(),
+});
+
 // ---------------------------------------------------------------------------
 // Event property schemas
 // ---------------------------------------------------------------------------

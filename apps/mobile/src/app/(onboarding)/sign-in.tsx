@@ -21,6 +21,7 @@ import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytic
 import { classifyAuthError, EMAIL_AUTH_ERROR, sendSignupCode } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
+import { markOnboardingButtonBack } from '../../lib/onboarding-back-marker';
 import { supabase } from '../../lib/supabase';
 import { space } from '../../theme/spacing';
 import { SYSTEM_WEIGHT, type } from '../../theme/type';
@@ -125,10 +126,16 @@ export default function OnboardingSignInScreen() {
 
   const canSubmit = email.length > 0 && password.length > 0 && !busy;
 
+  // The chevron's pop is reported as `onboarding_back` with `trigger: button`.
+  const handleBack = () => {
+    markOnboardingButtonBack();
+    router.back();
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <OnboardingShell
-        onBack={codeStep ? backFromCodeStep : () => router.back()}
+        onBack={codeStep ? backFromCodeStep : handleBack}
         // EmailCodeStep has its own header; the screen's heading steps aside.
         title={codeStep ? undefined : t('onboarding.obSignInTitle')}
         subtitle={codeStep ? undefined : t('onboarding.obSignInSubtitle')}

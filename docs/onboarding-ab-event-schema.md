@@ -84,6 +84,24 @@ Current flow, not the retired experiment. Fired by the app on every sign-in surf
 
 "Started, no result" (FS-OB2a) = `auth_oauth_started` − `auth_oauth_result` per `provider` × platform: the app was killed or the sheet never returned. Do not read `Application Backgrounded` on the account step as "left the app": the Google sheet backgrounds the app on Android.
 
+### #365 T04b — onboarding navigation, resume and gate events
+
+Current (not historical). Sent from `apps/mobile/src/lib/onboarding-nav-analytics.ts`, behind the
+analytics consent gate like every `trackEvent`. Step names come from `OB_STEP_NAME`; no free text,
+email or ids. `onboarding_back`, `onboarding_welcome_mounted` and `onboarding_resumed` also carry
+`variant`. All five carry the release marker super properties (T01).
+
+| Event | When | Properties |
+|---|---|---|
+| `onboarding_back` | A Back between onboarding steps: the stack's `beforeRemove` on a `GO_BACK`/`POP`, the chevron's replace fallback, or Android Back on the stack root (`to: 'exit'`, the app leaves). Forward replaces never count. | `from`, `to` (step names; `to` may be `exit`), `trigger: hardware \| gesture \| button` (chevron marks itself; else `GO_BACK` = hardware, `POP` = iOS swipe), `ms_on_screen` (since the step's focus; null if unknown) |
+| `onboarding_welcome_mounted` | Every Welcome mount | `reason: initial` (first mount in this JS runtime) `\| back` (≤ 2 s after a Back to Welcome) `\| remount` (anything else — RC-D), `had_progress` (a completed step, or a viewed step past Welcome, on record) |
+| `onboarding_resumed` (extended) | resume-after-kill | adds `resumed_from_screen` (last step on screen, persisted on every focus as `lastViewedScreen`), `away_s` (since `lastViewedAt`), `cold_start` (always `true` today), `pending_code_step: 0 \| 1` (the account email code step was open), `had_session: 0 \| 1` |
+| `gate_routed` | Once per cold start, when the root NavigationGate first settles | `group: restoring \| auth \| onboarding \| tabs \| none`, `onboarding_completed_source: local \| me_cache \| me_network \| none` (which input decided: the auth store flag, `me` restored from the persisted cache, `me` fetched this launch, or nothing; `me_network` means `me`'s `dataUpdatedAt` is at or after this JS runtime's start), `me_age_s` (age of `me` data; null without it) |
+| `auth_session_lost` | A null session after a signed-in one, right before local data is cleared (fired before `resetUser()`, so it lands on the rider's person). Includes ordinary sign-outs. | `during_onboarding` (a step on record; the gate clears it whenever it opens (tabs), so a rider who signed in from the onboarding sign-in step does not count), `last_step`, `auth_event` (Supabase event: `SIGNED_OUT` or `INITIAL_SESSION`) |
+
+`lastViewedScreen`, `lastViewedAt` and `codeStepPending` are new optional fields of the persisted
+onboarding store with defaults, so a v9 state loads unchanged (no version bump; T13a owns v10).
+
 ## Metrics → PostHog definitions
 
 - **Primary — install → trial start:** funnel `onboarding_started` → `paywall_result` where `paywall_result = purchased`. (Trial = purchase of the trial-bearing package; refine with RC webhook events if needed.)

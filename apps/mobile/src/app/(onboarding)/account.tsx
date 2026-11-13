@@ -18,6 +18,7 @@ import {
   OnboardingTextButton,
 } from '../../components/onboarding/onboarding-shell';
 import { useAccountAdvance } from '../../components/onboarding/use-account-advance';
+import { useCodeStepPending } from '../../components/onboarding/use-code-step-pending';
 import { AUTH_EMAIL_MODE, AUTH_EMAIL_REDIRECT_TO, AUTH_SURFACE } from '../../config/auth';
 import { getPreviousRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
@@ -28,6 +29,7 @@ import { signUpConsentMetadata } from '../../lib/analytics-consent';
 import { classifyAuthError, EMAIL_AUTH_ERROR, normalizeEmail } from '../../lib/email-confirmation';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { trackOnboardingEvent } from '../../lib/onboarding-analytics';
+import { trackOnboardingReplaceBack } from '../../lib/onboarding-nav-analytics';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -56,27 +58,24 @@ export default function AccountScreen() {
   const session = useAuthStore((s) => s.session);
 
   /**
-   * Back out of the auth gate. This screen used to be the only step in the flow
-   * with neither a Back button nor a skip, and the sole exit was a real session
-   * appearing — so a rider who declined to create an account had no way forward
-   * OR backward, and relaunching landed them right back here (still anonymous,
-   * `lastCompletedScreen: paywall`). That was a permanent lockout.
+   * Back out of the auth gate. This screen used to be the only step in the flow with neither a Back
+   * button nor a skip, and the sole exit was a real session appearing — so a rider who declined to
+   * create an account had no way forward OR backward, and relaunching landed them right back here
+   * (still anonymous, `lastCompletedScreen: paywall`). That was a permanent lockout.
    *
-   * Deliberately `getPreviousRoute` + `replace` rather than `useOnboardingBack`:
-   * that hook prefers `router.back()`, which in the normal forward flow pops to
-   * the paywall and re-presents the native modal — an account↔paywall loop.
-   * `getPreviousRoute` skips the paywall (see AUTO_ADVANCE_SCREENS), landing on
-   * the last real question instead.
+   * Deliberately `getPreviousRoute` + `replace` rather than `useOnboardingBack`: that hook prefers
+   * `router.back()`, which in the normal forward flow pops to the paywall and re-presents the
+   * native modal — an account↔paywall loop. `getPreviousRoute` skips the paywall (see
+   * AUTO_ADVANCE_SCREENS), landing on the last real question instead (`onboarding_back`, T04b).
    */
   const handleBack = () => {
     // From the code step, Back means "change email", never leaving onboarding.
-    if (codeStep) {
-      backFromCodeStep();
-      return;
-    }
+    if (codeStep) return backFromCodeStep();
     const hasBike = !!useOnboardingStore.getState().bikeData?.make;
     const previous = getPreviousRoute(variant, OB_SCREEN.ACCOUNT, { hasBike });
-    if (previous) router.replace(previous);
+    if (!previous) return;
+    trackOnboardingReplaceBack(OB_SCREEN.ACCOUNT, previous);
+    router.replace(previous);
   };
 
   const [emailMode, setEmailMode] = useState(false);
@@ -96,6 +95,7 @@ export default function AccountScreen() {
     back: backFromCodeStep,
     onBusyChange: onCodeStepBusyChange,
   } = useEmailCodeStep({ clearPassword: () => setPassword(''), backLocked: !!session });
+  useCodeStepPending(codeStep !== null);
 
   useEffect(() => {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.ACCOUNT, {
