@@ -239,13 +239,16 @@ export function MaintenanceSection({
   // A task opened from elsewhere (Overview, Home, a notification) is expanded
   // once — on History when it has already been done.
   useEffect(() => {
-    if (!initialExpandedId || tasks.length === 0 || hasHighlighted.current) return;
+    if (!initialExpandedId || hasHighlighted.current) return;
+    const inHistory = history.some((task) => task.id === initialExpandedId);
+    // Wait until the requested task is listed; the first snapshot can predate it.
+    if (!inHistory && !positions.has(initialExpandedId)) return;
     hasHighlighted.current = true;
     setExpandedId(initialExpandedId);
-    if (history.some((task) => task.id === initialExpandedId)) setActiveTab(SERVICE_TAB.HISTORY);
+    if (inHistory) setActiveTab(SERVICE_TAB.HISTORY);
     // A task below the "+N more" row is shown, not left folded away.
     if ((positions.get(initialExpandedId) ?? 0) >= ATTENTION_MAX_ROWS) setShowAllActive(true);
-  }, [initialExpandedId, tasks.length, history, positions]);
+  }, [initialExpandedId, history, positions]);
 
   const onToggle = useCallback((taskId: string) => {
     setExpandedId((previous) => (previous === taskId ? null : taskId));
