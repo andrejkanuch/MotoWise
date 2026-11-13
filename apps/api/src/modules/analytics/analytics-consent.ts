@@ -19,6 +19,10 @@ export function hasAnalyticsConsent(decision: AnalyticsDecision): boolean {
   return decision !== false;
 }
 
+export function hasExplicitAnalyticsConsent(decision: boolean | null | undefined): boolean {
+  return decision === true;
+}
+
 /**
  * Resolve the decision from the two places it is saved, in the order 00184's
  * `claim_pending_signup_events` reads them:

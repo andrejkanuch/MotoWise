@@ -1,6 +1,6 @@
 import {
   type ApproveMaintenanceDraftInput,
-  type MeasurementSystem,
+  MeasurementSystem,
   mileageToDisplayUnit,
 } from '@motovault/types';
 import {
@@ -21,6 +21,12 @@ import {
   MaintenanceDraftReview,
 } from './models/maintenance-draft.model';
 import { OemSchedule } from './models/oem-schedule.model';
+import {
+  GENERIC_SCHEDULE_MAKE,
+  type ServicePlanImport,
+  type ServicePlanImportParams,
+  servicePlanTierOf,
+} from './service-plan';
 
 @Injectable()
 export class OemSchedulesService {
@@ -148,7 +154,7 @@ export class OemSchedulesService {
     // Tier 4: GENERIC fallback
     {
       const { data, error } = await this.verifiedSchedules()
-        .eq('make', 'GENERIC')
+        .eq('make', GENERIC_SCHEDULE_MAKE)
         .is('model', null)
         .order('sort_order', { ascending: true });
       if (error) {
@@ -174,6 +180,8 @@ export class OemSchedulesService {
    *                         already selected specific schedule IDs. The verification gate is
    *                         applied here too, so a draft id cannot be imported directly.
    * @param variant        Motorcycle variant (e.g. 'DCT') threaded into the waterfall.
+   * @param measurementSystem Overrides the `users.measurement_system` read.
+   * @returns How many tasks were inserted (see `importServicePlan` for the plan's tier).
    */
   async autoPopulateForBike(
     supabaseUser: SupabaseClient,
@@ -186,7 +194,36 @@ export class OemSchedulesService {
     currentMileage = 0,
     scheduleIdFilter?: string[],
     variant: string | null = null,
+    measurementSystem?: MeasurementSystem,
   ): Promise<number> {
+    const result = await this.importServicePlan(supabaseUser, {
+      userId,
+      motorcycleId,
+      make,
+      model,
+      year,
+      engineCc,
+      currentMileage,
+      scheduleIdFilter,
+      variant,
+      measurementSystem,
+    });
+    return result.insertedCount;
+  }
+
+  /**
+   * Import a bike's OEM service plan as pending maintenance tasks. Idempotent: a
+   * schedule the bike already has a task for (by `oem_schedule_id`) is not inserted
+   * again. Sends no reminder: the daily push run picks the tasks up when they fall
+   * due, under its per-bike cap (#365 T07a, D7).
+   */
+  async importServicePlan(
+    supabaseUser: SupabaseClient,
+    params: ServicePlanImportParams,
+  ): Promise<ServicePlanImport> {
+    const { userId, motorcycleId, make, model, year, engineCc, scheduleIdFilter } = params;
+    const currentMileage = params.currentMileage ?? 0;
+
     // Resolve schedules: direct PK lookup when filter provided, otherwise the verified waterfall.
     let schedules: OemSchedule[];
     if (scheduleIdFilter && scheduleIdFilter.length > 0) {
@@ -202,22 +239,25 @@ export class OemSchedulesService {
 
       schedules = (data ?? []).map((row) => this.mapRow(row));
     } else {
-      schedules = await this.findByMotorcycle(make, model, year, engineCc, variant);
+      schedules = await this.findByMotorcycle(make, model, year, engineCc, params.variant ?? null);
     }
 
-    if (schedules.length === 0) return 0;
+    const tier = servicePlanTierOf(schedules);
+    if (schedules.length === 0) {
+      return {
+        taskCount: 0,
+        insertedCount: 0,
+        tier,
+        measurementSystem: params.measurementSystem ?? MeasurementSystem.METRIC,
+      };
+    }
 
     // OEM interval_km is KILOMETRES; current_mileage is stored RAW in the owner's
     // measurement-system unit. Convert the interval to that unit before adding so
     // an imperial bike's first target_mileage isn't inflated ~1.61x
-    // (docs/plans/odometer-unit-normalization.md). measurement_system is a
-    // service-role read (00141), hence the admin client.
-    const { data: userRow } = await this.supabase
-      .from('users')
-      .select('measurement_system')
-      .eq('id', userId)
-      .single();
-    const system = (userRow?.measurement_system as MeasurementSystem | null) ?? 'metric';
+    // (docs/plans/odometer-unit-normalization.md). A caller that knows the unit
+    // better (onboarding, #365 T07a) passes it; else read users.measurement_system.
+    const system = params.measurementSystem ?? (await this.readMeasurementSystem(userId));
 
     // Check which oem_schedule_ids already exist for this motorcycle (dedup)
     const scheduleIds = schedules.map((s) => s.id);
@@ -258,7 +298,13 @@ export class OemSchedulesService {
         };
       });
 
-    if (tasksToInsert.length === 0) return 0;
+    const result: ServicePlanImport = {
+      taskCount: schedules.length,
+      insertedCount: tasksToInsert.length,
+      tier,
+      measurementSystem: system,
+    };
+    if (tasksToInsert.length === 0) return result;
 
     // Use the user-scoped client for the INSERT (RLS enforced)
     const { error } = await supabaseUser.from('maintenance_tasks').insert(tasksToInsert);
@@ -271,7 +317,17 @@ export class OemSchedulesService {
     this.logger.log(
       `Auto-populated ${tasksToInsert.length} maintenance tasks for motorcycle ${motorcycleId}`,
     );
-    return tasksToInsert.length;
+    return result;
+  }
+
+  /** users.measurement_system is a service-role read (00141), hence the admin client. */
+  private async readMeasurementSystem(userId: string): Promise<MeasurementSystem> {
+    const { data: userRow } = await this.supabase
+      .from('users')
+      .select('measurement_system')
+      .eq('id', userId)
+      .single();
+    return (userRow?.measurement_system as MeasurementSystem | null) ?? MeasurementSystem.METRIC;
   }
 
   // ==========================================================================

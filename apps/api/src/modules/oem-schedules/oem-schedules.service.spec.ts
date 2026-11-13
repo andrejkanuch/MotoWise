@@ -2,6 +2,7 @@ import { ForbiddenException } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { OemSchedulesService } from './oem-schedules.service';
+import { SERVICE_PLAN_TIER } from './service-plan';
 
 type QueryResult = { data: unknown; error: unknown };
 
@@ -9,6 +10,7 @@ interface RecordedQuery {
   table: string;
   filters: Array<{ column: string; value: unknown }>;
   updatePayload?: unknown;
+  insertPayload?: unknown;
 }
 
 /**
@@ -27,6 +29,10 @@ function createMockSupabase(resultFor: (q: RecordedQuery) => QueryResult) {
       select: () => builder,
       update: (payload: unknown) => {
         record.updatePayload = payload;
+        return builder;
+      },
+      insert: (payload: unknown) => {
+        record.insertPayload = payload;
         return builder;
       },
       eq: (column: string, value: unknown) => {
@@ -205,5 +211,120 @@ describe('OemSchedulesService — admin approval', () => {
     expect(queries.some((q) => q.table === 'motorcycle_specs' && q.updatePayload != null)).toBe(
       true,
     );
+  });
+});
+
+// #365 T07a: onboarding imports the full waterfall in the unit the rider chose.
+describe('OemSchedulesService.importServicePlan', () => {
+  const MODEL_ROWS = [
+    {
+      id: 's-oil',
+      make: 'YAMAHA',
+      model: 'MT-09',
+      task_name: 'Oil',
+      interval_km: 10_000,
+      sort_order: 1,
+    },
+    {
+      id: 's-chain',
+      make: 'YAMAHA',
+      model: 'MT-09',
+      task_name: 'Chain',
+      interval_km: 1_000,
+      sort_order: 2,
+    },
+  ];
+  const MAKE_ROWS = [{ id: 's-make', make: 'HONDA', model: null, task_name: 'Oil', sort_order: 1 }];
+
+  function serviceWith(opts: {
+    modelRows?: unknown[];
+    makeRows?: unknown[];
+    existing?: unknown[];
+    measurementSystem?: string;
+  }) {
+    const mock = createMockSupabase((q) => {
+      if (q.table === 'oem_maintenance_schedules') {
+        const modelIsNull = q.filters.some((f) => f.column === 'model' && f.value === null);
+        return { data: modelIsNull ? (opts.makeRows ?? []) : (opts.modelRows ?? []), error: null };
+      }
+      if (q.table === 'users') {
+        return { data: { measurement_system: opts.measurementSystem ?? 'metric' }, error: null };
+      }
+      if (q.table === 'maintenance_tasks') return { data: opts.existing ?? [], error: null };
+      return { data: null, error: null };
+    });
+    const user = createMockSupabase(() => ({ data: null, error: null }));
+    return {
+      service: new OemSchedulesService(mock.client),
+      adminQueries: mock.queries,
+      userClient: user.client,
+      userQueries: user.queries,
+    };
+  }
+
+  const bike = {
+    userId: 'user-1',
+    motorcycleId: 'moto-1',
+    make: 'Yamaha',
+    model: 'MT-09',
+    year: 2019,
+    engineCc: null,
+    currentMileage: 1_000,
+  };
+
+  it('uses the measurement system passed in over the users row (the client writes it later)', async () => {
+    const { service, adminQueries, userClient, userQueries } = serviceWith({
+      modelRows: MODEL_ROWS,
+      measurementSystem: 'metric',
+    });
+    const result = await service.importServicePlan(userClient, {
+      ...bike,
+      measurementSystem: 'imperial',
+    });
+
+    expect(adminQueries.some((q) => q.table === 'users')).toBe(false);
+    const inserted = userQueries.find((q) => q.table === 'maintenance_tasks')
+      ?.insertPayload as Array<{ target_mileage: number }>;
+    // 10,000 km = 6,214 mi; 1,000 km = 621 mi, added to the raw odometer.
+    expect(inserted.map((t) => t.target_mileage)).toEqual([1_000 + 6_214, 1_000 + 621]);
+    expect(result).toEqual({
+      taskCount: 2,
+      insertedCount: 2,
+      tier: SERVICE_PLAN_TIER.MODEL,
+      measurementSystem: 'imperial',
+    });
+  });
+
+  it('falls back to users.measurement_system when no system is passed', async () => {
+    const { service, userClient, userQueries } = serviceWith({
+      modelRows: MODEL_ROWS,
+      measurementSystem: 'metric',
+    });
+    const result = await service.importServicePlan(userClient, bike);
+    const inserted = userQueries.find((q) => q.table === 'maintenance_tasks')
+      ?.insertPayload as Array<{ target_mileage: number }>;
+    expect(inserted.map((t) => t.target_mileage)).toEqual([11_000, 2_000]);
+    expect(result.measurementSystem).toBe('metric');
+  });
+
+  it('labels a make-generic plan with the make tier', async () => {
+    const { service, userClient } = serviceWith({ makeRows: MAKE_ROWS });
+    const result = await service.importServicePlan(userClient, {
+      ...bike,
+      make: 'Honda',
+      model: '',
+    });
+    expect(result.tier).toBe(SERVICE_PLAN_TIER.MAKE);
+    expect(result.taskCount).toBe(1);
+  });
+
+  it('inserts nothing when the plan is already there (no duplicates on a second run)', async () => {
+    const { service, userClient, userQueries } = serviceWith({
+      modelRows: MODEL_ROWS,
+      existing: [{ oem_schedule_id: 's-oil' }, { oem_schedule_id: 's-chain' }],
+    });
+    const result = await service.importServicePlan(userClient, bike);
+    expect(userQueries.some((q) => q.insertPayload)).toBe(false);
+    expect(result).toMatchObject({ taskCount: 2, insertedCount: 0, tier: SERVICE_PLAN_TIER.MODEL });
   });
 });

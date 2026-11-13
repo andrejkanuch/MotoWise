@@ -1,6 +1,9 @@
 import {
   buildFeedbackContact,
   FEEDBACK_CONTACT_SOURCE,
+  MeasurementSystem,
+  MileageUnit,
+  mileageUnitLabel,
   RESERVED_HANDLES,
   RESERVED_USERNAMES,
   USERNAME_REGEX,
@@ -16,11 +19,19 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { PG_ERROR } from '../../common/supabase/unwrap';
+import { type AnalyticsDecision, readAnalyticsDecision } from '../analytics/analytics-consent';
+import { postHogCaptureTarget, sendPostHogBatch } from '../analytics/posthog-capture';
+import {
+  buildServicePlanImportedEvent,
+  SERVICE_PLAN_SOURCE,
+} from '../analytics/service-plan-events';
 import { EmailService } from '../email/email.service';
 import { MetaEventsService } from '../meta/meta-events.service';
 import { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
+import type { ServicePlanImport } from '../oem-schedules/service-plan';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { RevenueCatService } from '../webhooks/revenuecat.service';
@@ -68,6 +79,20 @@ interface RideDistanceRow {
   distance_m: number | null;
 }
 
+/** The bike `complete_onboarding` created or reused (`motorcycle_id` in its jsonb result). */
+function onboardingBikeId(rpcResult: unknown): string | null {
+  if (rpcResult === null || typeof rpcResult !== 'object') return null;
+  const id = (rpcResult as { motorcycle_id?: unknown }).motorcycle_id;
+  return typeof id === 'string' ? id : null;
+}
+
+/** The unit picked in onboarding → the measurement system the import converts into. */
+function measurementSystemForUnit(unit: string | undefined): MeasurementSystem | undefined {
+  if (unit === MileageUnit.MI) return MeasurementSystem.IMPERIAL;
+  if (unit === MileageUnit.KM) return MeasurementSystem.METRIC;
+  return undefined;
+}
+
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
@@ -80,6 +105,7 @@ export class UsersService {
     private readonly emailService: EmailService,
     private readonly metaEventsService: MetaEventsService,
     private readonly oemSchedulesService: OemSchedulesService,
+    private readonly configService: ConfigService,
   ) {}
 
   private mapRow(row: Tables<'users'>): User {
@@ -209,7 +235,7 @@ export class UsersService {
       }),
     };
 
-    const { error } = await this.supabase.rpc('complete_onboarding', {
+    const { data: rpcResult, error } = await this.supabase.rpc('complete_onboarding', {
       p_user_id: userId,
       p_preferences: preferences,
       p_bike_make: input.bikeMake ?? null,
@@ -230,39 +256,14 @@ export class UsersService {
 
     const user = await this.findById(userId);
 
-    // Import only the OEM maintenance tasks the user accepted during onboarding swipe.
-    // The RPC created the motorcycle — find it and selectively import.
-    if (input.bikeMake && input.acceptedOemScheduleIds?.length) {
-      try {
-        // Find the user's most recently created motorcycle (the one the RPC just made)
-        const { data: bike } = await this.supabaseAdmin
-          .from('motorcycles')
-          .select('id, make, model, year, variant, current_mileage')
-          .eq('user_id', userId)
-          .is('deleted_at', null)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-
-        if (bike) {
-          await this.oemSchedulesService.autoPopulateForBike(
-            this.supabase,
-            userId,
-            bike.id,
-            bike.make,
-            bike.model ?? null,
-            bike.year ?? null,
-            null, // engineCc
-            bike.current_mileage ?? 0,
-            input.acceptedOemScheduleIds,
-            bike.variant ?? null,
-          );
-        } else {
-          this.logger.warn(`No motorcycle found for user ${userId} after onboarding`);
-        }
-      } catch (err) {
-        this.logger.warn(`Failed to import accepted OEM tasks for ${userId}: ${err}`);
-      }
+    const servicePlan = await this.importOnboardingServicePlan(
+      user,
+      input,
+      onboardingBikeId(rpcResult),
+    );
+    if (servicePlan) {
+      user.servicePlanTaskCount = servicePlan.taskCount;
+      user.servicePlanTier = servicePlan.tier ?? undefined;
     }
 
     // Fire Meta CAPI CompleteRegistration — fire and forget, don't block response
@@ -279,6 +280,92 @@ export class UsersService {
       });
 
     return user;
+  }
+
+  /**
+   * #365 T07a (Experiment 2): give the bike onboarding just created its OEM service
+   * plan — the full waterfall, or only the picked ids when the rider picked some —
+   * in the unit the rider chose (the client writes `users.measurement_system` only
+   * after this mutation). Never fails onboarding: any error is logged and the
+   * result fields stay null. Sends no reminder; the daily push run handles the
+   * tasks under its per-bike cap.
+   */
+  private async importOnboardingServicePlan(
+    user: User,
+    input: CompleteOnboardingInput,
+    motorcycleId: string | null,
+  ): Promise<ServicePlanImport | null> {
+    if (!input.bikeMake || !motorcycleId) return null;
+    try {
+      // Admin read scoped by id + owner: the bike the RPC returned, not "the latest bike".
+      const { data: bike, error } = await this.supabaseAdmin
+        .from('motorcycles')
+        .select('id, make, model, year, variant, current_mileage')
+        .eq('id', motorcycleId)
+        .eq('user_id', user.id)
+        .single();
+      if (error || !bike) {
+        this.logger.warn(`No onboarding motorcycle ${motorcycleId} for user ${user.id}`);
+        return null;
+      }
+
+      const plan = await this.oemSchedulesService.importServicePlan(this.supabase, {
+        userId: user.id,
+        motorcycleId: bike.id,
+        make: bike.make,
+        // A make-only bike has model '' (00191): treat it as no model.
+        model: bike.model || null,
+        year: bike.year ?? null,
+        engineCc: null,
+        currentMileage: bike.current_mileage ?? 0,
+        scheduleIdFilter: input.acceptedOemScheduleIds?.length
+          ? input.acceptedOemScheduleIds
+          : undefined,
+        variant: bike.variant ?? null,
+        measurementSystem: measurementSystemForUnit(input.bikeMileageUnit),
+      });
+
+      if (plan.taskCount > 0) {
+        // Fire and forget: analytics never delays or fails onboarding.
+        this.captureServicePlanImported(user, plan).catch((err) => {
+          this.logger.warn(`service_plan_imported capture failed: ${err}`);
+        });
+      }
+      return plan;
+    } catch (err) {
+      this.logger.warn(`Failed to import the onboarding service plan for ${user.id}: ${err}`);
+      return null;
+    }
+  }
+
+  private async captureServicePlanImported(user: User, plan: ServicePlanImport): Promise<void> {
+    const target = postHogCaptureTarget(this.configService);
+    if (!target) return;
+    const decision = await this.loadAnalyticsDecision(user);
+    const failure = await sendPostHogBatch(target, [
+      buildServicePlanImportedEvent({
+        userId: user.id,
+        decision,
+        tier: plan.tier,
+        taskCount: plan.taskCount,
+        unit: mileageUnitLabel(plan.measurementSystem),
+        source: SERVICE_PLAN_SOURCE.ONBOARDING,
+      }),
+    ]);
+    if (failure) this.logger.warn(`service_plan_imported capture ${failure}`);
+  }
+
+  /**
+   * The rider's analytics decision where the signup sweep reads it: the account's,
+   * else the one sent with sign-up. An unreadable sign-up record counts as "no
+   * decision", which the caller treats as no consent.
+   */
+  private async loadAnalyticsDecision(user: User): Promise<AnalyticsDecision> {
+    const account = readAnalyticsDecision(user.preferences, undefined);
+    if (account !== null) return account;
+    const { data, error } = await this.supabaseAdmin.auth.admin.getUserById(user.id);
+    if (error) return null;
+    return readAnalyticsDecision(undefined, data.user?.user_metadata);
   }
 
   async requestDataExport(userId: string, email: string): Promise<DataExportRequest> {

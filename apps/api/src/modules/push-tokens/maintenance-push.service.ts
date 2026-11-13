@@ -1,7 +1,7 @@
 import { NOTIFICATION_KIND } from '@motovault/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { addDays, format } from 'date-fns';
+import { addDays, format, subDays } from 'date-fns';
 import { Expo, type ExpoPushMessage } from 'expo-server-sdk';
 import { PG_ERROR } from '../../common/supabase/unwrap';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
@@ -25,6 +25,11 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 const ACTIVE_TASK_STATUSES = ['pending', 'in_progress'] as const;
+/**
+ * #365 T07a (D7): at most one maintenance push per bike in this many days. An
+ * imported service plan puts ~10 tasks on the same interval anniversaries.
+ */
+export const PER_BIKE_PUSH_WINDOW_DAYS = 7;
 
 export interface MaintenancePushSummary {
   tasksDue: number;
@@ -44,6 +49,23 @@ interface DueTaskRow {
   motorcycle_id: string;
 }
 
+interface BikeNameRow {
+  id: string;
+  nickname: string | null;
+  make: string | null;
+  model: string | null;
+}
+
+/** A `maintenance_push_log` row with its task's bike (many-to-one embed on task_id). */
+interface RecentPushRow {
+  maintenance_tasks: { motorcycle_id: string } | Array<{ motorcycle_id: string }> | null;
+}
+
+/** What the rider calls the bike: nickname, else model (empty on make-only bikes), else make. */
+function bikeDisplayName(row: BikeNameRow | undefined): string | null {
+  return row?.nickname?.trim() || row?.model?.trim() || row?.make?.trim() || null;
+}
+
 @Injectable()
 export class MaintenancePushService {
   private readonly logger = new Logger(MaintenancePushService.name);
@@ -55,8 +77,10 @@ export class MaintenancePushService {
 
   /**
    * Find maintenance tasks due `daysBefore` days from today and push a reminder
-   * to each owner's registered devices. Idempotent: a per-(task, due_date) dedup
-   * row guarantees one push per task per day even if the run repeats.
+   * to each owner's registered devices. At most one push per bike, naming the count
+   * when several tasks are due, and none for a bike pushed in the last 7 days (#365
+   * T07a, D7). Idempotent: a per-(task, due_date) dedup row is still written for
+   * every task the push covers, so a re-run never re-sends.
    */
   async sendDuePush(daysBefore: number): Promise<MaintenancePushSummary> {
     const dueDate = format(addDays(new Date(), daysBefore), 'yyyy-MM-dd');
@@ -117,46 +141,87 @@ export class MaintenancePushService {
       localeByUser.set(row.id, prefs.locale ?? null);
     }
 
-    // Claim + build messages only for tasks whose owner has a valid token. The dedup
-    // claim is the per-(task, due_date) UNIQUE row; a conflict means already-sent.
+    // D7 reminder cap (#365 T07a): group the due tasks by bike, send at most ONE push
+    // per bike, and none for a bike that got a maintenance push in the last 7 days.
+    // Both lookups run before any claim, so a DB error throws and wastes no claim.
+    const tasksByBike = new Map<string, DueTaskRow[]>();
+    for (const task of dueTasks) {
+      const group = tasksByBike.get(task.motorcycle_id) ?? [];
+      group.push(task);
+      tasksByBike.set(task.motorcycle_id, group);
+    }
+    const recentlyPushedBikes = await this.bikesPushedSince(
+      userIds,
+      subDays(new Date(), PER_BIKE_PUSH_WINDOW_DAYS),
+    );
+    const bikeNames = await this.loadBikeNames([...tasksByBike.keys()]);
+
+    // Claim + build messages only for bikes whose owner has a valid token. The dedup
+    // claim stays one per-(task, due_date) UNIQUE row, so re-runs are idempotent per
+    // task; a conflict means already-sent.
     const messages: ExpoPushMessage[] = [];
+    const claimedTaskIdsByBike = new Map<string, string[]>();
     let skipped = 0;
     let attempted = 0;
     let noToken = 0;
-    for (const task of dueTasks) {
-      const tokens = (tokensByUser.get(task.user_id) ?? []).filter((t) => Expo.isExpoPushToken(t));
+    for (const [motorcycleId, bikeTasks] of tasksByBike) {
+      const ownerId = bikeTasks[0].user_id;
+      const tokens = (tokensByUser.get(ownerId) ?? []).filter((t) => Expo.isExpoPushToken(t));
       if (tokens.length === 0) {
-        noToken++; // owner has no registered device → nothing to send, no claim wasted
+        noToken += bikeTasks.length; // owner has no registered device → nothing to send, no claim wasted
+        continue;
+      }
+      if (recentlyPushedBikes.has(motorcycleId)) {
+        skipped += bikeTasks.length; // capped: this bike had a push in the last 7 days
         continue;
       }
 
-      const { error: logError } = await this.adminClient
-        .from('maintenance_push_log')
-        .insert({ user_id: task.user_id, task_id: task.id, due_date: task.due_date });
-      if (logError) {
-        if (logError.code === PG_ERROR.UNIQUE_VIOLATION) skipped++;
-        else this.logger.error(`dedup-log insert failed for task ${task.id}: ${logError.message}`);
-        continue;
+      const claimed: DueTaskRow[] = [];
+      for (const task of bikeTasks) {
+        const { error: logError } = await this.adminClient
+          .from('maintenance_push_log')
+          .insert({ user_id: task.user_id, task_id: task.id, due_date: task.due_date });
+        if (logError) {
+          if (logError.code === PG_ERROR.UNIQUE_VIOLATION) skipped++;
+          else
+            this.logger.error(`dedup-log insert failed for task ${task.id}: ${logError.message}`);
+          continue;
+        }
+        claimed.push(task);
       }
+      if (claimed.length === 0) continue;
 
-      const copy = resolveMaintenancePushCopy(localeByUser.get(task.user_id));
+      const copy = resolveMaintenancePushCopy(localeByUser.get(ownerId));
+      const bikeName = bikeNames.get(motorcycleId);
+      const body =
+        claimed.length > 1 && bikeName
+          ? copy.combinedBody(claimed.length, bikeName)
+          : copy.body(claimed[0].title);
       for (const to of tokens) {
         messages.push({
           to,
           sound: 'default',
           title: copy.title,
-          body: copy.body(task.title),
+          body,
           data: {
             kind: NOTIFICATION_KIND.MAINTENANCE,
-            taskId: task.id,
-            motorcycleId: task.motorcycle_id,
+            taskId: claimed[0].id,
+            motorcycleId,
+            taskCount: claimed.length,
           },
         });
       }
-      attempted++;
+      claimedTaskIdsByBike.set(
+        motorcycleId,
+        claimed.map((t) => t.id),
+      );
+      attempted += claimed.length;
     }
 
-    const failedTaskIds = await this.dispatch(messages);
+    const failedBikeIds = await this.dispatch(messages);
+    const failedTaskIds = new Set(
+      [...failedBikeIds].flatMap((bikeId) => claimedTaskIdsByBike.get(bikeId) ?? []),
+    );
 
     // Release the dedup claim for tasks whose send errored, so a same-day re-run
     // retries them instead of the claim permanently masking a lost push.
@@ -186,20 +251,64 @@ export class MaintenancePushService {
   }
 
   /**
-   * Send messages in Expo-sized chunks. Returns the set of taskIds whose send fully
-   * failed — i.e. NO device for that task was accepted — so the caller can release
-   * only those dedup claims for retry. A task with ≥1 accepted device keeps its claim
-   * so a same-day re-run never re-pushes to the device that already got it (dedup is
-   * per-task, sends fan out per device). Prunes tokens Expo reports as DeviceNotRegistered.
+   * Bikes that got a maintenance push since `since`: the push log has no bike
+   * column (00161), so its rows are joined on task_id → maintenance_tasks.motorcycle_id.
+   * Throws on a DB error so the run claims nothing rather than over-sending.
+   */
+  private async bikesPushedSince(userIds: string[], since: Date): Promise<Set<string>> {
+    const { data, error } = await this.adminClient
+      .from('maintenance_push_log')
+      .select('task_id, maintenance_tasks!inner(motorcycle_id)')
+      .in('user_id', userIds)
+      .gte('sent_at', since.toISOString());
+    if (error) {
+      this.logger.error(`sendDuePush recent-push query failed: ${error.message}`);
+      throw error;
+    }
+    const bikes = new Set<string>();
+    for (const row of (data ?? []) as unknown as RecentPushRow[]) {
+      const tasks = row.maintenance_tasks;
+      for (const task of Array.isArray(tasks) ? tasks : tasks ? [tasks] : []) {
+        bikes.add(task.motorcycle_id);
+      }
+    }
+    return bikes;
+  }
+
+  /** Display names for the combined push ("3 services due on your MT-09"). */
+  private async loadBikeNames(motorcycleIds: string[]): Promise<Map<string, string>> {
+    const { data, error } = await this.adminClient
+      .from('motorcycles')
+      .select('id, nickname, make, model')
+      .in('id', motorcycleIds);
+    if (error) {
+      this.logger.error(`sendDuePush motorcycle query failed: ${error.message}`);
+      throw error;
+    }
+    const names = new Map<string, string>();
+    for (const row of (data ?? []) as BikeNameRow[]) {
+      const name = bikeDisplayName(row);
+      if (name) names.set(row.id, name);
+    }
+    return names;
+  }
+
+  /**
+   * Send messages in Expo-sized chunks. Returns the set of bike ids whose push fully
+   * failed — i.e. NO device for that bike's push was accepted — so the caller can
+   * release only those bikes' dedup claims for retry. A bike with ≥1 accepted device
+   * keeps its claims so a same-day re-run never re-pushes to the device that already
+   * got it (one push per bike, fanned out per device). Prunes tokens Expo reports as
+   * DeviceNotRegistered.
    */
   private async dispatch(messages: ExpoPushMessage[]): Promise<Set<string>> {
     if (messages.length === 0) return new Set<string>();
 
-    const taskIdOf = (m: ExpoPushMessage): string | undefined =>
-      (m.data as { taskId?: string } | undefined)?.taskId;
+    const bikeIdOf = (m: ExpoPushMessage): string | undefined =>
+      (m.data as { motorcycleId?: string } | undefined)?.motorcycleId;
 
-    const failedTaskIds = new Set<string>();
-    const succeededTaskIds = new Set<string>();
+    const failedBikeIds = new Set<string>();
+    const succeededBikeIds = new Set<string>();
 
     for (const chunk of this.expo.chunkPushNotifications(messages)) {
       try {
@@ -210,16 +319,16 @@ export class MaintenancePushService {
         );
         for (let i = 0; i < tickets.length; i++) {
           const ticket = tickets[i];
-          const tid = taskIdOf(chunk[i]);
+          const bid = bikeIdOf(chunk[i]);
           if (ticket.status !== 'error') {
-            if (tid) succeededTaskIds.add(tid);
+            if (bid) succeededBikeIds.add(bid);
             continue;
           }
-          if (tid) failedTaskIds.add(tid);
+          if (bid) failedBikeIds.add(bid);
           // Log every error reason (rate-limit, message-too-big, etc.), not just the
           // DeviceNotRegistered branch, so transient failures are diagnosable.
           this.logger.warn(
-            `Expo push ticket error (task ${tid ?? 'unknown'}): ${ticket.details?.error ?? 'unknown'}`,
+            `Expo push ticket error (bike ${bid ?? 'unknown'}): ${ticket.details?.error ?? 'unknown'}`,
           );
           if (ticket.details?.error === EXPO_DEVICE_NOT_REGISTERED) {
             const deadToken = chunk[i].to;
@@ -241,18 +350,18 @@ export class MaintenancePushService {
           }
         }
       } catch (err) {
-        // Whole chunk failed to send → mark every task in it for retry.
+        // Whole chunk failed to send → mark every bike in it for retry.
         this.logger.error('Expo push send failed for a chunk', err as Error);
         for (const m of chunk) {
-          const tid = taskIdOf(m);
-          if (tid) failedTaskIds.add(tid);
+          const bid = bikeIdOf(m);
+          if (bid) failedBikeIds.add(bid);
         }
       }
     }
 
-    // Release only tasks where EVERY device failed; a task with any accepted device
-    // keeps its claim so the accepted device isn't re-pushed on a same-day re-run.
-    for (const tid of succeededTaskIds) failedTaskIds.delete(tid);
-    return failedTaskIds;
+    // Release only bikes where EVERY device failed; a bike with any accepted device
+    // keeps its claims so the accepted device isn't re-pushed on a same-day re-run.
+    for (const bid of succeededBikeIds) failedBikeIds.delete(bid);
+    return failedBikeIds;
   }
 }

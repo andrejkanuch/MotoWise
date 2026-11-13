@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import GraphQLJSON from 'graphql-type-json';
 import { GqlUserRole } from '../../../common/enums/graphql-enums';
 
@@ -67,4 +67,24 @@ export class User {
 
   @Field()
   updatedAt: string;
+
+  /**
+   * #365 T07a: set only on the `completeOnboarding` result — OEM tasks the
+   * onboarding bike's service plan holds after the import. Null on every other
+   * query, and when onboarding created no bike or the import failed.
+   */
+  @Field(() => Int, {
+    nullable: true,
+    description:
+      'Only on the completeOnboarding result: OEM service-plan tasks the onboarding bike has; null elsewhere',
+  })
+  servicePlanTaskCount?: number;
+
+  /** #365 T07a: the waterfall tier of that plan (`SERVICE_PLAN_TIER`); same nullability. */
+  @Field(() => String, {
+    nullable: true,
+    description:
+      'Only on the completeOnboarding result: service-plan tier (model | make | generic); null elsewhere',
+  })
+  servicePlanTier?: string;
 }
