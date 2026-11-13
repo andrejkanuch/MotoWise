@@ -52,6 +52,15 @@ the flows below.
   service-role key from `apps/api/.env`; override with `SUPABASE_URL` / `SUPABASE_ANON_KEY` /
   `SUPABASE_SERVICE_ROLE_KEY` to target local Supabase instead of prod. Because prod requires email
   confirmation, the flow signs IN the pre-created user rather than signing up through the UI.
+  Right after creating the user the runner sets `public.users.is_synthetic = true` on it
+  (`scripts/e2e-mark-synthetic.sh`; the email-code runner does the same for the account the app
+  creates) and appends its id to a local ledger outside the repo (`E2E_USER_LOG`, default
+  `$HOME/.motovault-local/e2e-users.log`). Teardown deletes the `public.users` row, so the #365 metrics exclude deleted
+  test accounts through that ledger and kept ones through `is_synthetic`
+  (`docs/research/activation-365/queries/q00-excluded-persons.md`).
+  **Seeded flows** run against the local stack only: export `SUPABASE_URL=http://127.0.0.1:54321` and the
+  stack's anon/service-role keys, and install a build that talks to the same stack (`e2e-android-local`,
+  which reaches it at `10.0.2.2`; see `features/bike-detail-shell-overview/local-stack.md`).
   Its steps up to the account screen live in `flows/_shared/onboarding-to-account.yaml` (outside
   the `flows/*.yaml` glob, so it never runs on its own).
 - **`flows/onboarding-email-code-signup.yaml` + `flows/onboarding-email-code-verify.yaml`** —
