@@ -130,6 +130,7 @@
     "plateStateOverdue": "Gecikmiş",
     "plateCaptionTo": "{{task}} için kalan",
     "plateCaptionLate": "{{task}}, gecikti",
+    "plateCaptionDueNow": "{{task}}, şimdi zamanı",
     "plateCaptionAt": "{{task}} için kilometre",
     "noServiceDue": "Yaklaşan bakım yok",
     "plateDayUnit_one": "gün",
@@ -768,6 +769,7 @@
     "obSignInNewHere": "Yeni misin?",
     "obSignInGetStarted": "Başla",
     "obSignInSigningIn": "Giriş yapılıyor…",
+    "obAccountReadyNotice": "Hesap hazır — hadi garajını kuralım",
     "obRevealScheduleProof": "OEM servis planın yüklenmeye hazır.",
     "obRevealSpecCategory": "Kategori",
     "obRevealCatAdventure": "Adventure",
@@ -1146,6 +1148,10 @@
       "doneOn": "{{date}} tarihinde tamamlandı",
       "seeAllHistory_one": "Tamamlanan {{count}} görevi gör",
       "seeAllHistory_other": "Tamamlanan {{count}} görevin tümünü gör",
+      "moreTasks_one": "+{{count}} tane daha",
+      "moreTasks_other": "+{{count}} tane daha",
+      "moreTasksA11y_one": "{{count}} görev daha göster",
+      "moreTasksA11y_other": "{{count}} görev daha göster",
       "serviceItems": "Servis kalemleri"
     },
     "costsSegment": {

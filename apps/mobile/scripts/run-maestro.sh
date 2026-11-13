@@ -21,4 +21,6 @@ if ! command -v maestro >/dev/null 2>&1; then
 fi
 
 echo "Running Maestro flows (APP_ID=$APP_ID) against the booted device…"
-exec maestro test "$MOBILE_DIR/.maestro/flows" --env APP_ID="$APP_ID"
+# onboarding-signin flows need accounts in a set state, which only their runner
+# (scripts/run-onboarding-signin-e2e.sh) creates, so the general run skips them.
+exec maestro test "$MOBILE_DIR/.maestro/flows" --env APP_ID="$APP_ID" --exclude-tags onboarding-signin

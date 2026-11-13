@@ -1,0 +1,37 @@
+# Onboarding completion survives a cold start (issue 365 T14, FS-OB1e).
+#
+# Finishes onboarding, kills the app, turns airplane mode on and relaunches
+# WITHOUT clearState: with no network the gate cannot refetch `me`, so it routes
+# on what this install persisted (the local completion flag in the auth store).
+# Expected: the signed-in tab bar (any tab), never the onboarding Welcome screen.
+# Asserts `tab-home` rather than `home-screen`: a cold start can land on a tab
+# other than Home (seen on Android landing on Profile, on main too; a separate
+# bug, not part of issue 365 T14), and that is not what this flow guards.
+#
+# Airplane mode is turned off in `onFlowComplete`, which Maestro runs whether
+# the flow passes or fails, so a failed run never leaves the emulator offline.
+#
+# Guard only: Maestro cannot force the stale-cache race itself (a persisted `me`
+# that still says "not completed"); navigation-gate.test.tsx covers that in Jest.
+#
+# Android only (Maestro `setAirplaneMode` is Android-only; iOS is Jest only).
+# Run like the other authed flows (provisions and deletes the test user):
+#   pnpm --filter @motovault/mobile test:e2e:onboarding-complete-relaunch
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+tags:
+  - android
+onFlowComplete:
+  - setAirplaneMode: disabled
+---
+- runFlow: onboarding.yaml
+
+- stopApp
+- setAirplaneMode: enabled
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "tab-home"
+    timeout: 20000
+- assertNotVisible: "Let's get started"

@@ -130,6 +130,7 @@
     "plateStateOverdue": "Atrasada",
     "plateCaptionTo": "até {{task}}",
     "plateCaptionLate": "{{task}}: prazo vencido",
+    "plateCaptionDueNow": "{{task}}, vence agora",
     "plateCaptionAt": "hodômetro para {{task}}",
     "noServiceDue": "Nenhuma revisão pendente",
     "plateDayUnit_one": "dia",
@@ -768,6 +769,7 @@
     "obSignInNewHere": "Primeira vez aqui?",
     "obSignInGetStarted": "Começar",
     "obSignInSigningIn": "Entrando…",
+    "obAccountReadyNotice": "Conta pronta — vamos montar sua garagem",
     "obRevealScheduleProof": "O plano de manutenção do fabricante está pronto para carregar.",
     "obRevealSpecCategory": "Categoria",
     "obRevealCatAdventure": "Aventura",
@@ -1167,7 +1169,11 @@
       "seeAllHistory_one": "Ver {{count}} tarefa feita",
       "seeAllHistory_other": "Ver todas as {{count}} tarefas feitas",
       "serviceItems": "Itens da revisão",
-      "seeAllHistory_many": "Ver todas as {{count}} tarefas feitas"
+      "seeAllHistory_many": "Ver todas as {{count}} tarefas feitas",
+      "moreTasks_one": "+{{count}} mais",
+      "moreTasks_other": "+{{count}} mais",
+      "moreTasksA11y_one": "Mostrar mais {{count}} tarefa",
+      "moreTasksA11y_other": "Mostrar mais {{count}} tarefas"
     },
     "costsSegment": {
       "spentIn": "Gasto em {{year}}",

@@ -5,6 +5,13 @@
 jest.mock('../../hooks/use-onboarding-flow', () => ({
   useOnboardingStep: () => ({ variant: 'garage_first', stepIndex: -1, totalScreens: 0 }),
 }));
+// The session-advance move has its own test (sign-in-session-advance.test.tsx).
+jest.mock('../../components/onboarding/use-sign-in-advance', () => ({
+  useSignInAdvance: () => {},
+}));
+jest.mock('../../stores/auth.store', () => ({
+  useAuthStore: (select: (s: { session: null }) => unknown) => select({ session: null }),
+}));
 jest.mock('expo-localization', () => ({
   getLocales: () => [{ languageCode: 'en', languageTag: 'en-US' }],
 }));
