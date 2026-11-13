@@ -16,7 +16,7 @@ the ids themselves stay outside the repo. Queries marked "filter only" use the p
 | # | Question | Answer in one line | Gates |
 |---|---|---|---|
 | 1 | Confirm PO12/PO13 riders with replays | PO12 as measured is mostly a cold-start `/(auth)` flash, not a sign-in screen: 11/292 → **4/292** without it (3.26.0 5 → 1). Replays could not be watched; existing observations + event timelines below | T15, T15b |
-| 2 | Cause of the 3.26.0 diagnostics jump | The Home action row (3.25.0 Race Plate redesign) put "Diagnose" right under the plate: **26 of 29** first-hour diagnoses on 3.26.0 came Home → Diagnose list | T03b tile, owner |
+| 2 | Cause of the 3.26.0 diagnostics jump | The Home action row (3.25.0 Race Plate redesign) put "Diagnose" right under the plate: **26 of 29** first-hour diagnoses on 3.26.0 came Home → Diagnose list (29 of 29 counting a `/(tabs)` timestamp tie, see item 2) | T03b tile, owner |
 | 3 | Commit of each 3.26.0 store binary | Android vc93 = `0a0687d7` (PR #311 head, 2026-10-12); iOS b106 = local build, commit **could not answer** (ASC API blocked). Both predate #318 | RC-2 |
 | 4 | Is submit `FORBIDDEN` ever the daily budget / circuit breaker? | **No.** Breaker and global cap throw 500/503, not 403; the per-user daily cap (50) was never reached (max 6/day in 120 d) | T08, T24 |
 | 5 | Is `complete_onboarding` idempotent? | **Bike: yes for a sequential repeat with the same bike. Call: no** (resets `onboarding_completed_at`, re-runs OEM import and Meta event; different bike details or a concurrent double call → second bike or an error) | **T14, T14b** |
@@ -122,6 +122,9 @@ normal onboarding tail (the `garage_first` order fires `onboarding_completed` be
 both platforms; the redesign changed the whole Home, so placement is the leading but not the only change).
 
 **FS-PO2d tile baseline (T03b):** first-hour diagnosis via Home → Diagnose, 3.26.0 **26/120**; all entries 29/120.
+**Correction (T02 review, 2026-11-13):** q2a's last-screen rule is order-dependent when `/(tabs)` and `/(tabs)/(home)` share a
+timestamp (same-day re-runs gave 26, 27, 28). Counting that tie as Home, all 29 of 29 came from Home. The tile column is
+`po2d_diag_1h_via_home` in `queries/fs/fs-po2d.sql`: 3.26.0 **29/121** (60 d).
 
 **Source.** PostHog q2a–q2c 2026-11-13 (q2a SQL in `queries/q09-t06-research.md`); git `1edc49cd`, `0a0687d7`, `origin/main` `ca4704c3`.
 
