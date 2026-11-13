@@ -37,6 +37,7 @@ jest.mock('expo-secure-store', () => ({
   deleteItemAsync: jest.fn(),
 }));
 jest.mock('../ride-sync-queue', () => ({
+  deleteEndedRide: jest.fn().mockResolvedValue(undefined),
   enqueueOrExecute: jest.fn().mockResolvedValue(undefined),
   enqueueWaypointUpload: jest.fn().mockResolvedValue(undefined),
   enqueue: jest.fn(),
@@ -46,7 +47,11 @@ jest.mock('../../lib/analytics', () => ({
   captureException: jest.fn(),
   addBreadcrumb: jest.fn(),
   trackEvent: jest.fn(),
-  AnalyticsEvent: { RIDE_AUTO_SAVED: 'ride_auto_saved', RIDE_COMPLETED: 'ride_completed' },
+  AnalyticsEvent: {
+    RIDE_AUTO_SAVED: 'ride_auto_saved',
+    RIDE_COMPLETED: 'ride_completed',
+    RIDE_DISCARDED: 'ride_discarded',
+  },
 }));
 jest.mock('../ride-reminders', () => ({
   noteRideMovement: jest.fn(),
@@ -94,7 +99,7 @@ import {
   rideMMKV,
   rideStorage,
 } from '../ride-storage';
-import { enqueueOrExecute } from '../ride-sync-queue';
+import { deleteEndedRide, enqueueOrExecute } from '../ride-sync-queue';
 
 type TaskBody = (event: { data: { locations: unknown[] } | null; error: null }) => Promise<void>;
 const runTask = (TaskManager.defineTask as jest.Mock).mock.calls.find(
@@ -404,6 +409,61 @@ describe('autoEndRide (30 min without movement)', () => {
     // 7 intervals of ~11.1 m over 7 s of moving time.
     expect(input.avgSpeedMps).toBeCloseTo(11.12, 1);
     expect(input).not.toHaveProperty('gpsQuality');
+  });
+
+  // Issue 365 T09 (FS-PO4b, D3): a Start tap left alone is not a ride.
+  it('discards a ride below both floors: deleted, ride_discarded, no ride_completed, "too short" notice', () => {
+    const idleSince = T0 - 1_800_000;
+    rideMMKV.setStartedAt(idleSince - 5_000); // 5 s, no waypoints: 0 m
+
+    autoEndRide(idleSince);
+
+    expect(deleteEndedRide).toHaveBeenCalledWith(RIDE_ID);
+    expect(trackEvent).toHaveBeenCalledWith(
+      'ride_discarded',
+      expect.objectContaining({
+        ride_id: RIDE_ID,
+        reason: 'below_floor',
+        trigger: 'auto_end',
+        duration_s: 5,
+        distance_m: 0,
+      }),
+    );
+    const events = (trackEvent as jest.Mock).mock.calls.map(([event]) => event);
+    expect(events).not.toContain('ride_completed');
+    expect(events).not.toContain('ride_auto_saved');
+    const { content } = (Notifications.scheduleNotificationAsync as jest.Mock).mock.calls[0][0];
+    expect(content.body).toBe('Your ride was too short to save');
+    expect(content.title).not.toBe('Ride saved');
+    // No saved ride to open: the tap must not lead to a deleted ride.
+    expect(content.data).toEqual({ kind: 'ride_idle', rideId: RIDE_ID, autoEnded: false });
+    expect(rideMMKV.getCurrentId()).toBeUndefined();
+  });
+
+  it('keeps an auto-ended ride over one floor: 5 s but 80 m is saved as today', () => {
+    const idleSince = T0 - 1_800_000;
+    rideMMKV.setStartedAt(idleSince - 5_000);
+    for (let i = 0; i < 3; i++) {
+      appendWaypoint(RIDE_ID, {
+        latitude: 50 + i * 0.00036, // ~40 m apart: 80 m in all
+        longitude: 14,
+        altitude: 200,
+        speedMps: 10,
+        recordedAt: new Date(idleSince - 4_000 + i * 1000).toISOString(),
+      });
+    }
+    flushBufferToMMKV(RIDE_ID);
+
+    autoEndRide(idleSince);
+
+    expect(deleteEndedRide).not.toHaveBeenCalled();
+    expect(trackEvent).toHaveBeenCalledWith(
+      'ride_completed',
+      expect.objectContaining({ ride_id: RIDE_ID, save_trigger: 'auto_end' }),
+    );
+    const { content } = (Notifications.scheduleNotificationAsync as jest.Mock).mock.calls[0][0];
+    expect(content.title).toBe('Ride saved');
+    expect(content.data).toEqual({ kind: 'ride_idle', rideId: RIDE_ID, autoEnded: true });
   });
 
   it('does nothing without an active ride', () => {

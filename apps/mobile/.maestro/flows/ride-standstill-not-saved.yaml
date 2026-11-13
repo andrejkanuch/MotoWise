@@ -1,0 +1,85 @@
+# A standstill ride ended from the guard is not saved (issue 365 T09, spec FS-PO4b,
+# owner decision D3). Red on origin/main: "End Anyway" opens the summary, which
+# says "RIDE SAVED". Green: the guard's button reads "End without saving", the
+# ride is discarded, Home shows the "Not saved" toast, and My Rides stays empty.
+#
+# A fresh account (onboarding.yaml) has no rides, so the empty state is the proof
+# nothing was kept. The fixed `setLocation` gives the pre-flight check a fix but
+# no movement: the ride stays under the 50 m floor.
+#
+# The auto-end discard (30 min idle) is jest only: Maestro cannot wait out the
+# idle timer (src/utils/__tests__/ride-location-reminders.test.ts).
+#
+# Run: pnpm --filter @motovault/mobile test:e2e:ride-standstill-not-saved
+# (iOS simulator and Android emulator, E2E build; see ../README.md).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+---
+# 1. Setup: a signed-in new rider on Home, with a fixed GPS fix.
+- runFlow: onboarding.yaml
+- setLocation:
+    latitude: 37.33182
+    longitude: -122.03118
+
+# 2. Start a ride from the ride FAB.
+- tapOn:
+    id: tab-ride-fab
+- extendedWaitUntil:
+    visible:
+      id: start-ride-screen
+    timeout: 20000
+- tapOn:
+    id: start-ride-button
+- extendedWaitUntil:
+    visible:
+      id: ride-hud-root
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "RECORDING"
+    timeout: 30000
+
+# 3. Stand still for ~5 s (Maestro has no sleep: wait for text that never shows).
+- extendedWaitUntil:
+    visible: "issue-365-t09-never-shown"
+    timeout: 5000
+    optional: true
+
+# 4. Hold to end: the guard opens (default copy); its end button discards.
+- longPressOn:
+    text: ".*Hold to end ride.*"
+- extendedWaitUntil:
+    visible:
+      id: ride-guard-sheet
+    timeout: 10000
+- assertVisible:
+    id: ride-guard-variant-default
+- assertVisible:
+    text: "End without saving"
+- takeScreenshot: ride-standstill-guard
+- tapOn:
+    id: ride-guard-end-anyway
+
+# 5. No summary, no "RIDE SAVED": Home with the "Not saved" toast.
+- assertNotVisible: ".*RIDE SAVED.*"
+- extendedWaitUntil:
+    visible: "Not saved: rides under 30 s or 50 m aren't kept"
+    timeout: 10000
+- takeScreenshot: ride-standstill-not-saved-toast
+- assertNotVisible: ".*RIDE SAVED.*"
+
+# 6. My Rides is still empty: nothing was kept.
+- tapOn:
+    id: tab-profile
+- extendedWaitUntil:
+    visible:
+      id: profile-rides
+    timeout: 20000
+- tapOn:
+    id: profile-rides
+- extendedWaitUntil:
+    visible:
+      id: rides-empty-cta
+    timeout: 20000
+- assertVisible:
+    id: rides-empty-cta

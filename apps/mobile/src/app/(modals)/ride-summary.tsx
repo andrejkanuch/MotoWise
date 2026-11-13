@@ -37,7 +37,7 @@ import {
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeToggle } from '../../components/ui/native-toggle';
-import { finalizeEndedRide } from '../../features/ride/ride-controller';
+import { discardEndedRide, finalizeEndedRide } from '../../features/ride/ride-controller';
 import { summaryMovingTimeS } from '../../features/ride/ride-moving-time';
 import {
   RidePurposeSheet,
@@ -54,7 +54,12 @@ import { invalidateSavedRide } from '../../lib/invalidate';
 import { logger } from '../../lib/logger';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
-import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../../lib/ride-analytics';
+import {
+  RIDE_DISCARD_REASON,
+  RIDE_DISCARD_TRIGGER,
+  RIDE_SAVE_TRIGGER,
+  trackRideCompleted,
+} from '../../lib/ride-analytics';
 import { requestRideReview } from '../../lib/store-review';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import { radius, type } from '../../theme/type';
@@ -72,7 +77,7 @@ import {
   formatSpeed,
 } from '../../utils/ride-formatters';
 import { getPointBuffer, getWaypointChunks } from '../../utils/ride-storage';
-import { dropDeadLetteredRide, enqueueOrExecute } from '../../utils/ride-sync-queue';
+import { enqueueOrExecute } from '../../utils/ride-sync-queue';
 
 const MAP_HEIGHT = 260;
 const SHEET_RADIUS = 28;
@@ -260,23 +265,15 @@ export default function RideSummaryScreen() {
         text: t('rideSummary.discardConfirm'),
         style: 'destructive',
         onPress: () => {
-          trackEvent(AnalyticsEvent.RIDE_DISCARDED, {
-            ride_id: rideId,
-            distance_m: distanceM,
-            duration_s: durationS,
-          });
-          // Completed on the server when it ended, so delete it or it stays in history.
-          // Refetch after the delete drains: an immediate refetch brings it back.
-          dropDeadLetteredRide(rideId);
-          void enqueueOrExecute('deleteRide', { variables: { id: rideId } }).finally(() =>
-            queryClient.invalidateQueries({ queryKey: queryKeys.rides.all }),
+          discardEndedRide(
+            { rideId, distanceM, durationS },
+            { reason: RIDE_DISCARD_REASON.RIDER, trigger: RIDE_DISCARD_TRIGGER.SUMMARY },
           );
-          finalizeEndedRide(rideId);
           router.replace(PROFILE_HREF);
         },
       },
     ]);
-  }, [rideId, router, distanceM, durationS, queryClient, t]);
+  }, [rideId, router, distanceM, durationS, t]);
 
   const handleCycleMapStyle = useCallback(() => {
     // Compute next outside the state updater: firing inside it double-counts under

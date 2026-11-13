@@ -757,6 +757,17 @@ export function dropDeadLetteredRide(rideId: string): void {
 }
 
 /**
+ * Delete an ended ride that is not kept: discarded on its summary, or under the
+ * floors (issue 365 T09). The server completed it when it ended, so it is deleted
+ * there, and its dead-lettered ops go first so a redrive cannot bring it back.
+ * Resolves once the delete was sent or queued.
+ */
+export function deleteEndedRide(rideId: string): Promise<void> {
+  dropDeadLetteredRide(rideId);
+  return enqueueOrExecute('deleteRide', { variables: { id: rideId } });
+}
+
+/**
  * Total unsynced ops — main queue PLUS dead-letter. The single source of truth for
  * "is there rider data we haven't delivered yet".
  *

@@ -55,6 +55,7 @@ import { ReceiptScanSaveSnackbar } from '../features/receipt-scan/receipt-scan-s
 import { clearAllReceiptSaveUndo } from '../features/receipt-scan/receipt-scan-undo-store';
 import { SCAN_RESUME_SOURCE } from '../features/receipt-scan/scan-flow-constants';
 import { clearScanConsent } from '../features/receipt-scan/scan-preferences';
+import { RideNotSavedToast } from '../features/ride/ride-not-saved-toast';
 import {
   receiveRideIdleResponse,
   rideIdleResponseKey,
@@ -1087,9 +1088,8 @@ function RootLayout() {
             <StatusBar style={resolvedScheme === COLOR_SCHEME.DARK ? 'light' : 'dark'} />
             <PersistedQueryClientBoundary>
               <NavigationGate onSettled={hideSplash} />
-              {/* Root-mounted so the post-save "Saved — Undo" toast (U7d) survives
-                  the scan modal's dismissal and lands on the returning screen. */}
               <ReceiptScanSaveSnackbar />
+              <RideNotSavedToast />
             </PersistedQueryClientBoundary>
           </KeyboardProvider>
         </PostHogSurveyProvider>
