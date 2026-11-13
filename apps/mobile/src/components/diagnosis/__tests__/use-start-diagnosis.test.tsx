@@ -1,4 +1,4 @@
-// #365 T05b (FS-PO2d): `diagnostic_started` fires once per entry into the
+// Issue 365 T05b (FS-PO2d): `diagnostic_started` fires once per entry into the
 // diagnose form, never on a refocus of the form, and always says which entry
 // opened it. Wire values are pinned as literals: they are what PostHog queries.
 
@@ -75,6 +75,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, renderHook, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import NewDiagnosticScreen from '@/app/(tabs)/(diagnose)/new';
+import { queryKeys } from '@/lib/query-keys';
 import { useSubscriptionStore } from '@/stores/subscription.store';
 import { useDiagnosticEntryGate } from '../use-diagnostic-entry-gate';
 import { useDiagnosticQuota } from '../use-diagnostic-quota';
@@ -158,6 +159,32 @@ describe('useDiagnosticEntryGate', () => {
     await act(async () => {});
 
     expect(startedCalls()).toEqual([]);
+  });
+
+  it('does not fire for a quick action the used diagnosis blocks', async () => {
+    queryClient.setQueryData(queryKeys.diagnostics.quota, quota(1));
+    mockFetcher.mockResolvedValue(quota(1));
+    const onBlocked = jest.fn();
+    await renderHook(() => useDiagnosticEntryGate(onBlocked), { wrapper });
+
+    await waitFor(() => expect(onBlocked).toHaveBeenCalledTimes(1));
+    expect(startedCalls()).toEqual([]);
+  });
+
+  it('fires once with entry "quick_action" when the rider unlocks Pro from the paywall', async () => {
+    queryClient.setQueryData(queryKeys.diagnostics.quota, quota(1));
+    mockFetcher.mockResolvedValue(quota(1));
+    mockPresentPaywall.mockImplementation(async () => {
+      useSubscriptionStore.setState({ isPro: true });
+      return 'purchased';
+    });
+    const onBlocked = jest.fn();
+    await renderHook(() => useDiagnosticEntryGate(onBlocked), { wrapper });
+
+    await waitFor(() => expect(mockPresentPaywall).toHaveBeenCalledTimes(1));
+    await act(async () => {});
+    expect(onBlocked).not.toHaveBeenCalled();
+    expect(startedCalls()).toEqual([[DIAGNOSTIC_STARTED, { entry: 'quick_action' }]]);
   });
 });
 

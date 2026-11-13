@@ -50,11 +50,13 @@ export const DIAGNOSTIC_FAILURE_REASON = {
 export type DiagnosticFailureReason =
   (typeof DIAGNOSTIC_FAILURE_REASON)[keyof typeof DIAGNOSTIC_FAILURE_REASON];
 
-const TIMEOUT_MESSAGE_PREFIX = REQUEST_TIMEOUT_MESSAGE.toLowerCase();
+const TIMEOUT_MESSAGE = REQUEST_TIMEOUT_MESSAGE.toLowerCase();
 
+// Anywhere in the message: expo/fetch wraps the OS timeout as `fetch failed: The
+// request timed out.`, and the submit's long client deadline outlasts the OS one.
 function isTimeout(error: unknown): boolean {
   if (error instanceof GqlRequestTimeoutError) return true;
-  return error instanceof Error && error.message.toLowerCase().startsWith(TIMEOUT_MESSAGE_PREFIX);
+  return error instanceof Error && error.message.toLowerCase().includes(TIMEOUT_MESSAGE);
 }
 
 /** Ordered: the first matching rule names the reason (dispatch, not if/else). */

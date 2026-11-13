@@ -1,4 +1,4 @@
-// #365 T05b (FS-PO2b): `diagnostic_failed` carries a typed `reason` and the
+// Issue 365 T05b (FS-PO2b): `diagnostic_failed` carries a typed `reason` and the
 // seconds since the submit tap, never the server's text.
 
 const mockTrackEvent = jest.fn();
@@ -27,6 +27,11 @@ describe('classifyDiagnosticFailure', () => {
   it.each([
     ['the client deadline', new GqlRequestTimeoutError(60_000, 'SubmitDiagnostic'), 'timeout'],
     ['the OS request timeout', new Error('The request timed out.'), 'timeout'],
+    [
+      'the OS request timeout through expo/fetch',
+      new Error('fetch failed: The request timed out.'),
+      'timeout',
+    ],
     ['no connection', new TypeError('Network request failed'), 'offline'],
     ['a dropped connection', new Error('The network connection was lost.'), 'offline'],
     ['the rate limit', gqlError('TOO_MANY_REQUESTS'), 'throttled'],
