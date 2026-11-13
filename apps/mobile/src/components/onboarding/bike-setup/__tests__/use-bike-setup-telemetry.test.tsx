@@ -45,7 +45,8 @@ const mockNavigation = {
   },
 };
 
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { AppState, type AppStateStatus } from 'react-native';
 import { OB_SCREEN } from '@/config/onboarding';
 import i18n from '@/i18n';
@@ -329,36 +330,60 @@ describe('bike_setup_summary — counters', () => {
 
   it('model_fetch_ms is measured around the models query', async () => {
     await render(<Harness />);
-    let resolveFetch: (v: string[]) => void = () => {};
-    const fetch = () =>
-      new Promise<string[]>((resolve) => {
-        resolveFetch = resolve;
-      });
-    let result: Promise<string[]> = Promise.resolve([]);
-    await act(() => {
-      result = telemetry.timeModelFetch(fetch);
-    });
+    await act(() => telemetry.noteModelFetch('2:2020', true));
     now += 850;
-    resolveFetch(['MT-07']);
-    await act(async () => {
-      await expect(result).resolves.toEqual(['MT-07']);
-    });
+    await act(() => telemetry.noteModelFetch('2:2020', false));
     await act(() => telemetry.finish('completed'));
     expect(lastSummary().model_fetch_ms).toBe(850);
   });
 
-  it('a failed models fetch is still timed', async () => {
+  it('a cached models list (never fetching) leaves model_fetch_ms null', async () => {
     await render(<Harness />);
-    await act(async () => {
-      await expect(
-        telemetry.timeModelFetch(() => {
-          now += 3100;
-          return Promise.reject(new Error('timeout'));
-        }),
-      ).rejects.toThrow('timeout');
-    });
+    await act(() => telemetry.noteModelFetch('2:2020', false));
     await act(() => telemetry.finish('completed'));
-    expect(lastSummary().model_fetch_ms).toBe(3100);
+    expect(lastSummary().model_fetch_ms).toBeNull();
+  });
+
+  it('a fetch abandoned for another make is not reported', async () => {
+    await render(<Harness />);
+    await act(() => telemetry.noteModelFetch('2:2020', true));
+    now += 5000;
+    await act(() => telemetry.noteModelFetch('3:2020', false));
+    now += 1000;
+    await act(() => telemetry.noteModelFetch('2:2020', false));
+    await act(() => telemetry.finish('completed'));
+    expect(lastSummary().model_fetch_ms).toBeNull();
+  });
+
+  it('retries and backoff count: model_fetch_ms is the whole wait, failures included', async () => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: 2, retryDelay: 0, gcTime: 0 } },
+    });
+    let attempts = 0;
+    function QueryHarness() {
+      telemetry = useBikeSetupTelemetry({ year: '2020', restored: { make: true, model: false } });
+      const result = useQuery({
+        queryKey: ['models', 2, 2020],
+        queryFn: async () => {
+          attempts += 1;
+          // Each attempt (with the backoff before it) takes 3 s; the last one fails too.
+          now += 3000;
+          throw new Error('timeout');
+        },
+      });
+      telemetry.noteModelFetch('2:2020', result.fetchStatus !== 'idle');
+      return null;
+    }
+    await render(
+      <QueryClientProvider client={client}>
+        <QueryHarness />
+      </QueryClientProvider>,
+    );
+    await waitFor(() => expect(attempts).toBe(3));
+    await waitFor(() => expect(client.getQueryState(['models', 2, 2020])?.status).toBe('error'));
+    await act(() => telemetry.finish('completed'));
+    expect(lastSummary().model_fetch_ms).toBe(9000);
+    client.clear();
   });
 
   it('never sends the typed search text', async () => {

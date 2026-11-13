@@ -79,7 +79,7 @@ One event per visit to the bike-setup step (`trackOnboardingEvent`, so it also c
 | `make_queries` / `model_queries` | int | Searches started in the make / model search field: counted when the field goes from empty to non-empty, not per keystroke |
 | `make_picked_via` / `model_picked_via` | `list \| search \| custom \| chip \| intent \| restored \| none` | How the selection on screen at leave was made: `list` = default list row (no query), `search` = a row of typed results, `custom` = "Other make" / "Use '<typed>'", `chip` = make-only quick chip (make only), `intent` = web→app pending intent, `restored` = bike draft from an earlier visit, `none` = nothing picked. Changing the make resets the model to `none` |
 | `model_list_size` | int | Models loaded for the current make/year at leave (0 for a custom make or before a make is picked) |
-| `model_fetch_ms` | int \| null | Duration of the last models request that finished during the visit, measured around the query function (failures included); `null` when the list came from cache or no request finished |
+| `model_fetch_ms` | int \| null | Duration of the last models fetch cycle that finished during the visit: from the first attempt to the final success or failure, so retries, the backoff between them and any offline pause are included (read from the query's `fetchStatus`); `null` when the list came from cache or no fetch finished |
 | `year_changed` | bool | The year at leave differs from the year at visit start |
 
 ## Metrics → PostHog definitions

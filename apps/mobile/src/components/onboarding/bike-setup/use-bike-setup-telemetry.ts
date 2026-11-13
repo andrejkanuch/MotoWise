@@ -31,8 +31,12 @@ export interface BikeSetupTelemetry {
   noteModelPicked: (via: BikePickedVia) => void;
   /** Number of models loaded for the current make/year (`model_list_size`). */
   noteModelListSize: (size: number) => void;
-  /** Wraps the models query so `model_fetch_ms` is the time the fetch itself took. */
-  timeModelFetch: <T>(fetch: () => Promise<T>) => Promise<T>;
+  /**
+   * Call on every render with the models query's key and whether it is fetching
+   * (`fetchStatus !== 'idle'`). `model_fetch_ms` is the whole fetch cycle the rider
+   * waited through: every retry attempt and the backoff between them, failures included.
+   */
+  noteModelFetch: (key: string, fetching: boolean) => void;
   /** Ends the visit and fires `bike_setup_summary`; later calls in the same visit do nothing. */
   finish: (outcome: BikeSetupOutcome) => void;
 }
@@ -64,6 +68,9 @@ export function useBikeSetupTelemetry({ year, restored }: Options) {
   const pendingCheckedRef = useRef(false);
   const backgroundAtRef = useRef<number | null>(null);
   const removeActionRef = useRef<string | null>(null);
+  // The open models fetch cycle; it lives outside the visit so a cycle that spans
+  // a visit boundary is still timed from its real start.
+  const modelFetchRef = useRef<{ key: string; startedAt: number } | null>(null);
 
   const begin = useCallback(() => {
     sessionRef.current = startSession(Date.now(), currentRef.current.year, pickedRef.current);
@@ -157,14 +164,19 @@ export function useBikeSetupTelemetry({ year, restored }: Options) {
       noteModelListSize: (size) => {
         currentRef.current.modelListSize = size;
       },
-      timeModelFetch: async (fetch) => {
-        const startedAt = Date.now();
-        try {
-          return await fetch();
-        } finally {
-          if (sessionRef.current) {
-            sessionRef.current.modelFetchMs = Math.round(Date.now() - startedAt);
-          }
+      noteModelFetch: (key, fetching) => {
+        const open = modelFetchRef.current;
+        if (fetching) {
+          // A new make/year starts a new cycle; retries of the same key continue it.
+          if (open?.key !== key) modelFetchRef.current = { key, startedAt: Date.now() };
+          return;
+        }
+        if (!open) return;
+        modelFetchRef.current = null;
+        // The rider moved to another make/year before it finished: no wait to report.
+        if (open.key !== key) return;
+        if (sessionRef.current) {
+          sessionRef.current.modelFetchMs = Math.round(Date.now() - open.startedAt);
         }
       },
       finish: (outcome) => end(outcome, Date.now()),

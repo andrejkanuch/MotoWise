@@ -54,7 +54,7 @@ export interface BikeSetupSession {
   lastModelQuery: string;
   makePickedVia: BikePickedVia;
   modelPickedVia: BikePickedVia;
-  /** Duration of the last models fetch that finished in this visit. */
+  /** Duration of the last models fetch cycle (all retries + backoff) that finished in this visit. */
   modelFetchMs: number | null;
 }
 

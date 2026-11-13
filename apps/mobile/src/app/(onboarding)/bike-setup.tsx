@@ -216,13 +216,11 @@ export default function BikeSetupScreen() {
   const makeIdForModels = selectedMake?.makeId ?? 0;
   const modelsResult = useQuery({
     queryKey: queryKeys.nhtsa.models({ makeId: makeIdForModels, year: yearNum }),
-    queryFn: () =>
-      telemetry.timeModelFetch(() =>
-        gqlFetcher(MotorcycleModelsDocument, { makeId: makeIdForModels, year: yearNum }),
-      ),
+    queryFn: () => gqlFetcher(MotorcycleModelsDocument, { makeId: makeIdForModels, year: yearNum }),
     enabled: makeIdForModels > 0 && isValidYear,
     staleTime: Number.POSITIVE_INFINITY,
   });
+  telemetry.noteModelFetch(`${makeIdForModels}:${yearNum}`, modelsResult.fetchStatus !== 'idle');
   const models = modelsResult.data?.motorcycleModels ?? [];
   telemetry.noteModelListSize(isCustomMake ? 0 : models.length);
 
