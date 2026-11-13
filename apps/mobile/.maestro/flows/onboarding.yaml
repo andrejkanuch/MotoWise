@@ -79,10 +79,11 @@ env:
 # What's New never auto-shows in a session that went through onboarding or
 # sign-in. flows/whats-new.yaml covers What's New.
 
-# Success: onboarding complete -> Home dashboard.
+# Success: onboarding complete -> Home dashboard. A landing sheet (below) can
+# cover Home before Maestro sees it, so either one counts as landed.
 - extendedWaitUntil:
     visible:
-      id: "home-screen"
+      id: "home-screen|recall-sheet|oem-imported-sheet"
     timeout: 120000
 
 # Landing sheet (issue 365 T16b, D11): a rider whose bike has an open recall or

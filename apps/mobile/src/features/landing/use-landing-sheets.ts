@@ -54,6 +54,17 @@ export function useLandingSheets(): void {
   const calmRef = useRef(calm);
   calmRef.current = calm;
 
+  // Data cached before the rider landed can predate the bike and the plan that
+  // onboarding just created (an empty garage); dropping a sheet on it would lose
+  // it for good, so the landing session decides only on data fetched after landing.
+  const landedAt = landingSheetQueue.landedAt();
+  const bikesStale = landedAt !== null && bikesQuery.dataUpdatedAt < landedAt;
+  const tasksStale = landedAt !== null && tasksQuery.dataUpdatedAt < landedAt;
+  const bikesFetching = bikesQuery.isFetching;
+  const tasksFetching = tasksQuery.isFetching;
+  const refetchRef = useRef({ bikes: bikesQuery.refetch, tasks: tasksQuery.refetch });
+  refetchRef.current = { bikes: bikesQuery.refetch, tasks: tasksQuery.refetch };
+
   const bikes = bikesQuery.data?.myMotorcycles;
   const bikesFailed = bikesQuery.isError && !bikes;
   const tasks = tasksQuery.data?.allMaintenanceTasks;
@@ -71,6 +82,11 @@ export function useLandingSheets(): void {
       return;
     }
     if (!bikes) return;
+    if (bikesStale || (tasks && tasksStale)) {
+      if (bikesStale && !bikesFetching) void refetchRef.current.bikes();
+      if (tasksStale && !tasksFetching) void refetchRef.current.tasks();
+      return;
+    }
 
     const bike = selectPrimaryBike(bikes) ?? null;
     const decision = decideLandingSheets({ bike, tasks, tasksFailed, isOwed: queue.isOwed });
@@ -93,5 +109,18 @@ export function useLandingSheets(): void {
       router.push(href);
     }, LANDING_SHEET_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [bikes, bikesFailed, tasks, tasksFailed, calm, queueVersion, recheck, router]);
+  }, [
+    bikes,
+    bikesFailed,
+    bikesStale,
+    bikesFetching,
+    tasks,
+    tasksFailed,
+    tasksStale,
+    tasksFetching,
+    calm,
+    queueVersion,
+    recheck,
+    router,
+  ]);
 }

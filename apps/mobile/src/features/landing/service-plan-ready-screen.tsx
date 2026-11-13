@@ -58,7 +58,8 @@ export function ServicePlanReadyScreen({ motorcycleId, bikeName }: ServicePlanRe
         flex: 1,
         backgroundColor: theme.bg,
         paddingHorizontal: GUTTER,
-        paddingTop: space.xl,
+        // The route is pushed as a full page over the tabs, so clear the status bar.
+        paddingTop: insets.top + space.xl,
         paddingBottom: insets.bottom + space.md,
         gap: space.md,
       }}

@@ -70,6 +70,7 @@ interface QueueDeps {
 
 export function createLandingSheetQueue({ sessionId, memory, track }: QueueDeps) {
   let shown: LandingSheet | null = null;
+  let landedAt: number | null = null;
   const declined = new Set<LandingSheet>();
   const listeners = new Set<() => void>();
   let version = 0;
@@ -92,6 +93,7 @@ export function createLandingSheetQueue({ sessionId, memory, track }: QueueDeps)
   return {
     /** The rider landed on Home from onboarding in this session. */
     noteLanding() {
+      landedAt = Date.now();
       memory.noteLanding(sessionId, LANDING_OWED);
       notify();
     },
@@ -120,6 +122,8 @@ export function createLandingSheetQueue({ sessionId, memory, track }: QueueDeps)
       notify();
     },
     shownThisSession: () => shown,
+    /** When the rider landed from onboarding in this session (ms), else null. */
+    landedAt: () => landedAt,
     /** The Exp 1 plan card (an inline Home card) may show only when no sheet did. */
     mayShowPlanCard: () => shown === null,
     subscribe(listener: () => void) {
