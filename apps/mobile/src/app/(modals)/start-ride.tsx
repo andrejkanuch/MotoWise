@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LocationDisclosureModal } from '../../components/ride/location-disclosure-modal';
 import { PreFlightChecklist } from '../../components/ride/pre-flight-checklist';
 import { startRideSession } from '../../features/ride/ride-controller';
+import { RIDE_TEST_ID } from '../../features/ride/ride-test-ids';
 import { useUnfinishedRide } from '../../features/ride/use-unfinished-ride';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
@@ -49,9 +50,7 @@ export default function StartRideScreen() {
   const [showBikePicker, setShowBikePicker] = useState(false);
   const [showDisclosure, setShowDisclosure] = useState(false);
 
-  const { data } = useQuery({
-    ...motorcyclesOptions(),
-  });
+  const { data } = useQuery(motorcyclesOptions());
 
   const motorcycles = data?.myMotorcycles ?? [];
 
@@ -182,7 +181,7 @@ export default function StartRideScreen() {
   }, [selectedBike, system]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+    <View testID={RIDE_TEST_ID.START_RIDE_SCREEN} style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Close button — pinned top */}
       <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 26, paddingBottom: 8 }}>
         <Pressable
@@ -508,6 +507,7 @@ export default function StartRideScreen() {
       <View style={{ paddingHorizontal: 26, paddingBottom: insets.bottom + 16, paddingTop: 12 }}>
         <Animated.View entering={FadeInUp.delay(250).duration(300)}>
           <Pressable
+            testID={RIDE_TEST_ID.START_RIDE_BUTTON}
             onPress={handleStartRide}
             disabled={isStarting || hasUnfinished}
             accessibilityRole="button"

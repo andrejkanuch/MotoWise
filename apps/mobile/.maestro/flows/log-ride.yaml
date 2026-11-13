@@ -3,8 +3,8 @@
 # VALIDATED END-TO-END on-device 2026-07-15 (drove start → record → hold-to-end →
 # "End ride?" confirm → "RIDE SAVED" summary → Save ride). The non-obvious bits
 # this flow depends on, all confirmed live:
-#   - the ride is started from the center green FAB in the tab bar, which has NO
-#     text/a11y label → tap by point (~50%, 92%).
+#   - the ride is started from the ride FAB in the tab bar (`id: tab-ride-fab`);
+#     the ride UI is addressed by testIDs (#365 T05c, features/ride/ride-test-ids.ts).
 #   - `setLocation` gives the sim a GPS fix so the pre-flight GPS check passes and
 #     the ride records (a stationary sim logs ~0 distance/speed — fine for a
 #     "records & saves" happy path; use Features ▸ Location ▸ Freeway Drive for a
@@ -13,10 +13,9 @@
 #     label is "End unfinished ride" — match that, not the visible text. "Start
 #     ride" is DISABLED until any unfinished ride is resolved.
 #   - ENDING IS A LONG-PRESS: the control is "Hold to end ride" (longPressOn), not
-#     a tap. It opens an "End ride?" confirm in a @gorhom bottom sheet whose
-#     texts are NOT exposed to the a11y tree, so "End Anyway" must be tapped by
-#     point (~73%, 88% since the redesign). The confirm only appears for very
-#     short rides (ours is), so it's expected here.
+#     a tap. A ride under the floors (30 s / 50 m; ours always is) opens the
+#     minimum-ride guard sheet (`id: ride-guard-sheet`); its buttons are in the
+#     a11y tree since #365 T05c (`ride-guard-keep`, `ride-guard-end-anyway`).
 #   - the summary shows "RIDE SAVED …" and a "Save ride" button.
 #
 # Setup: composes onboarding.yaml (signed-in user + Honda). Run via:
@@ -32,11 +31,12 @@ env:
     latitude: 37.33182
     longitude: -122.03118
 
-# 2. Open the ride start screen via the center green FAB (no label → tap by point).
+# 2. Open the ride start screen via the ride FAB.
 - tapOn:
-    point: "50%,92%"
+    id: tab-ride-fab
 - extendedWaitUntil:
-    visible: ".*Pick a bike.*|Start ride"
+    visible:
+      id: start-ride-screen
     timeout: 20000
 
 # 3. Resolve any leftover unfinished ride (its a11y label is "End unfinished ride",
@@ -49,7 +49,12 @@ env:
     optional: true
 
 # 4. Start the ride and confirm recording.
-- tapOn: "Start ride"
+- tapOn:
+    id: start-ride-button
+- extendedWaitUntil:
+    visible:
+      id: ride-hud-root
+    timeout: 30000
 - extendedWaitUntil:
     visible: "RECORDING"
     timeout: 30000
@@ -59,23 +64,18 @@ env:
 - longPressOn:
     text: ".*Hold to end ride.*"
 
-# 6. Confirm the "End ride?" short-ride prompt (ride-hud.tsx guard sheet:
-#    "Keep Riding" | "End Anyway"). The @gorhom bottom sheet renders but none of
-#    its texts reach the a11y tree (an "End ride\\?" or "End Anyway" selector
-#    never matches — checked 2026-10-09), so "End Anyway" is tapped by point.
-#    The redesigned sheet puts the buttons at ~88% height (the old 73%,80% now
-#    lands on the tip box). Tap only while the summary is not up yet: a ride long
-#    enough to skip the guard ends straight on "RIDE SAVED".
+# 6. The ride is under the floors, so the guard sheet opens (default copy).
+#    Assert it by id, then end anyway.
 - extendedWaitUntil:
-    visible: ".*RIDE SAVED.*"
-    timeout: 3000
-    optional: true
-- runFlow:
-    when:
-      notVisible: ".*RIDE SAVED.*"
-    commands:
-      - tapOn:
-          point: "73%,88%" # "End Anyway" (red, bottom-right)
+    visible:
+      id: ride-guard-sheet
+    timeout: 10000
+- assertVisible:
+    id: ride-guard-variant-default
+- assertVisible:
+    id: ride-guard-keep
+- tapOn:
+    id: ride-guard-end-anyway
 
 # 7. Success: the ride summary shows "RIDE SAVED …"; finalize with Save ride.
 - extendedWaitUntil:
@@ -83,6 +83,13 @@ env:
     timeout: 30000
 - assertVisible: ".*RIDE SAVED.*"
 - takeScreenshot: log-ride-summary
+# The summary is a long ScrollView (map, stats, "About this ride"): Save ride sits
+# below the fold, so scroll to it first.
+- scrollUntilVisible:
+    element:
+      text: ".*Save ride.*"
+    direction: DOWN
+    timeout: 20000
 - tapOn: ".*Save ride.*"
 - tapOn:
     text: "Not Now"

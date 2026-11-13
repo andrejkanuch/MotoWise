@@ -1,12 +1,12 @@
-import BottomSheet from '@gorhom/bottom-sheet';
+import type BottomSheet from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
 import type { Waypoint } from '@motovault/types';
+import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { AppState, Pressable, Text, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState, View } from 'react-native';
 import { HudLayoutA } from '../../components/ride/hud-layout-a';
 import { HudLayoutB } from '../../components/ride/hud-layout-b';
 import { type HudLayout, HudLayoutSwitcher } from '../../components/ride/hud-layout-switcher';
@@ -17,21 +17,24 @@ import {
   pauseRideSession,
   resumeRideSession,
 } from '../../features/ride/ride-controller';
+import {
+  buildRideGuardSnapshot,
+  cachedHasRealRide,
+  isBelowRideFloors,
+  RIDE_GUARD_ACTION,
+  type RideGuardSnapshot,
+  trackRideGuard,
+} from '../../features/ride/ride-guard';
+import { RideGuardSheet } from '../../features/ride/ride-guard-sheet';
+import { RIDE_TEST_ID } from '../../features/ride/ride-test-ids';
 import { useBatterySaverToggle } from '../../features/ride/use-battery-saver-toggle';
 import { useRideElapsed } from '../../features/ride/use-ride-elapsed';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { bestEffortNativeCall, NativeSideEffect } from '../../lib/best-effort-native';
 import { useRideStore } from '../../stores/ride.store';
-import { editorialThemes } from '../../theme/editorial';
-import { radius, type } from '../../theme/type';
 import { triggerImpact } from '../../utils/haptics';
-import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../../utils/ride-constants';
-import { getPointBuffer, getWaypointChunks, rideMMKV, rideStorage } from '../../utils/ride-storage';
+import { getPointBuffer, getWaypointChunks, rideMMKV } from '../../utils/ride-storage';
 import { hasPendingSyncWork } from '../../utils/ride-sync-queue';
-
-// The HUD is a riding instrument: always dark (night mode swaps to amber-red),
-// in both system schemes, so its sheet uses the dark tokens directly.
-const HUD_THEME = editorialThemes.dark;
 
 type SparklineMode = 'altitude' | 'speed';
 
@@ -52,24 +55,15 @@ function persistLayout(layout: HudLayout) {
 
 const APP_STATE_ACTIVE = 'active';
 
-/** Past this, a ride under the distance floor is not a mis-tap — the GPS recorded
- *  nothing (approximate location, no sky view, a killed background task). Saying
- *  "your ride was very short" to someone who rode for 40 minutes is wrong. */
-const NO_GPS_MIN_ELAPSED_S = 120;
-
-function isNoGpsRide(elapsedS: number): boolean {
-  return elapsedS >= NO_GPS_MIN_ELAPSED_S;
-}
-
-function guardEvent(elapsedS: number) {
-  return isNoGpsRide(elapsedS)
-    ? AnalyticsEvent.RIDE_ZERO_DISTANCE_SHOWN
-    : AnalyticsEvent.RIDE_TOO_SHORT_SHOWN;
+/** Any location point reached the ride (in the live buffer or flushed to a chunk). */
+function rideHasPoints(rideId: string | undefined): boolean {
+  if (getPointBuffer().length > 0) return true;
+  return rideId != null && getWaypointChunks(rideId).some((chunk) => chunk.length > 0);
 }
 
 export default function RideHudScreen() {
-  const { t } = useTranslation();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const status = useRideStore((s) => s.status);
   const distance = useRideStore((s) => s.distance);
   const currentSpeed = useRideStore((s) => s.currentSpeed);
@@ -93,12 +87,10 @@ export default function RideHudScreen() {
   const [gpsAccuracy, setGpsAccuracy] = useState(0);
   const [_syncPending, setSyncPending] = useState(false);
 
-  // Bottom sheet for minimum ride guard
+  // Minimum ride guard: the sheet, what it was opened with, and whether a fix ever arrived.
   const guardSheetRef = useRef<BottomSheet>(null);
-  const guardSnapPoints = useMemo(() => ['35%'], []);
-  const [guardData, setGuardData] = useState<{ elapsed_s: number; distance_m: number } | null>(
-    null,
-  );
+  const [guardData, setGuardData] = useState<RideGuardSnapshot | null>(null);
+  const hadFixRef = useRef(false);
 
   const isPaused = status === 'paused';
   const bgColor = isNightMode ? palette.nightBg : palette.neutral950;
@@ -140,6 +132,7 @@ export default function RideHudScreen() {
 
       const buffer = getPointBuffer();
       if (buffer.length > 0) {
+        hadFixRef.current = true;
         const lastPoint = buffer[buffer.length - 1];
         if (lastPoint.altitude != null) {
           setAltitudeHistory((prev) => {
@@ -212,32 +205,29 @@ export default function RideHudScreen() {
 
   const handleEndRide = useCallback(() => {
     const elapsed = elapsedRef.current;
-    const dist = useRideStore.getState().distance;
+    const { distance: dist, maxSpeed: maxSpeedMps } = useRideStore.getState();
 
-    // Minimum ride guard: check if ride is too short
-    if (elapsed < MIN_RIDE_ELAPSED_S || dist < MIN_RIDE_DISTANCE_M) {
-      setGuardData({ elapsed_s: elapsed, distance_m: Math.round(dist) });
-      guardSheetRef.current?.expand();
-      trackEvent(guardEvent(elapsed), {
-        ride_id: rideMMKV.getCurrentId() ?? null,
-        elapsed_s: elapsed,
-        distance_m: Math.round(dist),
-        action: 'shown',
+    if (isBelowRideFloors(elapsed, dist)) {
+      const rideId = rideMMKV.getCurrentId();
+      const snapshot = buildRideGuardSnapshot({
+        elapsedS: elapsed,
+        distanceM: dist,
+        maxSpeedMps,
+        gpsFix: hadFixRef.current || rideHasPoints(rideId),
+        hasRealRide: cachedHasRealRide(queryClient),
       });
+      setGuardData(snapshot);
+      guardSheetRef.current?.expand();
+      trackRideGuard(snapshot, RIDE_GUARD_ACTION.SHOWN, rideId ?? null);
       return;
     }
 
     executeEndRide();
-  }, [executeEndRide]);
+  }, [executeEndRide, queryClient]);
 
   const handleGuardKeepRiding = useCallback(() => {
     if (guardData) {
-      trackEvent(guardEvent(guardData.elapsed_s), {
-        ride_id: rideMMKV.getCurrentId() ?? null,
-        elapsed_s: guardData.elapsed_s,
-        distance_m: guardData.distance_m,
-        action: 'keep',
-      });
+      trackRideGuard(guardData, RIDE_GUARD_ACTION.KEEP, rideMMKV.getCurrentId() ?? null);
     }
     guardSheetRef.current?.close();
     setGuardData(null);
@@ -245,12 +235,7 @@ export default function RideHudScreen() {
 
   const handleGuardEndAnyway = useCallback(() => {
     if (guardData) {
-      trackEvent(guardEvent(guardData.elapsed_s), {
-        ride_id: rideMMKV.getCurrentId() ?? null,
-        elapsed_s: guardData.elapsed_s,
-        distance_m: guardData.distance_m,
-        action: 'end',
-      });
+      trackRideGuard(guardData, RIDE_GUARD_ACTION.END, rideMMKV.getCurrentId() ?? null);
     }
     guardSheetRef.current?.close();
     setGuardData(null);
@@ -269,11 +254,8 @@ export default function RideHudScreen() {
 
   const avgSpeedDisplay = elapsedSeconds > 0 && distance > 0 ? distance / elapsedSeconds : 0;
 
-  const [showGuardTip] = useState(() => !rideStorage.getString('rideGuardTipShown'));
-  const isNoGpsGuard = guardData != null && isNoGpsRide(guardData.elapsed_s);
-
   return (
-    <View style={{ flex: 1, backgroundColor: bgColor }}>
+    <View testID={RIDE_TEST_ID.HUD_ROOT} style={{ flex: 1, backgroundColor: bgColor }}>
       {/* Layout switcher — floating overlay */}
       <View style={{ position: 'absolute', top: 58, left: 20, zIndex: 20 }}>
         <HudLayoutSwitcher
@@ -329,103 +311,12 @@ export default function RideHudScreen() {
 
       <GpsLostBanner onEndRide={handleEndRide} />
 
-      {/* Minimum Ride Guard Bottom Sheet */}
-      <BottomSheet
-        ref={guardSheetRef}
-        snapPoints={guardSnapPoints}
-        index={-1}
-        enablePanDownToClose
-        backgroundStyle={{
-          backgroundColor: HUD_THEME.surface,
-          borderRadius: 24,
-          borderCurve: 'continuous',
-        }}
-        handleIndicatorStyle={{
-          backgroundColor: HUD_THEME.line2,
-        }}
-        enableDynamicSizing={false}
-      >
-        <View style={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 32 }}>
-          <Text
-            style={{
-              ...type.sectionTitle,
-              color: HUD_THEME.ink,
-              marginBottom: 8,
-            }}
-          >
-            {isNoGpsGuard ? t('rideHud.noGpsTitle') : t('rideHud.endRideTitle')}
-          </Text>
-          <Text
-            style={{
-              ...type.subhead,
-              color: HUD_THEME.ink2,
-              marginBottom: 16,
-            }}
-          >
-            {isNoGpsGuard
-              ? t('rideHud.noGpsBody', {
-                  minutes: Math.round((guardData?.elapsed_s ?? 0) / 60),
-                })
-              : t('rideHud.shortRideWarning', {
-                  seconds: guardData?.elapsed_s ?? 0,
-                  meters: guardData?.distance_m ?? 0,
-                })}
-          </Text>
-
-          {(showGuardTip || isNoGpsGuard) && (
-            <View
-              style={{
-                backgroundColor: HUD_THEME.surface2,
-                borderRadius: radius.control,
-                borderCurve: 'continuous',
-                padding: 12,
-                marginBottom: 16,
-              }}
-            >
-              <Text style={{ ...type.label, color: HUD_THEME.dueInk }}>{t('rideHud.gpsTip')}</Text>
-            </View>
-          )}
-
-          <View style={{ flexDirection: 'row', gap: 12 }}>
-            <Pressable
-              onPress={handleGuardKeepRiding}
-              style={{
-                flex: 1,
-                backgroundColor: HUD_THEME.surface2,
-                borderRadius: radius.control,
-                borderCurve: 'continuous',
-                paddingVertical: 14,
-                alignItems: 'center',
-              }}
-            >
-              <Text style={{ ...type.bodyStrong, color: HUD_THEME.ink }}>
-                {t('rideHud.keepRiding')}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                // Mark tip as shown after first interaction
-                if (showGuardTip) {
-                  rideStorage.set('rideGuardTipShown', 'true');
-                }
-                handleGuardEndAnyway();
-              }}
-              style={{
-                flex: 1,
-                backgroundColor: HUD_THEME.danger,
-                borderRadius: radius.control,
-                borderCurve: 'continuous',
-                paddingVertical: 14,
-                alignItems: 'center',
-              }}
-            >
-              <Text style={{ ...type.bodyStrong, color: HUD_THEME.onPlate }}>
-                {t('rideHud.endAnyway')}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-      </BottomSheet>
+      <RideGuardSheet
+        sheetRef={guardSheetRef}
+        guard={guardData}
+        onKeepRiding={handleGuardKeepRiding}
+        onEndAnyway={handleGuardEndAnyway}
+      />
     </View>
   );
 }
