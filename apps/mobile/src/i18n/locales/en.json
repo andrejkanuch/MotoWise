@@ -130,6 +130,7 @@
     "plateStateOverdue": "Overdue",
     "plateCaptionTo": "to {{task}}",
     "plateCaptionLate": "{{task}}, past due",
+    "plateCaptionDueNow": "{{task}}, due now",
     "plateCaptionAt": "odometer for {{task}}",
     "noServiceDue": "No service due",
     "plateDayUnit_one": "day",
@@ -762,6 +763,7 @@
     "obSignInNewHere": "New here?",
     "obSignInGetStarted": "Get started",
     "obSignInSigningIn": "Signing you in…",
+    "obAccountReadyNotice": "Account ready — let's set up your garage",
     "obRevealScheduleProof": "Your OEM service schedule is ready to load.",
     "obRevealSpecCategory": "Category",
     "obRevealCatAdventure": "Adventure",
@@ -1151,6 +1153,10 @@
       "doneOn": "Done {{date}}",
       "seeAllHistory_one": "See {{count}} completed task",
       "seeAllHistory_other": "See all {{count}} completed tasks",
+      "moreTasks_one": "+{{count}} more",
+      "moreTasks_other": "+{{count}} more",
+      "moreTasksA11y_one": "Show {{count}} more task",
+      "moreTasksA11y_other": "Show {{count}} more tasks",
       "serviceItems": "Service items"
     },
     "costsSegment": {

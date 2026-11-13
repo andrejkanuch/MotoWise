@@ -13,6 +13,7 @@ import {
 import { EMAIL_CODE_SOURCE, EmailCodeStep } from '../../components/auth/email-code-step';
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
+import { useSignInAdvance } from '../../components/onboarding/use-sign-in-advance';
 import { AUTH_EMAIL_MODE, AUTH_SURFACE } from '../../config/auth';
 import { OB_ROUTE } from '../../config/onboarding';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
@@ -23,6 +24,7 @@ import { userFriendlyError } from '../../lib/graphql-errors';
 import { trackOnboardingFlowEvent } from '../../lib/onboarding-analytics';
 import { markOnboardingButtonBack } from '../../lib/onboarding-back-marker';
 import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../stores/auth.store';
 import { space } from '../../theme/spacing';
 import { SYSTEM_WEIGHT, type } from '../../theme/type';
 
@@ -33,8 +35,8 @@ const SURFACE = AUTH_SURFACE.ONBOARDING_SIGN_IN;
  * step's "Already have an account?". Lives inside (onboarding) so it is
  * available during anonymous onboarding (the (auth) group is hidden then).
  * On success, onAuthStateChange in _layout sets the session + calls
- * loginRevenueCat/identifyUser, and the root gate routes the user onward
- * (to tabs if their onboarding is already complete server-side).
+ * loginRevenueCat/identifyUser. The gate takes an onboarded account to tabs;
+ * any other account is moved on by `useSignInAdvance` (issue 365 T11).
  */
 export default function OnboardingSignInScreen() {
   const oc = useOnboardingColors();
@@ -45,6 +47,7 @@ export default function OnboardingSignInScreen() {
   const [busy, setBusy] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [sendFailed, setSendFailed] = useState(false);
+  useSignInAdvance(useAuthStore((s) => !!s.session));
 
   // Back from the code step returns to this form: the email stays, the password
   // is cleared. Android hardware back does the same instead of leaving sign-in.
@@ -135,6 +138,7 @@ export default function OnboardingSignInScreen() {
   return (
     <View style={{ flex: 1 }}>
       <OnboardingShell
+        testID="onboarding-sign-in-screen"
         onBack={codeStep ? backFromCodeStep : handleBack}
         // EmailCodeStep has its own header; the screen's heading steps aside.
         title={codeStep ? undefined : t('onboarding.obSignInTitle')}

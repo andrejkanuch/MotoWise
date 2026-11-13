@@ -33,6 +33,11 @@ type OAuthHandlers = { onApple: () => Promise<void>; onGoogle: () => Promise<voi
  * FS-OB2a): outcome, how far it got (`stage`), `duration_ms`, and the error's code
  * only, never its message. No navigation here: the auth listener in the root
  * layout moves the rider on once the session exists.
+ *
+ * One OAuth sign-in at a time, app-wide (issue 365 T11): a tap on either provider,
+ * on any surface, while another is still pending is ignored — no haptic, no
+ * events, no second provider call. Riders double-tapped while the sheet was slow
+ * to appear and got a second sheet or an "in progress" alert over the first.
  */
 export function useOAuthSignIn(surface: AuthSurface): OAuthHandlers {
   return useMemo(
@@ -50,7 +55,24 @@ type AttemptResult = {
   error_code: string | null;
 };
 
+// Module-level so it spans every mounted surface (sign-in over the account step).
+let oauthInFlight = false;
+
 async function signIn(
+  provider: (marks: OAuthMarks) => Promise<OAuthResult>,
+  method: AuthMethod,
+  surface: AuthSurface,
+): Promise<void> {
+  if (oauthInFlight) return;
+  oauthInFlight = true;
+  try {
+    await runSignIn(provider, method, surface);
+  } finally {
+    oauthInFlight = false;
+  }
+}
+
+async function runSignIn(
   provider: (marks: OAuthMarks) => Promise<OAuthResult>,
   method: AuthMethod,
   surface: AuthSurface,

@@ -130,6 +130,7 @@
     "plateStateOverdue": "เลยกำหนด",
     "plateCaptionTo": "ถึง {{task}}",
     "plateCaptionLate": "{{task}} เลยกำหนด",
+    "plateCaptionDueNow": "{{task}} ถึงกำหนดแล้ว",
     "plateCaptionAt": "เลขไมล์สำหรับ {{task}}",
     "noServiceDue": "ไม่มีการเข้าศูนย์ที่ถึงกำหนด",
     "plateDayUnit_one": "วัน",
@@ -762,6 +763,7 @@
     "obSignInNewHere": "เพิ่งมาใหม่?",
     "obSignInGetStarted": "เริ่มเลย",
     "obSignInSigningIn": "กำลังเข้าสู่ระบบ…",
+    "obAccountReadyNotice": "บัญชีพร้อมแล้ว — มาตั้งค่าโรงรถของคุณกัน",
     "obRevealScheduleProof": "ตารางการบำรุงรักษา OEM ของคุณพร้อมโหลดแล้ว",
     "obRevealSpecCategory": "หมวดหมู่",
     "obRevealCatAdventure": "แอดเวนเจอร์",
@@ -1140,6 +1142,10 @@
       "doneOn": "เสร็จเมื่อ {{date}}",
       "seeAllHistory_one": "ดูงานที่เสร็จแล้ว {{count}} รายการ",
       "seeAllHistory_other": "ดูงานที่เสร็จแล้วทั้งหมด {{count}} รายการ",
+      "moreTasks_one": "+อีก {{count}} รายการ",
+      "moreTasks_other": "+อีก {{count}} รายการ",
+      "moreTasksA11y_one": "แสดงอีก {{count}} รายการ",
+      "moreTasksA11y_other": "แสดงอีก {{count}} รายการ",
       "serviceItems": "รายการบริการ"
     },
     "costsSegment": {

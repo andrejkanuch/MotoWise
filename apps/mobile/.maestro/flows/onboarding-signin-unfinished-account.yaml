@@ -1,0 +1,26 @@
+# issue 365 T11 (FS-OB1a): a confirmed account that has NOT finished onboarding
+# signs in from Welcome's "Already have an account? Sign in". The sign-in screen
+# must move on once the session lands: Experience (no progress on this device)
+# with the transient "Account ready" notice. On main it stayed on "Welcome back."
+#
+# Run through scripts/run-onboarding-signin-e2e.sh, which creates the confirmed,
+# not-onboarded user on the LOCAL stack (never production) and passes
+# TEST_EMAIL / TEST_PASSWORD. Needs a standalone E2E build pointed at the local
+# stack (T00 recipe, .maestro/README.md).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+tags:
+  - onboarding-signin
+---
+- runFlow: _shared/welcome-to-sign-in.yaml
+
+# Within the spec's 5 s (+ slack): Experience, notice up (it lasts 4 s).
+- extendedWaitUntil:
+    visible: ".*How long have you.*"
+    timeout: 8000
+- assertVisible:
+    id: "onboarding-account-ready"
+- assertVisible: "Account ready — let's set up your garage"
+- assertNotVisible:
+    id: "onboarding-sign-in-screen"

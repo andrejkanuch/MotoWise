@@ -103,8 +103,8 @@ echo "  created user id=$USER_ID"
 mark_synthetic "$USER_ID" || exit 1
 
 echo "→ running Maestro flow $E2E_FLOW (APP_ID=$APP_ID)"
-maestro test "$MOBILE_DIR/.maestro/flows/$E2E_FLOW" \
-  --env APP_ID="$APP_ID" \
-  --env TEST_EMAIL="$TEST_EMAIL" \
-  --env TEST_PASSWORD="$TEST_PASSWORD"
+# Optional DISTANCE_UNIT (km|mi) reaches the service-plan flows' unit check.
+set -- --env APP_ID="$APP_ID" --env TEST_EMAIL="$TEST_EMAIL" --env TEST_PASSWORD="$TEST_PASSWORD"
+[ -n "${DISTANCE_UNIT:-}" ] && set -- "$@" --env DISTANCE_UNIT="$DISTANCE_UNIT"
+maestro test "$MOBILE_DIR/.maestro/flows/$E2E_FLOW" "$@"
 # cleanup() runs on exit (pass or fail) and deletes the user.

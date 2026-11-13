@@ -1,0 +1,21 @@
+# issue 365 T11 (FS-OB1a), second case: an account that already finished
+# onboarding signs in from Welcome and lands on Home (the root gate's tabs),
+# never on an onboarding step and never with the "Account ready" notice.
+#
+# Run through scripts/run-onboarding-signin-e2e.sh (local stack only).
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+tags:
+  - onboarding-signin
+---
+- runFlow: _shared/welcome-to-sign-in.yaml
+
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 30000
+- assertNotVisible:
+    id: "onboarding-sign-in-screen"
+- assertNotVisible:
+    id: "onboarding-account-ready"

@@ -332,3 +332,84 @@ describe('useOAuthSignIn errors through the real presentOAuthError', () => {
     expect(eventsNamed('USER_SIGNED_IN')).toHaveLength(0);
   });
 });
+
+describe('useOAuthSignIn in-flight guard (issue 365 T11)', () => {
+  beforeEach(() => {
+    mockSignInWithApple.mockReset();
+    mockSignInWithGoogle.mockReset();
+  });
+
+  /** A provider call that stays pending until the returned `resolve` runs. */
+  function pendingSignIn(signIn: jest.Mock) {
+    let resolve: (value: { isNewUser: boolean }) => void = () => {};
+    signIn.mockImplementation(
+      () =>
+        new Promise<{ isNewUser: boolean }>((r) => {
+          resolve = r;
+        }),
+    );
+    return () => resolve({ isNewUser: false });
+  }
+
+  it.each(
+    PROVIDERS,
+  )('a second $name tap while the first is pending makes no second provider call and no events', async ({
+    handler,
+    signIn,
+  }) => {
+    const finish = pendingSignIn(signIn);
+    const { result } = await renderHook(() => useOAuthSignIn(SURFACE));
+
+    let first: Promise<void> = Promise.resolve();
+    await act(async () => {
+      first = result.current[handler]();
+      await result.current[handler]();
+    });
+
+    expect(signIn).toHaveBeenCalledTimes(1);
+    expect(mockTriggerImpact).toHaveBeenCalledTimes(1);
+    expect(eventsNamed('AUTH_OAUTH_STARTED')).toHaveLength(1);
+
+    await act(async () => {
+      finish();
+      await first;
+    });
+    expect(eventsNamed('AUTH_OAUTH_RESULT')).toHaveLength(1);
+  });
+
+  it('the guard spans providers and screens: Google while Apple is pending is ignored', async () => {
+    const finish = pendingSignIn(mockSignInWithApple);
+    const { result } = await renderHook(() => ({
+      signInScreen: useOAuthSignIn(AUTH_SURFACE.ONBOARDING_SIGN_IN),
+      accountScreen: useOAuthSignIn(SURFACE),
+    }));
+
+    let first: Promise<void> = Promise.resolve();
+    await act(async () => {
+      first = result.current.signInScreen.onApple();
+      await result.current.accountScreen.onGoogle();
+    });
+
+    expect(mockSignInWithGoogle).not.toHaveBeenCalled();
+    await act(async () => {
+      finish();
+      await first;
+    });
+  });
+
+  it('a tap after the first one settles goes through again', async () => {
+    mockSignInWithGoogle.mockRejectedValueOnce(appleCancel());
+    mockSignInWithGoogle.mockResolvedValueOnce({ isNewUser: false });
+
+    const { result } = await renderHook(() => useOAuthSignIn(SURFACE));
+    await act(async () => {
+      await result.current.onGoogle();
+    });
+    await act(async () => {
+      await result.current.onGoogle();
+    });
+
+    expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
+    expect(eventsNamed('AUTH_OAUTH_RESULT')).toHaveLength(2);
+  });
+});
