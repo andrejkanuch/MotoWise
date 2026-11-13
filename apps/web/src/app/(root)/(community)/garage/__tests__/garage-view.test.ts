@@ -214,6 +214,7 @@ describe('GarageView: populated', () => {
           targetMileage: 42_100,
           priority: 'high' as AllMaintenanceTasksQuery['allMaintenanceTasks'][number]['priority'],
           status: 'pending' as AllMaintenanceTasksQuery['allMaintenanceTasks'][number]['status'],
+          source: 'user' as AllMaintenanceTasksQuery['allMaintenanceTasks'][number]['source'],
           completedAt: null,
           remind30d: false,
           remind7d: false,

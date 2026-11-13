@@ -130,6 +130,7 @@
     "plateStateOverdue": "अतिदेय",
     "plateCaptionTo": "{{task}} तक",
     "plateCaptionLate": "{{task}}, समय से पीछे",
+    "plateCaptionDueNow": "{{task}}, अभी करना है",
     "plateCaptionAt": "{{task}} के लिए ओडोमीटर",
     "noServiceDue": "कोई सर्विस बकाया नहीं",
     "plateDayUnit_one": "दिन",
@@ -1141,6 +1142,10 @@
       "doneOn": "{{date}} को पूरा",
       "seeAllHistory_one": "{{count}} पूरा कार्य देखें",
       "seeAllHistory_other": "सभी {{count}} पूरे कार्य देखें",
+      "moreTasks_one": "+{{count}} और",
+      "moreTasks_other": "+{{count}} और",
+      "moreTasksA11y_one": "{{count}} और काम दिखाएँ",
+      "moreTasksA11y_other": "{{count}} और काम दिखाएँ",
       "serviceItems": "सर्विस आइटम"
     },
     "costsSegment": {

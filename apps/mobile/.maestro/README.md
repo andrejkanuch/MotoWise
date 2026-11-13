@@ -179,6 +179,15 @@ the flows below.
   regression class); the raw number itself is unchanged by the toggle. No numeric-input selector, so
   low fragility. **Authored from source 2026-07-16; navigation selectors validated on-device** (Profile
   Units picker, Garage tab, bike card). `test:e2e:units-display`.
+- **`flows/onboarding-service-plan.yaml`** and **`flows/onboarding-make-only-service-plan.yaml`** —
+  FS-PO1H, Experiment 2 (issue 365 T07a/T07b): the bike onboarding creates gets its OEM service plan.
+  The first onboards a Yamaha MT-09 2019 (`BIKE_MAKE`/`BIKE_MODEL`/`BIKE_YEAR` branch of
+  `_shared/onboarding-to-account.yaml`), the second a make-only Honda (`MAKE_ONLY: "true"`, the
+  "Not sure of the details?" chip). Both assert Home no longer reads "No service due", then Garage →
+  bike → `segment-service` → `service-task-card-0`; the make-only flow also finds "Honda schedule".
+  Set `DISTANCE_UNIT=mi` (or `km`) for the unit check; an imperial device must read "mi". Needs the
+  T07a import on the backend; red on a build without it. **Authored from source 2026-11-13, pending
+  on-device validation.** `test:e2e:service-plan`, `test:e2e:service-plan-make-only`.
 
   All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /
   `E2E_EMAIL_PREFIX` (set inline in the `test:e2e:*` package scripts) — no per-flow wrapper needed.

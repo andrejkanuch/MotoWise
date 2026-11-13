@@ -130,6 +130,7 @@
     "plateStateOverdue": "Vencido",
     "plateCaptionTo": "para {{task}}",
     "plateCaptionLate": "{{task}}, vencido",
+    "plateCaptionDueNow": "{{task}}, toca ahora",
     "plateCaptionAt": "odómetro para {{task}}",
     "noServiceDue": "Ningún servicio pendiente",
     "plateDayUnit_one": "día",
@@ -1162,7 +1163,11 @@
       "seeAllHistory_one": "Ver {{count}} tarea hecha",
       "seeAllHistory_other": "Ver las {{count}} tareas hechas",
       "serviceItems": "Trabajos del servicio",
-      "seeAllHistory_many": "Ver las {{count}} tareas hechas"
+      "seeAllHistory_many": "Ver las {{count}} tareas hechas",
+      "moreTasks_one": "+{{count}} más",
+      "moreTasks_other": "+{{count}} más",
+      "moreTasksA11y_one": "Mostrar {{count}} tarea más",
+      "moreTasksA11y_other": "Mostrar {{count}} tareas más"
     },
     "costsSegment": {
       "spentIn": "Gastado en {{year}}",

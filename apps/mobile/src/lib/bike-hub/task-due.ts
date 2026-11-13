@@ -189,6 +189,17 @@ export function getTaskDue(task: TaskDueInput, context: DueContext): TaskDue {
   return { state: DUE_STATE.LATER, primary, secondary, tone: DUE_TONE.PLAIN, fromSchedule };
 }
 
+/**
+ * A manufacturer-schedule task whose date or target odometer has already
+ * passed. The onboarding import (and the backfill) date a schedule from the
+ * bike's model year, so "2,400 days late" would count time the rider never
+ * owed: these read "Due now" instead (issue 365 T07b, plan §9 D7). A task the
+ * rider dated keeps its count.
+ */
+export function isDueNow(due: TaskDue): boolean {
+  return due.fromSchedule && isPast(due.primary);
+}
+
 /** Pending or in progress — the tasks that can be due. */
 export function isActiveTask(task: Pick<Task, 'status'>): boolean {
   return ACTIVE_STATUSES.includes(task.status);

@@ -1,6 +1,7 @@
 import {
   CompleteOnboardingDocument,
   type CompleteOnboardingInput,
+  type CompleteOnboardingMutation,
   UpdateUserDocument,
 } from '@motovault/graphql';
 import { type MeasurementSystem, type MileageUnit, mileageUnitLabel } from '@motovault/types';
@@ -299,7 +300,7 @@ export default function PersonalizingScreen() {
         void setSelfReportedSource(heardFrom);
       }
 
-      await completeOnboarding(input);
+      const { completeOnboarding: completedUser } = await completeOnboarding(input);
 
       // A Retry tapped while this run was still saving starts a second run; only
       // the first to finish reports the completion.
@@ -314,7 +315,7 @@ export default function PersonalizingScreen() {
       // completion at the same point: the setup is saved. The garage_first paywall
       // comes after this, and its result is the paywall step event, so the
       // completion guardrail compares like with like.
-      trackOnboardingCompleted();
+      trackOnboardingCompleted(completedUser);
       MetaAnalytics.trackCompleteRegistration(eventId);
       useChecklistStore
         .getState()
@@ -353,8 +354,7 @@ export default function PersonalizingScreen() {
     };
   }, []);
 
-  // When BOTH the server mutation succeeded AND the minimum animation finished,
-  // transition to the DONE / payoff phase instead of redirecting immediately.
+  // When BOTH the mutation succeeded AND the minimum animation finished, show the DONE / payoff phase.
   // The `onboarding_completed` analytics event has already fired inside the
   // mutation `run()` above (before any navigation), so we do NOT re-fire it here.
   // The actual completion trigger — flipping `onboardingCompleted`, which makes
@@ -392,8 +392,8 @@ export default function PersonalizingScreen() {
     setOnboardingCompleted(true);
   };
 
-  const trackOnboardingCompleted = () => {
-    trackOnboardingCompletion({
+  const trackOnboardingCompleted = (user: CompleteOnboardingMutation['completeOnboarding']) => {
+    trackOnboardingCompletion(user, {
       experience_level: experienceLevel ?? 'beginner',
       has_bike: !!bikeData,
       has_photo: !!bikeData?.photoUri,

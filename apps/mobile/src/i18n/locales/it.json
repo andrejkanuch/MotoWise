@@ -130,6 +130,7 @@
     "plateStateOverdue": "Scaduto",
     "plateCaptionTo": "a {{task}}",
     "plateCaptionLate": "{{task}}, scaduto",
+    "plateCaptionDueNow": "{{task}}, da fare ora",
     "plateCaptionAt": "contachilometri per {{task}}",
     "noServiceDue": "Nessun tagliando in scadenza",
     "plateDayUnit_one": "giorno",
@@ -1162,7 +1163,11 @@
       "seeAllHistory_one": "Vedi {{count}} attività fatta",
       "seeAllHistory_other": "Vedi tutte le {{count}} attività fatte",
       "serviceItems": "Voci di servizio",
-      "seeAllHistory_many": "Vedi tutte le {{count}} attività fatte"
+      "seeAllHistory_many": "Vedi tutte le {{count}} attività fatte",
+      "moreTasks_one": "+{{count}} altro",
+      "moreTasks_other": "+{{count}} altri",
+      "moreTasksA11y_one": "Mostra {{count}} altro intervento",
+      "moreTasksA11y_other": "Mostra altri {{count}} interventi"
     },
     "costsSegment": {
       "spentIn": "Speso nel {{year}}",
