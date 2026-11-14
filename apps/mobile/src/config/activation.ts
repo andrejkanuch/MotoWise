@@ -7,7 +7,8 @@
  * feature PR. The plan's §6.1 status table is the only record of which level ships
  * which fix.
  *
- * 0 = pre-release JS (dev and E2E builds). The Release A cut (3.29.0) sets 2; level 1
- * is not used.
+ * 0 = pre-release JS (before the Release A cut). 2 = Release A (3.29.0, set by its cut
+ * commit); level 1 is not used. Release B (3.30.0) sets 3. Dev and E2E builds of a
+ * commit carry that commit's level; every issue 365 metric drops E2E events by `e2e_run`.
  */
-export const ACTIVATION_FIX_LEVEL = 0 as const;
+export const ACTIVATION_FIX_LEVEL = 2 as const;
