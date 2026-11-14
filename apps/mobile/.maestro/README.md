@@ -95,6 +95,14 @@ the flows below.
   SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=<local key> \
     DEVICE=<udid> pnpm --filter @motovault/mobile test:e2e:onboarding-signin
   ```
+- **`flows/onboarding-oauth-cancel.yaml`** (tag `android-oauth`) — Google cancel on the onboarding
+  account step (issue 365 T12, FS-OB2c): Back on the account picker returns to the account step with no
+  "Something went wrong" alert and the button enabled; a double tap opens one picker. Android emulator
+  with Google Play services and a signed-in Google account; it never picks an account, so it writes
+  nothing. The general `test:e2e` run skips the tag. Run it with:
+  ```bash
+  maestro --device <emulator serial> test apps/mobile/.maestro/flows/onboarding-oauth-cancel.yaml
+  ```
 - **`flows/onboarding-paywall-verify.yaml`** — onboarding paywall gate (#326), required before a
   build is promoted to production (`docs/runbooks/mobile-release.md`). Part 1 is the email-code
   signup flow; part 2 confirms the account and fails unless the RevenueCat paywall is shown where
