@@ -45,12 +45,15 @@ export function bikeSetupStart(
   if (draft) {
     const picked = draft.makeId !== null && draft.makeId > 0 && !!draft.make;
     const custom = draft.makeId === CUSTOM_MAKE_ID;
+    // A picked model comes back picked: Continue saves only a picked model, so
+    // restoring it as search text would save the bike without its model.
+    const modelPicked = (picked || custom) && !!draft.modelPicked && draft.modelQuery !== '';
     return {
       year: String(draft.year ?? defaultYear),
       make: picked ? { makeId: draft.makeId as number, makeName: draft.make as string } : null,
       isCustomMake: custom,
       customMakeName: custom ? (draft.make ?? '') : '',
-      model: null,
+      model: modelPicked ? { modelId: 0, modelName: draft.modelQuery } : null,
       modelQuery: picked || custom ? draft.modelQuery : '',
     };
   }
@@ -80,5 +83,6 @@ export function bikeDraftOf(state: {
     make: state.isCustomMake ? state.customMakeName : (state.make?.makeName ?? null),
     modelQuery: state.modelName ?? state.modelQuery,
     year: Number.isNaN(year) ? null : year,
+    modelPicked: state.modelName !== null,
   };
 }

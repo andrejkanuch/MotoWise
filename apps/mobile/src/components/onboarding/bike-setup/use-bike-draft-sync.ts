@@ -16,8 +16,9 @@ export function useBikeDraftSync(state: Parameters<typeof bikeDraftOf>[0]): void
   const make = draft?.make ?? null;
   const modelQuery = draft?.modelQuery ?? '';
   const year = draft?.year ?? null;
+  const modelPicked = draft?.modelPicked ?? false;
 
   useEffect(() => {
-    setBikeDraft(present ? { makeId, make, modelQuery, year } : null);
-  }, [present, makeId, make, modelQuery, year, setBikeDraft]);
+    setBikeDraft(present ? { makeId, make, modelQuery, year, modelPicked } : null);
+  }, [present, makeId, make, modelQuery, year, modelPicked, setBikeDraft]);
 }

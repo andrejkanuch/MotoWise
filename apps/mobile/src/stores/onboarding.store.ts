@@ -65,6 +65,11 @@ export interface BikeDraft {
   make: string | null;
   modelQuery: string;
   year: number | null;
+  /**
+   * issue 365 T13b: `modelQuery` is a model the rider picked, not search text, so
+   * a restore shows it picked. Optional: drafts written before it read as a search.
+   */
+  modelPicked?: boolean;
 }
 
 interface OnboardingState {

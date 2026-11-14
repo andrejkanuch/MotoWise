@@ -99,14 +99,14 @@ jest.mock('../../lib/graphql-client', () => {
 });
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react-native';
 import '../../i18n';
 import BikeSetupScreen from '../../app/(onboarding)/bike-setup';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
 async function renderScreen() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  await render(
+  const view = await render(
     <QueryClientProvider client={client}>
       <BikeSetupScreen />
     </QueryClientProvider>,
@@ -114,6 +114,7 @@ async function renderScreen() {
   await act(async () => {
     await new Promise((resolve) => setTimeout(resolve, 10));
   });
+  return view;
 }
 
 beforeEach(() => {
@@ -170,6 +171,60 @@ describe('Onboarding bike setup keeps the search in progress', () => {
 
     expect(screen.getByTestId('bike-plate').props.children).toBe('HONDA 2019');
     expect(screen.getByDisplayValue('Afr')).toBeTruthy();
+  });
+
+  it('a picked model comes back picked, so Continue keeps it', async () => {
+    useOnboardingStore.setState({
+      bikeDraft: {
+        makeId: 474,
+        make: 'HONDA',
+        modelQuery: 'Africa Twin',
+        year: 2021,
+        modelPicked: true,
+      },
+    });
+
+    await renderScreen();
+    await fireEvent.press(screen.getByTestId('shell-primary'));
+
+    expect(useOnboardingStore.getState().bikeData?.model).toBe('Africa Twin');
+  });
+
+  it('revisiting a saved bike and coming back keeps its model', async () => {
+    useOnboardingStore.getState().setBikeData({
+      year: 2020,
+      make: 'YAMAHA',
+      makeId: 485,
+      model: 'MT-09',
+      type: 'naked',
+      currentMileage: 0,
+      mileageUnit: 'km',
+    } as never);
+
+    // First visit (Back to the step) writes the draft from the saved bike; the
+    // rider leaves without Continue, and the next mount starts from that draft.
+    await renderScreen();
+    expect(useOnboardingStore.getState().bikeDraft).toMatchObject({
+      modelQuery: 'MT-09',
+      modelPicked: true,
+    });
+    await cleanup();
+
+    await renderScreen();
+    await fireEvent.press(screen.getByTestId('shell-primary'));
+
+    expect(useOnboardingStore.getState().bikeData?.model).toBe('MT-09');
+  });
+
+  it('a typed search is not a picked model', async () => {
+    useOnboardingStore.setState({
+      bikeDraft: { makeId: 474, make: 'HONDA', modelQuery: 'Africa', year: 2021 },
+    });
+
+    await renderScreen();
+    await fireEvent.press(screen.getByTestId('shell-primary'));
+
+    expect(useOnboardingStore.getState().bikeData?.model).toBe('');
   });
 
   it('completing the step drops the draft', async () => {
