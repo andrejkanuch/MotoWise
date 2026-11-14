@@ -594,6 +594,58 @@ export function getResumeRoute(
 }
 
 /**
+ * True when `candidate` is a resume point further into the variant's flow than
+ * `current` (issue 365 T13b). Welcome and screens outside the flow (sign-in, a
+ * retired step) are never resume points.
+ */
+export function isFurtherInFlow(
+  variant: ObVariant,
+  candidate: OnboardingRoute,
+  current: OnboardingRoute | null,
+): boolean {
+  const flow = flowFor(variant);
+  const candidateIndex = flow.indexOf(candidate);
+  if (candidateIndex <= 0) return false;
+  return current === null || candidateIndex > flow.indexOf(current);
+}
+
+/** Flow index of a route path; -1 for a path outside the flow. */
+function flowIndexOfPath(flow: ReadonlyArray<OnboardingRoute>, path: OnboardingRoutePath): number {
+  return flow.findIndex((screen) => routeForScreen(screen) === path);
+}
+
+/**
+ * Where a relaunch resumes onboarding (issue 365 T13b, FS-OB1c): the furthest
+ * step the rider reached, or the step after the last completed one when that is
+ * further (killed before it drew). A back-walk followed by a step forward
+ * rewrites `lastCompletedScreen` with an earlier step; `furthest` never moves
+ * back, so the resume never lands before the screen the rider left. Screens
+ * before it stay reachable by Back. A furthest step the bike state now routes
+ * past resolves forward, like forward navigation. Null when nothing is on record.
+ */
+export function getResumeTarget(
+  variant: ObVariant,
+  progress: { lastCompleted: OnboardingRoute | null; furthest: OnboardingRoute | null },
+  ctx: OnboardingNavContext,
+): OnboardingRoutePath | null {
+  const afterCompleted = progress.lastCompleted
+    ? getNextRoute(variant, progress.lastCompleted, ctx)
+    : null;
+  const { furthest } = progress;
+  if (!furthest || !isFurtherInFlow(variant, furthest, null)) return afterCompleted;
+
+  const atFurthest = isSkippedForBikeState(furthest, ctx.hasBike)
+    ? getNextRoute(variant, furthest, ctx)
+    : routeForScreen(furthest);
+  if (!atFurthest || !afterCompleted) return atFurthest ?? afterCompleted;
+
+  const flow = flowFor(variant);
+  return flowIndexOfPath(flow, afterCompleted) > flowIndexOfPath(flow, atFurthest)
+    ? afterCompleted
+    : atFurthest;
+}
+
+/**
  * Progress-bar coordinates over the screens this rider will actually see: the
  * variant's flow minus the screens their bike state routes past. Index and total
  * come from the same list, so the last visible screen is always `total - 1`.

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useIsFocused, useNavigation, useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import {
-  getResumeRoute,
+  getResumeTarget,
   OB_NOTICE,
   OB_NOTICE_PARAM,
   OB_ROUTE,
@@ -23,9 +23,9 @@ import { useOnboardingStore } from '../../stores/onboarding.store';
  * Like the account step (`useAccountAdvance`), wait for the server onboarding
  * state, then:
  *  - onboarded → do nothing; the gate's (tabs) guard takes the rider Home;
- *  - otherwise (or `me` failed) → replace sign-in with the step after the last
- *    one completed on this device, or Experience, carrying the "account ready"
- *    notice param.
+ *  - otherwise (or `me` failed) → replace sign-in with this device's resume
+ *    point (`getResumeTarget`, the furthest step reached), or Experience,
+ *    carrying the "account ready" notice param.
  *
  * Opened from the account step, that step is still mounted underneath and makes
  * the move itself, so this one stays out of the way.
@@ -57,10 +57,12 @@ export function useSignInAdvance(hasSession: boolean): void {
       ?.routes.some((route) => route.name === OB_SCREEN.ACCOUNT);
     if (accountBelow) return;
 
-    const { lastCompletedScreen, bikeData } = useOnboardingStore.getState();
-    const resumeTarget = lastCompletedScreen
-      ? getResumeRoute(variant, lastCompletedScreen, { hasBike: !!bikeData?.make })
-      : null;
+    const { lastCompletedScreen, furthestScreen, bikeData } = useOnboardingStore.getState();
+    const resumeTarget = getResumeTarget(
+      variant,
+      { lastCompleted: lastCompletedScreen ?? null, furthest: furthestScreen ?? null },
+      { hasBike: !!bikeData?.make },
+    );
     // Starting from the first step is starting onboarding, as "Get started" here does.
     if (!resumeTarget) trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_STARTED, {});
     router.replace({

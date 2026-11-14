@@ -1,6 +1,6 @@
 import type { MotorcycleModelsQuery } from '@motovault/graphql';
 import { Check, Plus, X } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -19,6 +19,9 @@ interface ModelPickerProps {
   models: Model[];
   isLoading: boolean;
   selectedModel: { modelId: number; modelName: string } | null;
+  /** The search text; owned by the step so the bike draft keeps it (issue 365 T13b). */
+  query: string;
+  onQueryChange: (query: string) => void;
   onSelect: (model: { modelId: number; modelName: string }) => void;
   onDismiss: () => void;
   telemetry: BikeSetupTelemetry;
@@ -30,13 +33,14 @@ export function ModelPicker({
   models,
   isLoading,
   selectedModel,
+  query,
+  onQueryChange,
   onSelect,
   onDismiss,
   telemetry,
 }: ModelPickerProps) {
   const oc = useOnboardingColors();
   const { t } = useTranslation();
-  const [query, setQuery] = useState('');
 
   const filtered = useMemo(() => {
     const raw = query.trim().toLowerCase();
@@ -113,7 +117,7 @@ export function ModelPicker({
           value={query}
           onChangeText={(text) => {
             telemetry.noteModelQuery(query, text);
-            setQuery(text);
+            onQueryChange(text);
           }}
           maxLength={50}
           placeholder={

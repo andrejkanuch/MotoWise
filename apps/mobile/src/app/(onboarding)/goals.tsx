@@ -74,7 +74,11 @@ export default function GoalsScreen() {
   // Interpolate the rider's bike make into the title; fall back to a generic word.
   const titleMake = bikeMake?.trim() || tx('onboarding.goalsTitleFallback');
 
-  const [selected, setSelected] = useState<Set<RidingGoal>>(new Set());
+  // Seeded from the persisted picks, so a remount (cold resume, Back after a
+  // replace) shows them instead of "0 of 5 picked" (issue 365 T13b).
+  const [selected, setSelected] = useState<Set<RidingGoal>>(
+    () => new Set(useOnboardingStore.getState().ridingGoals),
+  );
   const [showAffirmation, setShowAffirmation] = useState(false);
   const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

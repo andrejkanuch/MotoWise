@@ -13,7 +13,7 @@ import type {
 } from '@motovault/types';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { OnboardingRoute } from '../config/onboarding';
+import { isFurtherInFlow, type ObVariant, type OnboardingRoute } from '../config/onboarding';
 import { captureException } from '../lib/analytics';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
 import { clearEmailDraft } from '../lib/onboarding-email-draft';
@@ -106,13 +106,18 @@ interface OnboardingState {
   /** issue 365 T13a (persist v10): the account step's open part. Never an email or password. */
   accountDraft: AccountDraft | null;
   setAccountDraft: (draft: AccountDraft | null) => void;
-  /** issue 365 T13b (persist v10 field, written by T13b): the bike-setup search. */
+  /** issue 365 T13b (persist v10 field): the bike-setup search, restored on mount. */
   bikeDraft: BikeDraft | null;
   /**
-   * issue 365 T13b (persist v10 field, written by T13b): the furthest step the
-   * rider reached; the resume target, never lowered by a back-walk.
+   * issue 365 T13b (persist v10 field): the furthest step the rider reached, by
+   * flow index, raised on every step focus and never lowered by a back-walk. The
+   * resume target (`getResumeTarget`); `lastViewedScreen` stays for analytics.
    */
   furthestScreen: OnboardingRoute | null;
+  /** Raises `furthestScreen` to `screen` when it is further into `variant`'s flow; never lowers it. */
+  raiseFurthestScreen: (screen: OnboardingRoute, variant: ObVariant) => void;
+  /** issue 365 T13b: the bike-setup search on screen; null once the step is done. */
+  setBikeDraft: (draft: BikeDraft | null) => void;
   setLastViewedScreen: (screen: OnboardingRoute, at: number) => void;
   /** No-op outside an onboarding run (no step viewed yet), e.g. the (auth) login code step. */
   setCodeStepPending: (pending: boolean) => void;
@@ -261,19 +266,39 @@ export const useOnboardingStore = create<OnboardingState>()(
       // A new step on screen ends any code step the previous one had open.
       setLastViewedScreen: (lastViewedScreen, lastViewedAt) =>
         set({ lastViewedScreen, lastViewedAt, codeStepPending: false }),
+      raiseFurthestScreen: (screen, variant) => {
+        if (isFurtherInFlow(variant, screen, get().furthestScreen)) set({ furthestScreen: screen });
+      },
+      setBikeDraft: (bikeDraft) => set({ bikeDraft }),
       setCodeStepPending: (codeStepPending) => {
         if (get().lastViewedScreen === null || get().codeStepPending === codeStepPending) return;
         set({ codeStepPending });
       },
       clearResumePoint: () => {
-        const { lastCompletedScreen, lastViewedScreen, lastViewedAt, codeStepPending } = get();
-        if (!lastCompletedScreen && !lastViewedScreen && lastViewedAt === null && !codeStepPending)
+        const {
+          lastCompletedScreen,
+          lastViewedScreen,
+          lastViewedAt,
+          codeStepPending,
+          furthestScreen,
+          bikeDraft,
+        } = get();
+        if (
+          !lastCompletedScreen &&
+          !lastViewedScreen &&
+          lastViewedAt === null &&
+          !codeStepPending &&
+          !furthestScreen &&
+          !bikeDraft
+        )
           return;
         set({
           lastCompletedScreen: null,
           lastViewedScreen: null,
           lastViewedAt: null,
           codeStepPending: false,
+          furthestScreen: null,
+          bikeDraft: null,
         });
       },
       setAccountDraft: (accountDraft) => {
@@ -330,6 +355,8 @@ export const useOnboardingStore = create<OnboardingState>()(
         setLastCompletedScreen,
         setLastViewedScreen,
         setCodeStepPending,
+        raiseFurthestScreen,
+        setBikeDraft,
         clearResumePoint,
         setAccountDraft,
         setHeardFrom,

@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { ONBOARDING_HERO_COLORS } from '../../components/onboarding/onboarding-colors';
-import { getResumeRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
+import { getResumeTarget, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { AnalyticsEvent } from '../../lib/analytics';
 import { getStoredAnalyticsConsent } from '../../lib/analytics-consent';
 import { getStoredFbclid, getStoredUtmProperties } from '../../lib/meta-attribution';
@@ -56,13 +56,19 @@ export default function WelcomeScreen() {
   // retrigger a resume on this already-mounted welcome screen.
   const [resume] = useState(() => {
     if (resumeHandledThisLaunch) return null;
-    const { lastCompletedScreen: lastCompleted, bikeData } = useOnboardingStore.getState();
-    if (!lastCompleted) return null;
-    // Same bike-aware branch as forward nav so resume-after-kill lands on the
-    // screen the rider would have reached, not a bike-dependent dead-end.
-    const target = getResumeRoute(getOnboardingVariant(), lastCompleted, {
-      hasBike: !!bikeData?.make,
-    });
+    const {
+      lastCompletedScreen: lastCompleted,
+      furthestScreen: furthest,
+      bikeData,
+    } = useOnboardingStore.getState();
+    // The furthest step reached, never the step after a back-walk (issue 365 T13b).
+    // Same bike-aware branch as forward nav, so the rider never lands on a
+    // bike-dependent dead-end.
+    const target = getResumeTarget(
+      getOnboardingVariant(),
+      { lastCompleted, furthest },
+      { hasBike: !!bikeData?.make },
+    );
     if (!target) return null;
     // Read now: Welcome's own focus overwrites the persisted last viewed step.
     const context = onboardingResumeContext(true, useAuthStore.getState().session !== null);

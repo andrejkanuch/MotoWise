@@ -157,6 +157,15 @@ the flows below.
   (`setAirplaneMode` is Android-only); the stale-`me` race itself is covered by
   `src/__tests__/navigation-gate.test.tsx`. **Validated on an Android emulator 2026-11-13: fails on
   main (Welcome screen), passes with the fix.** `test:e2e:onboarding-complete-relaunch`.
+- **`flows/onboarding-bike-resume.yaml`** — onboarding resume keeps in-screen progress (issue 365
+  T13b, FS-OB1c). Android emulator with "Don't keep activities" ON. (a) bike setup: pick Honda,
+  type "Africa" → `stopApp` → `launchApp` (no `clearState`) → the make is still picked and "Africa"
+  is still in the model search, not "Popular makes". (c) composes `_shared/onboarding-to-account.yaml`
+  with `EXTRA_GOAL: "Maintain my bike"` → relaunch → Back → "2 of 5 picked" with both rows checked.
+  Signs in nobody and writes nothing to the backend. **Red on main** (empty make list; "0 of 5
+  picked"). The monotonic resume target (case d) is covered by
+  `src/__tests__/onboarding-furthest-screen.test.ts`. **Authored from source, pending on-device
+  validation.** `test:e2e:onboarding-bike-resume`.
 - **`flows/post-onboarding-no-signin.yaml`** — no sign-in screen after onboarding completion (issue 365
   T15, FS-PO12/FS-PO13). Composes `onboarding.yaml`, then Profile (`tab-profile`), Diagnose (Home's
   `home-action-diagnose`, as Diagnose has no tab button), Diagnose → New (`diagnose-new`) and Discover
