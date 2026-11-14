@@ -130,6 +130,7 @@
     "plateStateOverdue": "Überfällig",
     "plateCaptionTo": "bis {{task}}",
     "plateCaptionLate": "{{task}}, überfällig",
+    "plateCaptionDueNow": "{{task}}, jetzt fällig",
     "plateCaptionAt": "Kilometerstand für {{task}}",
     "noServiceDue": "Kein Service fällig",
     "plateDayUnit_one": "Tag",
@@ -211,6 +212,12 @@
     "startCta": "Diagnose starten",
     "quotaRemaining": "Diesen Monat kostenlos: noch {{count}} von {{limit}} Diagnosen",
     "quotaUsed": "Die kostenlose Diagnose für diesen Monat ist verbraucht. Ab {{date}} wieder verfügbar – oder unbegrenzt mit Pro.",
+    "limit": {
+      "usedBackOn": "Die kostenlose Diagnose für diesen Monat ist verbraucht. Ab {{date}} wieder verfügbar.",
+      "usedResetsNextMonth": "Die kostenlose Diagnose für diesen Monat ist verbraucht. Sie wird nächsten Monat erneuert.",
+      "seePro": "Pro-Abos ansehen",
+      "done": "Fertig"
+    },
     "emptyExplainer": "Beschreibe, was du hörst, siehst oder spürst, und füge wenn möglich ein Foto hinzu. Du erhältst die wahrscheinlichen Ursachen, die Dringlichkeit und die nächsten Schritte.",
     "severityLevel": {
       "low": "Gering",
@@ -1141,6 +1148,10 @@
       "doneOn": "Erledigt am {{date}}",
       "seeAllHistory_one": "{{count}} erledigte Aufgabe ansehen",
       "seeAllHistory_other": "Alle {{count}} erledigten Aufgaben ansehen",
+      "moreTasks_one": "+{{count}} weitere",
+      "moreTasks_other": "+{{count}} weitere",
+      "moreTasksA11y_one": "{{count}} weitere Aufgabe anzeigen",
+      "moreTasksA11y_other": "{{count}} weitere Aufgaben anzeigen",
       "serviceItems": "Serviceposten"
     },
     "costsSegment": {
@@ -3153,5 +3164,14 @@
     "newRoadsComputing": "Wird berechnet…",
     "unlockPro": "Mit Pro freischalten",
     "newRoadsLockedA11y": "Neue Straßen bei dieser Fahrt. Mit Pro freischalten"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Dein Wartungsplan ist bereit",
+      "body": "Der Wartungsplan des Herstellers für deine {{bike}} ist in deiner Garage. Wir erinnern dich vor jeder fälligen Wartung.",
+      "bodyNoBike": "Der Wartungsplan des Herstellers für dein Motorrad ist in deiner Garage. Wir erinnern dich vor jeder fälligen Wartung.",
+      "open": "Plan ansehen",
+      "notNow": "Nicht jetzt"
+    }
   }
 }

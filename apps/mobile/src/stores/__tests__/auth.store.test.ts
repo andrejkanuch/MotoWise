@@ -49,20 +49,30 @@ beforeEach(() => {
     isLoading: true,
     hydration: AUTH_HYDRATION.PENDING,
     onboardingCompleted: false,
+    onboardingCompletedForUserId: null,
     hasAuthenticatedBefore: false,
     mapOrientation: MAP_ORIENTATIONS.NORTH,
   });
 });
 
 describe('auth.store setSession', () => {
-  it('marks hasAuthenticatedBefore and preserves onboardingCompleted on sign-in', () => {
-    useAuthStore.setState({ onboardingCompleted: true });
+  it('marks hasAuthenticatedBefore and preserves onboardingCompleted for the same rider', () => {
+    // The same user's session arriving again (token refresh) keeps completion.
+    useAuthStore.setState({ session: fakeSession, onboardingCompleted: true });
     useAuthStore.getState().setSession(fakeSession);
 
     const s = useAuthStore.getState();
     expect(s.session).toBe(fakeSession);
     expect(s.hasAuthenticatedBefore).toBe(true);
     expect(s.onboardingCompleted).toBe(true); // returning user keeps completion
+  });
+
+  it('does not hand an in-memory completion to a session with no matching flag', () => {
+    // issue 365 T14: completion only follows the rider it belongs to.
+    useAuthStore.setState({ onboardingCompleted: true, onboardingCompletedForUserId: null });
+    useAuthStore.getState().setSession(fakeSession);
+
+    expect(useAuthStore.getState().onboardingCompleted).toBe(false);
   });
 
   it('resets onboardingCompleted on sign-out but keeps hasAuthenticatedBefore', () => {
@@ -148,6 +158,7 @@ describe('partializeAuthState', () => {
       'localeSchema',
       'mapOrientation',
       'measurementSystem',
+      'onboardingCompletedForUserId',
     ]);
     expect('session' in persisted).toBe(false);
     expect('isLoading' in persisted).toBe(false);

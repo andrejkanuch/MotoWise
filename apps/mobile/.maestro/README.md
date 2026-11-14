@@ -136,6 +136,13 @@ the flows below.
   log-mode shape (Odometer / Date completed / "Log it", Priority hidden), logs a completed record,
   confirms it lands under History, and cleans up. **Authored from source 2026-07-16, pending
   on-device validation.** `test:e2e:log-past-work`.
+- **`flows/onboarding-complete-relaunch.yaml`** — onboarding completion survives a cold start (issue 365
+  T14, FS-OB1e). Composes `onboarding.yaml`, then `stopApp` → airplane mode on → `launchApp` (no
+  `clearState`) → the tab bar (`tab-home`; a cold start can land on any tab), never "Let's get
+  started". Airplane mode is turned off again in `onFlowComplete`. Tagged `android`
+  (`setAirplaneMode` is Android-only); the stale-`me` race itself is covered by
+  `src/__tests__/navigation-gate.test.tsx`. **Validated on an Android emulator 2026-11-13: fails on
+  main (Welcome screen), passes with the fix.** `test:e2e:onboarding-complete-relaunch`.
 - **`flows/add-bike.yaml`** — add a motorcycle from the garage. Composes `onboarding.yaml` with
   `NO_BIKE: "true"` (bike setup → "Not sure of the details?" → "I'll add my bike later" → no-bike
   value screen), so the free test user reaches an empty garage and "Add your first bike" opens the
@@ -180,6 +187,22 @@ the flows below.
   regression class); the raw number itself is unchanged by the toggle. No numeric-input selector, so
   low fragility. **Authored from source 2026-07-16; navigation selectors validated on-device** (Profile
   Units picker, Garage tab, bike card). `test:e2e:units-display`.
+- **`flows/onboarding-service-plan.yaml`** and **`flows/onboarding-make-only-service-plan.yaml`** —
+  FS-PO1H, Experiment 2 (issue 365 T07a/T07b): the bike onboarding creates gets its OEM service plan.
+  The first onboards a Yamaha MT-09 2019 (`BIKE_MAKE`/`BIKE_MODEL`/`BIKE_YEAR` branch of
+  `_shared/onboarding-to-account.yaml`), the second a make-only Honda (`MAKE_ONLY: "true"`, the
+  "Not sure of the details?" chip). Both assert Home no longer reads "No service due", then Garage →
+  bike → `segment-service` → `service-task-card-0`; the make-only flow also finds "Honda schedule".
+  Set `DISTANCE_UNIT=mi` (or `km`) for the unit check; an imperial device must read "mi". Needs the
+  T07a import on the backend; red on a build without it. **Authored from source 2026-11-13, pending
+  on-device validation.** `test:e2e:service-plan`, `test:e2e:service-plan-make-only`.
+- **`flows/diagnose-limit-loop.yaml`** — the diagnose "Try Again" limit loop (issue 365 T08,
+  FS-PO2a). Seeded and Android only (tag `android`, `setAirplaneMode`): the runner plants a used
+  diagnosis (`E2E_SEED_DIAGNOSIS_USED=1`, local stack only), the flow reaches the form offline,
+  submits online and asserts the limit panel (`diagnose-limit-panel`, `-see-pro`, `-done`) with
+  no "Try Again". iOS is covered by the jest suite `new-limit.test.tsx`. **Validated on the
+  Android emulator 2026-11-14** (red on main, green on the fix). `test:e2e:diagnose-limit-loop` on the
+  `e2e-android-local` build.
 
   All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /
   `E2E_EMAIL_PREFIX` (set inline in the `test:e2e:*` package scripts) — no per-flow wrapper needed.

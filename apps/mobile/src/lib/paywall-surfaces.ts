@@ -20,6 +20,8 @@ export function isOnboardingPaywallSurface(surface: string | undefined): boolean
 /** Paywall surfaces outside onboarding that the app names on its own. */
 export const PAYWALL_SURFACE = {
   RIDER_INSIGHTS: 'rider_insights',
+  /** "See Pro plans" on the diagnose form's limit panel (issue 365 T08). */
+  DIAGNOSE_LIMIT_PANEL: 'diagnose_limit_panel',
 } as const;
 
 export type PaywallSurface = (typeof PAYWALL_SURFACE)[keyof typeof PAYWALL_SURFACE];

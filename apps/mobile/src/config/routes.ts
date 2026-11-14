@@ -12,6 +12,8 @@ export const TAB_ROUTE = {
   DISCOVER: '/(tabs)/(discover)',
   GARAGE: '/(tabs)/(garage)',
   PROFILE: '/(tabs)/(profile)',
+  /** Hidden from the tab bar; opened from Home's Diagnose tool and the diagnose form. */
+  DIAGNOSE: '/(tabs)/(diagnose)',
 } as const;
 
 /**
@@ -74,6 +76,10 @@ export const MODAL_ROUTE = {
   ADD_BIKE: '/(modals)/add-bike',
   /** What's New; pass `{ source: WhatsNewSource }`. */
   WHATS_NEW: '/(modals)/whats-new',
+  /** A bike's safety recalls; pass `{ motorcycleId, bikeName? }`. */
+  RECALLS: '/(modals)/recalls',
+  /** "Service plan ready" over Home after onboarding; pass `{ motorcycleId, bikeName? }`. */
+  SERVICE_PLAN_READY: '/(modals)/service-plan-ready',
 } as const;
 
 /** The What's New route opened from `source`, for `router.push`. */

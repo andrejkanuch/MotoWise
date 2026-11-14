@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import type { HubUnit } from '../../lib/bike-hub/constants';
+import { ATTENTION_MAX_ROWS, type HubUnit } from '../../lib/bike-hub/constants';
+import { space } from '../../theme/spacing';
 import { triggerImpact } from '../../utils/haptics';
 import {
   completedTasks,
@@ -135,6 +136,47 @@ function EmptyCard({ title, sub }: { title: string; sub?: string }) {
   );
 }
 
+/** A centred copper text button under a list ("+7 more", "See all 12 completed tasks"). */
+function LinkButton({
+  testID,
+  label,
+  accessibilityLabel,
+  onPress,
+}: {
+  testID: string;
+  label: string;
+  accessibilityLabel?: string;
+  onPress: () => void;
+}) {
+  const hub = useHubTheme();
+  return (
+    <Pressable
+      testID={testID}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      hitSlop={{ top: ACTION_SLOP, bottom: ACTION_SLOP }}
+      style={({ pressed }) => ({
+        alignSelf: 'center',
+        paddingHorizontal: space.sm,
+        opacity: pressed ? 0.6 : 1,
+      })}
+    >
+      <Text
+        style={{
+          ...SYSTEM_WEIGHT.semibold,
+          fontSize: 14,
+          lineHeight: ACTION_LINE_HEIGHT,
+          textAlign: 'center',
+          color: hub.copperText,
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
 function criticalCard(hub: HubTheme) {
   return {
     backgroundColor: hub.rowCritical,
@@ -148,8 +190,11 @@ function criticalCard(hub: HubTheme) {
  * groups — Overdue / Due soon / Later / No due date — or the latest completed
  * work. The "Overdue · N" eyebrow is the same number, on the same basis, as the
  * Service badge and Overview's "Needs attention · N overdue" (see
- * `countOverdueTasks` in `lib/bike-hub/attention.ts`): every overdue task is
- * listed here, none is folded away.
+ * `countOverdueTasks` in `lib/bike-hub/attention.ts`).
+ *
+ * Active shows the most urgent `ATTENTION_MAX_ROWS` tasks and one "+N more" row
+ * that opens the rest in place (issue 365 T07b): the onboarding import gives a
+ * new bike ~10 tasks at once. The group eyebrows still count every task.
  */
 export function MaintenanceSection({
   tasks,
@@ -168,6 +213,7 @@ export function MaintenanceSection({
   const today = useToday();
   const [activeTab, setActiveTab] = useState<ServiceTab>(SERVICE_TAB.ACTIVE);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showAllActive, setShowAllActive] = useState(false);
   const hasHighlighted = useRef(false);
 
   const groups = useMemo(
@@ -176,15 +222,33 @@ export function MaintenanceSection({
   );
   const history = useMemo(() => completedTasks(tasks), [tasks]);
   const activeCount = groups.reduce((sum, group) => sum + group.items.length, 0);
+  // Active tasks top to bottom as drawn: critical cards first in each group, then the rest.
+  const ordered = useMemo(
+    () =>
+      groups.flatMap((group) => [
+        ...group.items.filter(isCriticalOverdue),
+        ...group.items.filter((item) => !isCriticalOverdue(item)),
+      ]),
+    [groups],
+  );
+  const positions = useMemo(
+    () => new Map(ordered.map((item, index) => [item.task.id, index])),
+    [ordered],
+  );
 
   // A task opened from elsewhere (Overview, Home, a notification) is expanded
   // once — on History when it has already been done.
   useEffect(() => {
-    if (!initialExpandedId || tasks.length === 0 || hasHighlighted.current) return;
+    if (!initialExpandedId || hasHighlighted.current) return;
+    const inHistory = history.some((task) => task.id === initialExpandedId);
+    // Wait until the requested task is listed; the first snapshot can predate it.
+    if (!inHistory && !positions.has(initialExpandedId)) return;
     hasHighlighted.current = true;
     setExpandedId(initialExpandedId);
-    if (history.some((task) => task.id === initialExpandedId)) setActiveTab(SERVICE_TAB.HISTORY);
-  }, [initialExpandedId, tasks.length, history]);
+    if (inHistory) setActiveTab(SERVICE_TAB.HISTORY);
+    // A task below the "+N more" row is shown, not left folded away.
+    if ((positions.get(initialExpandedId) ?? 0) >= ATTENTION_MAX_ROWS) setShowAllActive(true);
+  }, [initialExpandedId, history, positions]);
 
   const onToggle = useCallback((taskId: string) => {
     setExpandedId((previous) => (previous === taskId ? null : taskId));
@@ -216,15 +280,19 @@ export function MaintenanceSection({
     motorcycleId,
   };
 
-  // Each active task's place on screen: critical cards first in each group, then the rest.
-  const positions = new Map(
-    groups
-      .flatMap((group) => [
-        ...group.items.filter(isCriticalOverdue),
-        ...group.items.filter((item) => !isCriticalOverdue(item)),
-      ])
-      .map((item, index) => [item.task.id, index]),
-  );
+  const hiddenCount = showAllActive ? 0 : Math.max(0, ordered.length - ATTENTION_MAX_ROWS);
+  const shownGroups =
+    hiddenCount > 0
+      ? groups
+          .map((group) => ({
+            ...group,
+            items: group.items.filter(
+              (item) => (positions.get(item.task.id) ?? 0) < ATTENTION_MAX_ROWS,
+            ),
+          }))
+          .filter((group) => group.items.length > 0)
+      : groups;
+  const groupCount = new Map(groups.map((group) => [group.state, group.items.length]));
 
   const renderRows = (items: readonly ServiceTaskItem[]) =>
     items.map((item, index) => (
@@ -250,7 +318,11 @@ export function MaintenanceSection({
         entering={FadeInUp.duration(ENTER_MS).delay(groupIndex * STAGGER_MS)}
         style={{ gap: 6 }}
       >
-        <SectionHeader label={t(group.labelKey)} count={group.items.length} tone={group.tone} />
+        <SectionHeader
+          label={t(group.labelKey)}
+          count={groupCount.get(group.state) ?? group.items.length}
+          tone={group.tone}
+        />
         {critical.map((item) => (
           <HubCard key={item.task.id} style={criticalCard(hub)}>
             <ServiceTaskRow
@@ -271,6 +343,11 @@ export function MaintenanceSection({
 
   const shownHistory = history.slice(0, HISTORY_PREVIEW);
 
+  const showAllActiveTasks = () => {
+    triggerImpact();
+    setShowAllActive(true);
+  };
+
   return (
     <View style={{ paddingHorizontal: 16, gap: 16 }}>
       <ServiceTabs
@@ -283,7 +360,17 @@ export function MaintenanceSection({
         groups.length === 0 ? (
           <EmptyCard title={t('bikeHub.service.noOpenTasks')} />
         ) : (
-          groups.map(renderGroup)
+          <>
+            {shownGroups.map(renderGroup)}
+            {hiddenCount > 0 ? (
+              <LinkButton
+                testID="service-more"
+                label={t('bikeHub.service.moreTasks', { count: hiddenCount })}
+                accessibilityLabel={t('bikeHub.service.moreTasksA11y', { count: hiddenCount })}
+                onPress={showAllActiveTasks}
+              />
+            ) : null}
+          </>
         )
       ) : history.length === 0 ? (
         <EmptyCard title={t('maintenance.noHistory')} />
@@ -304,29 +391,11 @@ export function MaintenanceSection({
             ))}
           </HubCard>
           {history.length > HISTORY_PREVIEW ? (
-            <Pressable
+            <LinkButton
               testID="service-history-see-all"
+              label={t('bikeHub.service.seeAllHistory', { count: history.length })}
               onPress={openAllHistory}
-              accessibilityRole="button"
-              hitSlop={{ top: ACTION_SLOP, bottom: ACTION_SLOP }}
-              style={({ pressed }) => ({
-                alignSelf: 'center',
-                paddingHorizontal: 12,
-                opacity: pressed ? 0.6 : 1,
-              })}
-            >
-              <Text
-                style={{
-                  ...SYSTEM_WEIGHT.semibold,
-                  fontSize: 14,
-                  lineHeight: ACTION_LINE_HEIGHT,
-                  textAlign: 'center',
-                  color: hub.copperText,
-                }}
-              >
-                {t('bikeHub.service.seeAllHistory', { count: history.length })}
-              </Text>
-            </Pressable>
+            />
           ) : null}
         </View>
       )}

@@ -70,7 +70,7 @@
     "app/(tabs)/(garage)/expense-detail.tsx": 659,
     "app/(tabs)/(garage)/health-report.tsx": 503,
     "app/(tabs)/(garage)/index.tsx": 452,
-    "app/(tabs)/(home)/index.tsx": 502,
+    "app/(tabs)/(home)/index.tsx": 487,
     "app/(tabs)/(learn)/article/[slug].tsx": 317,
     "app/(tabs)/(learn)/index.tsx": 796,
     "app/(tabs)/(profile)/edit-profile.tsx": 509,

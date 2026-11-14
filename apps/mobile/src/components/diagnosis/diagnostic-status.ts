@@ -1,4 +1,5 @@
-import { differenceInMilliseconds, parseISO } from 'date-fns';
+import { differenceInMilliseconds, format, isValid, parseISO } from 'date-fns';
+import { dateFnsLocale } from '@/i18n/date-fns-locale';
 
 /** `Diagnostic.status` values the API returns. */
 export const DIAGNOSTIC_STATUS = {
@@ -28,6 +29,20 @@ export function formatQuotaResetDate(resetDate: string, language: string): strin
     day: 'numeric',
     timeZone: 'UTC',
   }).format(parseISO(resetDate));
+}
+
+/**
+ * The full date the free diagnosis comes back, in the app language, e.g.
+ * "December 1st, 2026" / "1. Dezember 2026" (date-fns `PPP`). Like
+ * formatQuotaResetDate it keeps the UTC calendar day. Null for a value that is
+ * not a date, so the caller shows its "resets next month" copy instead of
+ * "Invalid date".
+ */
+export function formatQuotaResetDay(resetDate: string, language: string): string | null {
+  const reset = parseISO(resetDate);
+  if (!isValid(reset)) return null;
+  const utcDay = new Date(reset.getUTCFullYear(), reset.getUTCMonth(), reset.getUTCDate());
+  return format(utcDay, 'PPP', { locale: dateFnsLocale(language) });
 }
 
 /** Medium date in the app language, e.g. "9 Oct 2026". */

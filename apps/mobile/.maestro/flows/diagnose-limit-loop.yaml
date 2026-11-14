@@ -1,0 +1,125 @@
+# Diagnose "Try Again" limit loop — issue 365 T08 (spec FS-PO2a).
+#
+# A free rider whose monthly diagnosis is already used reaches the form before
+# the quota loads (airplane mode), fills it, comes back online and taps Analyze.
+# The server answers FORBIDDEN. Before the fix the review step showed the raw
+# server text and an enabled "Try Again", and each tap re-submitted and
+# re-presented the paywall. Expected now: the in-form limit panel
+# (diagnose-limit-panel) with "See Pro plans" and "Done", no "Try Again", and at
+# most one automatic paywall.
+#
+# Run (Android emulator; `setAirplaneMode` is Android only, on iOS this check is
+# the jest suite components/diagnostic-flow/__tests__/new-limit.test.tsx):
+#   SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROLE_KEY=... \
+#     pnpm --filter @motovault/mobile test:e2e:diagnose-limit-loop
+# (the script sets E2E_SEED_DIAGNOSIS_USED=1) on the `e2e-android-local` build,
+# which talks to the LOCAL stack (Supabase and NestJS API on 10.0.2.2). Never
+# production: the runner seeds a used diagnosis with the service role and
+# refuses a non-local SUPABASE_URL.
+#
+# RevenueCat is not available in test runs: the automatic paywall either shows
+# an error alert or a paywall; both are closed with `optional: true` and only
+# app-owned UI is asserted.
+#
+# VALIDATED ON DEVICE 2026-11-14 (Android emulator, API 35): red on a main
+# build (raw server text + "Try Again"), green on this branch. Findings: the
+# garage bike is NOT preselected on step 1 (Next stays disabled until it is
+# tapped), and the e2e build's RevenueCat alert is "Upgrade unavailable right
+# now" with a single "OK" button.
+appId: ${APP_ID}
+tags:
+  - android
+env:
+  APP_ID: com.motovault.app
+  PROBLEM_TEXT: "Clicking noise from the front brake"
+---
+# 1. Setup — a signed-in Home with a bike in the garage (the seed marks this
+#    month's free diagnosis as used).
+- runFlow: onboarding.yaml
+
+# 2. Offline, so the quota cannot load and the entry gate stays optimistic.
+- setAirplaneMode: enabled
+
+# 3. Diagnose → Start.
+- tapOn:
+    id: "home-action-diagnose"
+- extendedWaitUntil:
+    visible:
+      id: "diagnose-new"
+    timeout: 10000
+- tapOn:
+    id: "diagnose-new"
+
+# 4. Fill the four steps.
+#    Step 1 — the bike. Not preselected: tap the onboarding Honda card
+#    (its label is "HONDA Africa Twin"; Maestro matches case-insensitively).
+- tapOn:
+    text: "Honda.*"
+- tapOn: "Next"
+#    Step 2 — describe the problem in free text.
+- tapOn: "I'll describe it myself"
+- tapOn:
+    text: "Describe what's happening.*"
+- inputText: ${PROBLEM_TEXT}
+# The system keyboard covers "Next" (verified on the emulator); Android only,
+# so hideKeyboard is safe here.
+- hideKeyboard
+- tapOn: "Next"
+#    Step 3 — no photo, no urgency.
+- scrollUntilVisible:
+    element:
+      text: "Next"
+    direction: DOWN
+- tapOn: "Next"
+#    Step 4 — the review step.
+- extendedWaitUntil:
+    visible: "Analyze"
+    timeout: 10000
+
+# 5. Back online, then Analyze → the server answers FORBIDDEN.
+- setAirplaneMode: disabled
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn: "Analyze"
+
+# 6. The one automatic paywall (or RevenueCat's "unavailable" alert): close it.
+#    Only press back while something still covers the panel: on the bare form,
+#    back would open the discard alert.
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    text: "OK"
+    optional: true
+- runFlow:
+    when:
+      notVisible:
+        id: "diagnose-limit-panel"
+    commands:
+      - back
+      - waitForAnimationToEnd:
+          timeout: 3000
+
+# 7. The limit panel, not the loop.
+- extendedWaitUntil:
+    visible:
+      id: "diagnose-limit-panel"
+    timeout: 20000
+- assertVisible: "This month's free diagnosis is used.*"
+- assertNotVisible: "Try Again"
+- assertNotVisible: "Analyze"
+- assertVisible:
+    id: "diagnose-limit-see-pro"
+- assertVisible: "See Pro plans"
+- assertVisible:
+    id: "diagnose-limit-done"
+- takeScreenshot: diagnose-limit-panel
+
+# 8. "Done" returns to the Diagnose list with the form cleared.
+- tapOn:
+    id: "diagnose-limit-done"
+- extendedWaitUntil:
+    visible:
+      id: "diagnose-new"
+    timeout: 10000
+- assertNotVisible:
+    id: "diagnose-limit-panel"

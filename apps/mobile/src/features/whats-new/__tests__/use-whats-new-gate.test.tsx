@@ -337,4 +337,54 @@ describe('useWhatsNewGate', () => {
     expect(eligibleCalls()).toHaveLength(1);
     expect(mockPush).toHaveBeenCalledTimes(1);
   });
+
+  // issue 365 T16b (D11): What's New is one of the landing sheets, at most one per cold session.
+  it("a landing sheet already shown this session: What's New waits for a later session", async () => {
+    loadGate();
+    const { landingSheetQueue, LANDING_SHEET } = require('@/lib/landing-sheet-queue');
+    // A recall owed from an earlier landing session showed first in this one.
+    require('@/stores/landing-sheets.store').useLandingSheetsStore.setState({
+      landingSessionId: 'an-earlier-session',
+      owed: [LANDING_SHEET.RECALL],
+    });
+    expect(landingSheetQueue.request(LANDING_SHEET.RECALL)).toBe(true);
+    await renderGate();
+    await settle();
+
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(gate.useWhatsNewStore.getState().lastSeenVersion).toBe('3.25.0');
+  });
+
+  it("a higher landing sheet still undecided holds What's New, which shows once it is dropped", async () => {
+    loadGate();
+    const queue = require('@/lib/landing-sheet-queue');
+    // Owed from an earlier landing session on this install (not this one).
+    require('@/stores/landing-sheets.store').useLandingSheetsStore.setState({
+      landingSessionId: 'an-earlier-session',
+      owed: [queue.LANDING_SHEET.RECALL],
+    });
+    await renderGate();
+    await settle();
+    expect(mockPush).not.toHaveBeenCalled();
+
+    await act(() => queue.landingSheetQueue.drop(queue.LANDING_SHEET.RECALL));
+    await settle();
+    expect(mockPush).toHaveBeenCalledTimes(1);
+  });
+
+  it('the auto-show is reported as landing_sheet_shown and blocks every other sheet this session', async () => {
+    loadGate();
+    const { landingSheetQueue, LANDING_SHEET } = require('@/lib/landing-sheet-queue');
+    await renderGate();
+    await settle();
+
+    expect(mockPush).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith('LANDING_SHEET_SHOWN', {
+      sheet: LANDING_SHEET.WHATS_NEW,
+      ms_since_landed: null,
+      queue_position: 2,
+    });
+    expect(landingSheetQueue.request(LANDING_SHEET.SERVICE_PLAN_READY)).toBe(false);
+    expect(landingSheetQueue.mayShowPlanCard()).toBe(false);
+  });
 });

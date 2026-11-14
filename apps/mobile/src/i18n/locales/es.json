@@ -130,6 +130,7 @@
     "plateStateOverdue": "Vencido",
     "plateCaptionTo": "para {{task}}",
     "plateCaptionLate": "{{task}}, vencido",
+    "plateCaptionDueNow": "{{task}}, toca ahora",
     "plateCaptionAt": "odómetro para {{task}}",
     "noServiceDue": "Ningún servicio pendiente",
     "plateDayUnit_one": "día",
@@ -211,6 +212,12 @@
     "startCta": "Iniciar un diagnóstico",
     "quotaRemaining": "Gratis este mes: te quedan {{count}} de {{limit}} diagnósticos",
     "quotaUsed": "Ya usaste el diagnóstico gratis de este mes. Se renueva el {{date}}, o hazte Pro para tener diagnósticos ilimitados.",
+    "limit": {
+      "usedBackOn": "Ya usaste el diagnóstico gratis de este mes. Vuelve el {{date}}.",
+      "usedResetsNextMonth": "Ya usaste el diagnóstico gratis de este mes. Se renueva el próximo mes.",
+      "seePro": "Ver planes Pro",
+      "done": "Listo"
+    },
     "emptyExplainer": "Cuenta lo que oyes, ves o sientes, y agrega una foto si puedes. Recibes las causas probables, qué tan urgente es y los siguientes pasos.",
     "severityLevel": {
       "low": "Baja",
@@ -1162,7 +1169,11 @@
       "seeAllHistory_one": "Ver {{count}} tarea hecha",
       "seeAllHistory_other": "Ver las {{count}} tareas hechas",
       "serviceItems": "Trabajos del servicio",
-      "seeAllHistory_many": "Ver las {{count}} tareas hechas"
+      "seeAllHistory_many": "Ver las {{count}} tareas hechas",
+      "moreTasks_one": "+{{count}} más",
+      "moreTasks_other": "+{{count}} más",
+      "moreTasksA11y_one": "Mostrar {{count}} tarea más",
+      "moreTasksA11y_other": "Mostrar {{count}} tareas más"
     },
     "costsSegment": {
       "spentIn": "Gastado en {{year}}",
@@ -3216,5 +3227,14 @@
     "newRoadsComputing": "Calculando…",
     "unlockPro": "Desbloquear con Pro",
     "newRoadsLockedA11y": "Carreteras nuevas en esta rodada. Desbloquear con Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Tu plan de mantenimiento está listo",
+      "body": "El calendario de mantenimiento del fabricante para tu {{bike}} ya está en tu garaje. Te avisaremos antes de cada servicio.",
+      "bodyNoBike": "El calendario de mantenimiento del fabricante para tu moto ya está en tu garaje. Te avisaremos antes de cada servicio.",
+      "open": "Ver mi plan",
+      "notNow": "Ahora no"
+    }
   }
 }
