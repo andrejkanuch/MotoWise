@@ -16,6 +16,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import type { OnboardingRoute } from '../config/onboarding';
 import { captureException } from '../lib/analytics';
 import { createZustandMMKVStorage } from '../lib/mmkv-storage';
+import { clearEmailDraft } from '../lib/onboarding-email-draft';
 import type { PendingIntent } from '../lib/pending-intent';
 
 interface BikeData {
@@ -35,6 +36,35 @@ interface BikeData {
    * `variant` field on CreateMotorcycleInput — see U7 summary).
    */
   variant?: MotorcycleVariant;
+}
+
+/**
+ * issue 365 T13a: which part of the account step was open, so a relaunch returns
+ * to it. The address itself lives in SecureStore (`lib/onboarding-email-draft`),
+ * never here; the password and the code are never persisted anywhere.
+ */
+export const ACCOUNT_DRAFT_MODE = {
+  /** The email + password form. */
+  EMAIL: 'email',
+  /** The emailed-code step. */
+  CODE: 'code',
+} as const;
+export type AccountDraftMode = (typeof ACCOUNT_DRAFT_MODE)[keyof typeof ACCOUNT_DRAFT_MODE];
+
+export interface AccountDraft {
+  mode: AccountDraftMode;
+}
+
+/**
+ * issue 365 T13b: the bike-setup search in progress, so a relaunch keeps the
+ * picked make, the typed model and the year. Defined with the v10 migration
+ * (T13a) so one migration covers both drafts; T13b writes it.
+ */
+export interface BikeDraft {
+  makeId: number | null;
+  make: string | null;
+  modelQuery: string;
+  year: number | null;
 }
 
 interface OnboardingState {
@@ -68,11 +98,21 @@ interface OnboardingState {
    * issue 365 T04b: the step last on screen and when (epoch ms), written on every
    * step focus, plus whether an email code step was open on it. Read by the
    * `onboarding_resumed` event only. New optional fields: an older (v9) state
-   * loads unchanged and takes the defaults below, so no version bump; T13a owns v10.
+   * loads unchanged and takes the defaults below, so no version bump; v10 is T13a's.
    */
   lastViewedScreen: OnboardingRoute | null;
   lastViewedAt: number | null;
   codeStepPending: boolean;
+  /** issue 365 T13a (persist v10): the account step's open part. Never an email or password. */
+  accountDraft: AccountDraft | null;
+  setAccountDraft: (draft: AccountDraft | null) => void;
+  /** issue 365 T13b (persist v10 field, written by T13b): the bike-setup search. */
+  bikeDraft: BikeDraft | null;
+  /**
+   * issue 365 T13b (persist v10 field, written by T13b): the furthest step the
+   * rider reached; the resume target, never lowered by a back-walk.
+   */
+  furthestScreen: OnboardingRoute | null;
   setLastViewedScreen: (screen: OnboardingRoute, at: number) => void;
   /** No-op outside an onboarding run (no step viewed yet), e.g. the (auth) login code step. */
   setCodeStepPending: (pending: boolean) => void;
@@ -185,6 +225,9 @@ const initialState = {
   lastViewedScreen: null as OnboardingRoute | null,
   lastViewedAt: null as number | null,
   codeStepPending: false,
+  accountDraft: null as AccountDraft | null,
+  bikeDraft: null as BikeDraft | null,
+  furthestScreen: null as OnboardingRoute | null,
   heardFrom: null as string | null,
   pendingIntent: null as PendingIntent | null,
   intentResolved: false,
@@ -233,23 +276,39 @@ export const useOnboardingStore = create<OnboardingState>()(
           codeStepPending: false,
         });
       },
+      setAccountDraft: (accountDraft) => {
+        const current = get().accountDraft;
+        if (current?.mode === accountDraft?.mode) return;
+        set({ accountDraft });
+      },
       setHeardFrom: (heardFrom) => set({ heardFrom }),
       setPendingIntent: (pendingIntent) => set({ pendingIntent }),
       setIntentResolved: (intentResolved) => set({ intentResolved }),
       setAwaitingGarageCta: (awaitingGarageCta) => set({ awaitingGarageCta }),
-      setCompletionSent: (completionSent) => set({ completionSent }),
+      setCompletionSent: (completionSent) => {
+        set({ completionSent });
+        // Onboarding is complete: the email is no longer kept (issue 365 T13a, D10).
+        if (completionSent) void clearEmailDraft();
+      },
       setFeedbackContactOptIn: (feedbackContactOptIn) => set({ feedbackContactOptIn }),
       // intentResolved is per-process (first-launch intent resolution already
       // settled for this run of the app), not part of an account's onboarding;
       // resetting it would make the next account's paywall wait for a
       // resolution that never re-runs.
-      resetForSignOut: () =>
-        set({ ...store.getInitialState(), intentResolved: get().intentResolved }, true),
-      reset: () => set(store.getInitialState(), true),
+      // Both also drop the SecureStore email draft (issue 365 T13a, D10): the
+      // address is kept only while this onboarding run is in progress.
+      resetForSignOut: () => {
+        set({ ...store.getInitialState(), intentResolved: get().intentResolved }, true);
+        void clearEmailDraft();
+      },
+      reset: () => {
+        set(store.getInitialState(), true);
+        void clearEmailDraft();
+      },
     }),
     {
       name: 'onboarding-state',
-      version: 9,
+      version: 10,
       storage: createJSONStorage(() => createZustandMMKVStorage('onboarding-store')),
       partialize: ({
         setExperienceLevel,
@@ -272,6 +331,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         setLastViewedScreen,
         setCodeStepPending,
         clearResumePoint,
+        setAccountDraft,
         setHeardFrom,
         setPendingIntent,
         setIntentResolved,
@@ -324,6 +384,14 @@ export const useOnboardingStore = create<OnboardingState>()(
         // V9: contact opt-in line on the notifications step (unchecked by default).
         if (version < 9) {
           state.feedbackContactOptIn = state.feedbackContactOptIn ?? false;
+        }
+
+        // V10 (issue 365 T13a): the account and bike drafts and the resume target.
+        // No email, code or password: the address is in SecureStore.
+        if (version < 10) {
+          state.accountDraft = state.accountDraft ?? null;
+          state.bikeDraft = state.bikeDraft ?? null;
+          state.furthestScreen = state.furthestScreen ?? null;
         }
 
         if (version < 3) {

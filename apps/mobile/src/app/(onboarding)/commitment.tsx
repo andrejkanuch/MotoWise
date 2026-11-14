@@ -95,6 +95,9 @@ export default function CommitmentScreen() {
   };
 
   const skip = () => {
+    // Skipping still completes the step: without this a relaunch resumes here
+    // instead of at the account step (issue 365 T13a).
+    setLastCompletedScreen(OB_SCREEN.COMMITMENT);
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, OB_SCREEN.COMMITMENT);
     goNext();
   };

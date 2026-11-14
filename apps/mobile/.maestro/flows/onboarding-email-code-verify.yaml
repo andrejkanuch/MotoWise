@@ -22,9 +22,12 @@ tags:
 # Verified: the session lands and onboarding continues past the account step,
 # either through the post-signup screens or straight to Home.
 - extendedWaitUntil:
-    visible: ".*hear about us.*|.*Today in your garage.*"
+    notVisible: "Enter your code"
     timeout: 90000
-- assertNotVisible: "Enter your code"
+- extendedWaitUntil:
+    visible: ".*hear about us.*"
+    timeout: 15000
+    optional: true
 - runFlow:
     when:
       visible: ".*hear about us.*"
@@ -40,6 +43,22 @@ tags:
       - tapOn:
           text: "Open my garage"
           optional: true
+# Home, possibly under the one landing sheet (recall or imported service plan).
+# Matched by testID, not by heading copy, which changes with the rider's state.
 - extendedWaitUntil:
-    visible: ".*Today in your garage.*"
+    visible:
+      id: "home-screen|recall-sheet|oem-imported-sheet"
     timeout: 120000
+- tapOn:
+    id: "service-plan-ready-dismiss"
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: "recall-sheet"
+    commands:
+      - tapOn: "Go back"
+- extendedWaitUntil:
+    visible:
+      id: "home-screen"
+    timeout: 10000

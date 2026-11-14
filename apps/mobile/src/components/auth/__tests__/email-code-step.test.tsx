@@ -36,6 +36,11 @@ jest.mock('@/lib/email-confirmation', () => ({
   verifySignupCode: (...args: unknown[]) => mockVerifySignupCode(...args),
 }));
 
+const mockClearEmailDraft = jest.fn(async () => {});
+jest.mock('@/lib/onboarding-email-draft', () => ({
+  clearEmailDraft: () => mockClearEmailDraft(),
+}));
+
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { AUTH_SURFACE } from '@/config/auth';
@@ -99,6 +104,7 @@ beforeEach(() => {
   mockVerifySignupCode.mockReset();
   mockResetUser.mockReset();
   mockSignOut.mockReset();
+  mockClearEmailDraft.mockClear();
 });
 
 afterEach(() => {
@@ -106,6 +112,37 @@ afterEach(() => {
 });
 
 describe('EmailCodeStep', () => {
+  // issue 365 T13a: a code that got the rider in leaves nothing to restore.
+  it('clears the persisted email draft once the code verifies', async () => {
+    mockVerifySignupCode.mockResolvedValue(ok);
+    await renderStep();
+
+    await fireEvent.changeText(codeInput(), '482913');
+    await flush();
+
+    expect(mockClearEmailDraft).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears the persisted email draft on the already-confirmed recovery', async () => {
+    mockSignInWithPassword.mockResolvedValue(signedIn);
+    await renderStep({ password: PASSWORD });
+
+    await fireEvent.press(screen.getByText(t('auth.codeAlreadyConfirmed')));
+    await flush();
+
+    expect(mockClearEmailDraft).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the draft after a wrong code', async () => {
+    mockVerifySignupCode.mockResolvedValue({ error: otpExpired() });
+    await renderStep();
+
+    await fireEvent.changeText(codeInput(), '111111');
+    await flush();
+
+    expect(mockClearEmailDraft).not.toHaveBeenCalled();
+  });
+
   it('shows the address and code length the code went to', async () => {
     await renderStep();
     expect(screen.getByText(t('auth.codeTitle'))).toBeTruthy();
@@ -326,11 +363,13 @@ describe('EmailCodeStep', () => {
 
   it('resend success counts down from 60, tracks the send, and re-enables after 60 s', async () => {
     mockSendSignupCode.mockResolvedValue(ok);
-    await renderStep();
+    const onCodeResent = jest.fn();
+    await renderStep({ onCodeResent });
 
     await fireEvent.press(screen.getByText(t('auth.codeResend')));
     await flush();
 
+    expect(onCodeResent).toHaveBeenCalledTimes(1);
     expect(mockSendSignupCode).toHaveBeenCalledWith(EMAIL);
     expect(eventsNamed('EMAIL_CODE_SENT')).toEqual([
       ['EMAIL_CODE_SENT', { source: EMAIL_CODE_SOURCE.RESEND }],
@@ -345,11 +384,13 @@ describe('EmailCodeStep', () => {
 
   it('resend rate-limited 42 s shows a 42 s countdown and no error', async () => {
     mockSendSignupCode.mockResolvedValue({ error: sendRateLimited(42) });
-    await renderStep();
+    const onCodeResent = jest.fn();
+    await renderStep({ onCodeResent });
 
     await fireEvent.press(screen.getByText(t('auth.codeResend')));
     await flush();
 
+    expect(onCodeResent).not.toHaveBeenCalled();
     expect(screen.getByText(t('auth.codeResendIn', { seconds: 42 }))).toBeTruthy();
     expect(screen.queryByText(t('auth.codeGenericError'))).toBeNull();
     expect(screen.queryByText(t('auth.codeConnectionError'))).toBeNull();

@@ -641,6 +641,11 @@ export const AnalyticsEvent = {
    */
   EMAIL_CODE_RECOVERED: 'email_code_recovered',
   /**
+   * issue 365 T13a (FS-OB3): an onboarding code step saved before a relaunch was
+   * reopened for its address. `age_s`: seconds since the code was sent. Never the address.
+   */
+  EMAIL_CODE_STEP_RESTORED: 'email_code_step_restored',
+  /**
    * Auth hydration exceeded AUTH_HYDRATION_TIMEOUT_MS on a foregrounded launch.
    * A latency signal, not a defect: what matters is its RATE against launches,
    * which is why it lives here and not in Sentry's issue stream. (BUG-4 Q2)

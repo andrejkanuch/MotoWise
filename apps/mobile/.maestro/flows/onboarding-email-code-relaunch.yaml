@@ -1,0 +1,27 @@
+# Email-code confirmation E2E, middle part (RELAUNCH=1): the rider leaves to
+# read the email and the app is killed while the code step is open
+# (issue 365 T13a, friction spec FS-OB3).
+#
+# Run through scripts/run-onboarding-email-code-e2e.sh with RELAUNCH=1, after
+# part 1 (onboarding-email-code-signup.yaml) left the code step open and before
+# part 2 (onboarding-email-code-verify.yaml) types the code. Does NOT clear
+# state: the relaunch must find the saved address on the device.
+#
+# Red on main: the relaunch lands on the account step's sign-in options.
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+tags:
+  - email-code
+---
+- stopApp
+- launchApp:
+    clearState: false
+    stopApp: true
+- extendedWaitUntil:
+    visible: "Enter your code"
+    timeout: 30000
+- assertVisible: "We sent a 6-digit code to ${TEST_EMAIL}"
+# The code step needs no password: verifyOtp works with the address alone.
+- assertNotVisible: "Password"
+- assertVisible: "I already confirmed via the link"

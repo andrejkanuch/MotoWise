@@ -85,6 +85,9 @@ the flows below.
   `delivered+<label>@resend.dev` test inbox (reports delivered, never bounces). The server side of
   the same contract runs in CI on every relevant PR: `scripts/e2e-email-confirmation.sh`
   (`.github/workflows/email-confirmation-e2e.yml`).
+  `RELAUNCH=1` adds `flows/onboarding-email-code-relaunch.yaml` between the two parts (issue 365
+  T13a, FS-OB3): it kills and relaunches the app with its state kept and asserts the code step
+  reopens for the same address with no password field.
 - **`flows/onboarding-signin-unfinished-account.yaml` + `flows/onboarding-signin-onboarded-account.yaml`** —
   returning-rider sign-in from Welcome (issue 365 T11, FS-OB1a). A confirmed account that has not
   finished onboarding must leave "Welcome back." for Experience with the "Account ready" notice

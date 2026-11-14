@@ -77,9 +77,32 @@ jest.mock('../../lib/supabase', () => ({
   },
 }));
 
-// The screen reads `bikeData` from the onboarding store for its Back route.
+// The screen reads `bikeData` from the onboarding store for its Back route, and
+// `accountDraft` for the part of the step a relaunch returns to (issue 365 T13a).
+const mockOnboardingState: { accountDraft: { mode: string } | null } = { accountDraft: null };
+const mockSetAccountDraft = jest.fn((draft: { mode: string } | null) => {
+  mockOnboardingState.accountDraft = draft;
+});
 jest.mock('../../stores/onboarding.store', () => ({
-  useOnboardingStore: { getState: () => ({ bikeData: null, setCodeStepPending: () => {} }) },
+  ACCOUNT_DRAFT_MODE: { EMAIL: 'email', CODE: 'code' },
+  useOnboardingStore: {
+    getState: () => ({
+      bikeData: null,
+      accountDraft: mockOnboardingState.accountDraft,
+      setCodeStepPending: () => {},
+      setAccountDraft: mockSetAccountDraft,
+    }),
+  },
+}));
+
+const mockSaveEmailDraft = jest.fn(async (_draft: unknown) => {});
+const mockReadEmailDraft = jest.fn(async (): Promise<unknown> => null);
+const mockClearEmailDraft = jest.fn(async () => {});
+jest.mock('../../lib/onboarding-email-draft', () => ({
+  ...jest.requireActual('../../lib/onboarding-email-draft'),
+  saveEmailDraft: (draft: unknown) => mockSaveEmailDraft(draft),
+  readEmailDraft: () => mockReadEmailDraft(),
+  clearEmailDraft: () => mockClearEmailDraft(),
 }));
 jest.mock('../../stores/auth.store', () => {
   const { create } = require('zustand');
@@ -96,6 +119,7 @@ import { Alert, BackHandler } from 'react-native';
 import AccountScreen from '../../app/(onboarding)/account';
 import { OB_ROUTE } from '../../config/onboarding';
 import i18n from '../../i18n';
+import { resetEmailDraftRestoreClaim } from '../../lib/onboarding-email-draft';
 import { useAuthStore } from '../../stores/auth.store';
 
 const EMAIL = 'rider@example.com';
@@ -153,6 +177,8 @@ function eventsNamed(name: string) {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockOnboardingState.accountDraft = null;
+  mockReadEmailDraft.mockResolvedValue(null);
   useAuthStore.setState({ session: null });
   alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
   backListeners = [];
@@ -168,6 +194,8 @@ beforeEach(() => {
 
 afterEach(() => {
   jest.restoreAllMocks();
+  // Each test is a new launch: a saved draft may restore again.
+  resetEmailDraftRestoreClaim();
 });
 
 describe('AccountScreen email signup', () => {
@@ -315,5 +343,85 @@ describe('AccountScreen email signup', () => {
       ['AUTH_EMAIL_SUBMITTED', { surface: 'onboarding_account', mode: 'signup' }],
     ]);
     expect(JSON.stringify(mockTrackEvent.mock.calls)).not.toContain(EMAIL);
+  });
+});
+
+// issue 365 T13a (FS-OB3): the rider leaves to read the email and the app is killed.
+describe('AccountScreen after a relaunch', () => {
+  const HOUR = 60 * 60 * 1000;
+
+  it('saves the address and send time on signup, never the password, and records the code step', async () => {
+    mockSignUp.mockResolvedValue(newUser);
+    await submitSignup();
+
+    expect(mockSaveEmailDraft).toHaveBeenCalledWith({
+      email: EMAIL,
+      codeSentAt: expect.any(Number),
+    });
+    expect(JSON.stringify(mockSaveEmailDraft.mock.calls)).not.toContain(PASSWORD);
+    expect(mockOnboardingState.accountDraft).toEqual({ mode: 'code' });
+  });
+
+  it('reopens "Enter your code" for the same address, with no password field', async () => {
+    mockOnboardingState.accountDraft = { mode: 'code' };
+    mockReadEmailDraft.mockResolvedValue({ email: EMAIL, codeSentAt: Date.now() - 5 * 60_000 });
+
+    await render(<AccountScreen />);
+    await flush();
+
+    expect(screen.getByText(t('auth.codeTitle'))).toBeTruthy();
+    expect(screen.getByText(t('auth.codeSentTo', { digits: 6, email: EMAIL }))).toBeTruthy();
+    expect(screen.queryByLabelText(t('auth.password'))).toBeNull();
+    expect(eventsNamed('EMAIL_CODE_STEP_RESTORED')).toHaveLength(1);
+  });
+
+  it('"Change email" on a restored step returns to the form with the address kept', async () => {
+    mockOnboardingState.accountDraft = { mode: 'code' };
+    mockReadEmailDraft.mockResolvedValue({ email: EMAIL, codeSentAt: Date.now() - 5 * 60_000 });
+
+    await render(<AccountScreen />);
+    await flush();
+    await fireEvent.press(screen.getByText(t('auth.codeChangeEmail')));
+    await flush();
+
+    expect(codeStepShown()).toBe(false);
+    expect(screen.getByLabelText(t('auth.email')).props.value).toBe(EMAIL);
+  });
+
+  it('a code verified after the restore continues onboarding and clears the draft', async () => {
+    mockOnboardingState.accountDraft = { mode: 'code' };
+    mockReadEmailDraft.mockResolvedValue({ email: EMAIL, codeSentAt: Date.now() - 60_000 });
+    mockVerifyOtp.mockResolvedValue({ data: { session: { access_token: 'x' } }, error: null });
+
+    await render(<AccountScreen />);
+    await flush();
+    await fireEvent.changeText(screen.getByLabelText(t('auth.codeInputLabel')), '482913');
+    await flush();
+
+    expect(mockVerifyOtp).toHaveBeenCalledWith(expect.objectContaining({ email: EMAIL }));
+    expect(mockClearEmailDraft).toHaveBeenCalled();
+  });
+
+  it('after more than an hour opens the email form with the address filled in', async () => {
+    mockOnboardingState.accountDraft = { mode: 'code' };
+    mockReadEmailDraft.mockResolvedValue({ email: EMAIL, codeSentAt: Date.now() - 2 * HOUR });
+
+    await render(<AccountScreen />);
+    await flush();
+
+    expect(codeStepShown()).toBe(false);
+    expect(screen.getByLabelText(t('auth.email')).props.value).toBe(EMAIL);
+    expect(screen.getByLabelText(t('auth.password')).props.value).toBe('');
+    expect(eventsNamed('EMAIL_CODE_STEP_RESTORED')).toHaveLength(0);
+  });
+
+  it('returns to the email form the rider left, without a saved code step', async () => {
+    mockOnboardingState.accountDraft = { mode: 'email' };
+
+    await render(<AccountScreen />);
+    await flush();
+
+    expect(screen.getByLabelText(t('auth.email'))).toBeTruthy();
+    expect(codeStepShown()).toBe(false);
   });
 });
