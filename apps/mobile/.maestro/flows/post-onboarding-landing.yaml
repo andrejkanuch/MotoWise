@@ -19,7 +19,9 @@ env:
   APP_ID: com.motovault.app
 ---
 # 1. Onboard and land on Home, keeping the landing sheet on screen. "Open my
-# garage" is double-tapped: it must still land once (issue 365 T16a).
+# garage" is double-tapped: it must still land once (issue 365 T16a). On a
+# build with no paywall the second tap can open Start Ride from Home's Ride FAB;
+# onboarding.yaml closes it (the tap reached the new screen, not the CTA).
 - runFlow:
     file: onboarding.yaml
     env:

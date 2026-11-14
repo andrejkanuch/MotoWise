@@ -78,6 +78,26 @@ env:
             - doubleTapOn:
                 text: "Open my garage"
                 optional: true
+            # The second tap lands ~100 ms after the first. With no paywall to
+            # present (RevenueCat keys empty) Home is already up by then, so the
+            # tap reaches Home's centre Ride FAB and opens Start Ride. That is
+            # the tap landing on the new screen, not the CTA running twice:
+            # close Start Ride; post-onboarding-landing.yaml step 1b still
+            # asserts the personalizing screen never comes back.
+            - extendedWaitUntil:
+                visible:
+                  id: "start-ride-screen"
+                timeout: 3000
+                optional: true
+            - runFlow:
+                when:
+                  visible:
+                    id: "start-ride-screen"
+                commands:
+                  - tapOn:
+                      text: "Close"
+                      childOf:
+                        id: "start-ride-screen"
       - tapOn:
           text: "Open my garage"
           optional: true
