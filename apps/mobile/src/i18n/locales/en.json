@@ -829,7 +829,7 @@
   "checklist": {
     "getStarted": "Get Started",
     "progressLabel": "{{completed}} of {{total}}",
-    "seeFirstRideStats": "See your first ride stats",
+    "recordFirstRide": "Record your first ride",
     "findRouteNearYou": "Find a route near you",
     "trackFirstExpense": "Track your first expense",
     "completeBikeProfile": "Complete your bike profile",

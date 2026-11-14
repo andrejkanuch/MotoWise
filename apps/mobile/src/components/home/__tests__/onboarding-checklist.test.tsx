@@ -15,7 +15,8 @@ jest.mock('expo-haptics', () => ({
   notificationAsync: jest.fn(),
   NotificationFeedbackType: { Success: 'success' },
 }));
-jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn() }) }));
+const mockPush = jest.fn();
+jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
 
 const mockFetcher = jest.fn();
 jest.mock('@/lib/graphql-client', () => ({
@@ -30,7 +31,7 @@ import {
   RideStatus,
 } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import '@/i18n';
 import { AnalyticsEvent, trackEvent } from '@/lib/analytics';
 import {
@@ -53,19 +54,29 @@ const CARD_ITEMS = [
 
 interface Garage {
   photo?: string | null;
+  /** Each a ride over both floors (10 min, 5 km) unless `rides` says otherwise. */
   rideStatuses?: RideStatus[];
+  rides?: { status: RideStatus; durationS: number | null; distanceM: number | null }[];
   expenseCount?: number;
   scansUsed?: number;
 }
 
-function serve({ photo = null, rideStatuses = [], expenseCount = 0, scansUsed = 0 }: Garage) {
+const REAL_RIDE = { durationS: 600, distanceM: 5000 };
+
+function serve({
+  photo = null,
+  rideStatuses = [],
+  rides = rideStatuses.map((status) => ({ status, ...REAL_RIDE })),
+  expenseCount = 0,
+  scansUsed = 0,
+}: Garage) {
   mockFetcher.mockImplementation((document: unknown) => {
     if (document === MyMotorcyclesDocument) {
       return Promise.resolve({ myMotorcycles: [{ id: BIKE_ID, primaryPhotoUrl: photo }] });
     }
     if (document === MyRidesDocument) {
       return Promise.resolve({
-        myRides: { edges: rideStatuses.map((status, i) => ({ node: { id: `r${i}`, status } })) },
+        myRides: { edges: rides.map((ride, i) => ({ node: { id: `r${i}`, ...ride } })) },
       });
     }
     if (document === ExpenseDashboardDocument) {
@@ -242,6 +253,71 @@ describe('Get Started card, from the rider’s data', () => {
     expect(documents).not.toContain(MyRidesDocument);
     expect(documents).not.toContain(ExpenseDashboardDocument);
     expect(documents).not.toContain(ReceiptScanQuotaDocument);
+  });
+});
+
+// FS-PO10 (issue 365 T10): a row the rider's data completes never ticks on a
+// tap; only the data does. The first-ride row opens Start Ride.
+describe('Get Started card, taps', () => {
+  it('a tap on the first-ride row opens Start Ride and does not tick it', async () => {
+    serve({});
+    showCard();
+    await renderCard();
+    expect(await screen.findByText('Record your first ride')).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId(`checklist-row-${CHECKLIST_ITEM_ID.FIRST_RIDE}`));
+    });
+
+    expect(mockPush).toHaveBeenCalledWith('/(modals)/start-ride');
+    expect(useChecklistStore.getState().completedItems).toEqual([]);
+    expect(completions()).toHaveLength(0);
+    expect(screen.getByText('0 of 5')).toBeTruthy();
+  });
+
+  it('a tap on any data-backed row does not call completeItem', async () => {
+    serve({});
+    showCard();
+    await renderCard();
+    expect(await screen.findByText('0 of 5')).toBeTruthy();
+    const completeItem = jest.spyOn(useChecklistStore.getState(), 'completeItem');
+    useChecklistStore.setState({ completeItem });
+
+    for (const id of [
+      CHECKLIST_ITEM_ID.FIRST_RIDE,
+      CHECKLIST_ITEM_ID.FIRST_EXPENSE,
+      CHECKLIST_ITEM_ID.COMPLETE_BIKE,
+      CHECKLIST_ITEM_ID.SCAN_RECEIPT,
+    ]) {
+      await act(async () => {
+        fireEvent.press(screen.getByTestId(`checklist-row-${id}`));
+      });
+    }
+
+    expect(completeItem).not.toHaveBeenCalled();
+    expect(useChecklistStore.getState().completedItems).toEqual([]);
+  });
+
+  it('a tap still ticks a row no data stands behind', async () => {
+    serve({});
+    showCard();
+    await renderCard();
+    expect(await screen.findByText('0 of 5')).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId(`checklist-row-${CHECKLIST_ITEM_ID.BROWSE_ROUTES}`));
+    });
+
+    expect(useChecklistStore.getState().completedItems).toEqual([CHECKLIST_ITEM_ID.BROWSE_ROUTES]);
+  });
+
+  it('a saved ride under the floors does not tick the first ride', async () => {
+    serve({ rides: [{ status: RideStatus.Completed, durationS: 45, distanceM: 0 }] });
+    showCard();
+    await renderCard();
+
+    expect(await screen.findByText('0 of 5')).toBeTruthy();
+    expect(completions()).toHaveLength(0);
   });
 });
 

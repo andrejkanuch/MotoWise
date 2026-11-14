@@ -1,8 +1,25 @@
 import { type MyMotorcyclesQuery, type MyRidesQuery, RideStatus } from '@motovault/graphql';
 import { CHECKLIST_ITEM_ID, type ChecklistItemId } from '../stores/checklist.store';
+import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../utils/ride-constants';
 
 type Bike = Pick<MyMotorcyclesQuery['myMotorcycles'][number], 'id' | 'primaryPhotoUrl'>;
-type Ride = Pick<MyRidesQuery['myRides']['edges'][number]['node'], 'status'>;
+type Ride = Pick<
+  MyRidesQuery['myRides']['edges'][number]['node'],
+  'status' | 'durationS' | 'distanceM'
+>;
+
+/**
+ * A finished ride over both ride floors. Anything shorter is most likely a
+ * mis-tap or a test tap (`utils/ride-constants.ts`), not the rider's first ride.
+ * A missing duration or distance counts as 0.
+ */
+function isRealRide(ride: Ride): boolean {
+  return (
+    ride.status === RideStatus.Completed &&
+    (ride.durationS ?? 0) >= MIN_RIDE_ELAPSED_S &&
+    (ride.distanceM ?? 0) >= MIN_RIDE_DISTANCE_M
+  );
+}
 
 /**
  * What the rider's own data says about the Get Started items. Each field is
@@ -20,14 +37,16 @@ export interface ChecklistSignals {
 }
 
 /**
- * The items real data completes, and the rule for each. The rest (routes,
- * dashboard) have no data behind them and stay tap-to-complete.
+ * The items real data completes, and the rule for each. Only the data ticks
+ * them: a tap on their row just opens the screen where the rider does it. The
+ * rest (routes, dashboard) have no data behind them and stay tap-to-complete.
  *
  *  - COMPLETE_BIKE: a bike with a photo. Having a bike is not enough: nearly
  *    every rider adds one during onboarding, so the item would tick itself for
  *    everyone and stop meaning "complete your bike profile". The photo is the
  *    one profile field onboarding leaves optional and the garage asks for.
- *  - FIRST_RIDE: a finished ride (not one still recording or paused).
+ *  - FIRST_RIDE: a finished ride (not one still recording or paused) of at
+ *    least `MIN_RIDE_ELAPSED_S` and `MIN_RIDE_DISTANCE_M`.
  *  - FIRST_EXPENSE: an expense on any bike.
  *  - SCAN_RECEIPT: a receipt scan this month. The server keeps no lifetime
  *    count and expenses do not record that they came from a scan, so a scan in
@@ -41,10 +60,7 @@ const DATA_RULES: ReadonlyMap<string, (signals: ChecklistSignals) => boolean> = 
     CHECKLIST_ITEM_ID.COMPLETE_BIKE,
     ({ bikes }) => bikes?.some((bike) => Boolean(bike.primaryPhotoUrl)) ?? false,
   ],
-  [
-    CHECKLIST_ITEM_ID.FIRST_RIDE,
-    ({ rides }) => rides?.some((ride) => ride.status === RideStatus.Completed) ?? false,
-  ],
+  [CHECKLIST_ITEM_ID.FIRST_RIDE, ({ rides }) => rides?.some(isRealRide) ?? false],
   [
     CHECKLIST_ITEM_ID.FIRST_EXPENSE,
     ({ expenseCounts }) => expenseCounts.some((count) => (count ?? 0) > 0),

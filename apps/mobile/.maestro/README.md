@@ -180,6 +180,11 @@ the flows below.
 - **`flows/ride-standstill-not-saved.yaml`** — issue 365 T09 (FS-PO4b): a standstill ride ended from
   the guard ("End without saving") is discarded: no "RIDE SAVED", a "Not saved" toast on Home, and My
   Rides stays empty (`rides-empty-cta`). Red on `origin/main`. `test:e2e:ride-standstill-not-saved`.
+- **`flows/checklist-first-ride.yaml`** — FS-PO10 (issue 365 T10): the Get Started "Record your
+  first ride" row (`checklist-row-first_ride`) opens Start Ride (`start-ride-screen`) and is still
+  unticked after closing it. Red on `origin/main`, green on iOS and Android 2026-11-14. Maestro's
+  `checked:` selector reads the row state on Android only (iOS reports `checked=false` on every
+  node), so the flow also asserts the "0 of 5" counter. `test:e2e:checklist-first-ride`.
 - **`flows/bike-hub-overview.yaml`** — the redesigned bike screen (bike-detail redesign R1): four
   segments, Overview "Log" pill → Log sheet → Note sheet → save, the Notes screen with delete + Undo,
   and the Odometer sheet from the header chip. Needs a backend with migrations 00180–00182 (see

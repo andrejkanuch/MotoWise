@@ -2266,7 +2266,7 @@
   "checklist": {
     "getStarted": "Primeros pasos",
     "progressLabel": "{{completed}} de {{total}}",
-    "seeFirstRideStats": "Mira las estadísticas de tu primera rodada",
+    "recordFirstRide": "Graba tu primera rodada",
     "findRouteNearYou": "Encuentra una ruta cerca de ti",
     "trackFirstExpense": "Registra tu primer gasto",
     "completeBikeProfile": "Completa el perfil de tu moto",

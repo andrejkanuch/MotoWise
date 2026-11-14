@@ -2309,7 +2309,7 @@
   "checklist": {
     "getStarted": "Začíname",
     "progressLabel": "{{completed}} z {{total}}",
-    "seeFirstRideStats": "Pozri si štatistiky prvej jazdy",
+    "recordFirstRide": "Zaznamenaj svoju prvú jazdu",
     "findRouteNearYou": "Nájdi trasu vo svojom okolí",
     "trackFirstExpense": "Zapíš svoj prvý výdavok",
     "completeBikeProfile": "Dokonči profil motorky",

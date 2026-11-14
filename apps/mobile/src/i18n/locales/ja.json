@@ -2231,7 +2231,7 @@
   "checklist": {
     "getStarted": "はじめよう",
     "progressLabel": "{{completed}} / {{total}}",
-    "seeFirstRideStats": "最初のライドの統計を見る",
+    "recordFirstRide": "最初のライドを記録する",
     "findRouteNearYou": "近くのルートを探す",
     "trackFirstExpense": "最初の支出を記録する",
     "completeBikeProfile": "バイクのプロフィールを完成させる",

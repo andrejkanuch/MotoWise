@@ -2231,7 +2231,7 @@
   "checklist": {
     "getStarted": "Mulai",
     "progressLabel": "{{completed}} dari {{total}}",
-    "seeFirstRideStats": "Lihat statistik perjalanan pertamamu",
+    "recordFirstRide": "Rekam perjalanan pertamamu",
     "findRouteNearYou": "Temukan rute di dekatmu",
     "trackFirstExpense": "Catat pengeluaran pertamamu",
     "completeBikeProfile": "Lengkapi profil motormu",

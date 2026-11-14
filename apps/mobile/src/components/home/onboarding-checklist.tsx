@@ -17,7 +17,7 @@ import Animated, { FadeInUp, FadeOutDown, ZoomIn } from 'react-native-reanimated
 import { useShallow } from 'zustand/react/shallow';
 import { GARAGE_ROUTE, HOME_ROUTE, TAB_ROUTE } from '../../config/routes';
 import { tDynamic } from '../../i18n/t-dynamic';
-import { deriveCompletedItems } from '../../lib/checklist-signals';
+import { deriveCompletedItems, isDataBackedItem } from '../../lib/checklist-signals';
 import {
   ALL_CHECKLIST_ITEMS,
   CHECKLIST_COMPLETION_TRIGGER,
@@ -155,7 +155,10 @@ export function OnboardingChecklist() {
               key={item.id}
               testID={`checklist-row-${item.id}`}
               onPress={() => {
-                if (!isCompleted) {
+                // A row the rider's data completes (a ride, an expense, a bike
+                // photo, a scan) only opens the screen to do it; the data ticks
+                // it later. Only rows with no data behind them tick on a tap.
+                if (!isCompleted && !isDataBackedItem(item.id)) {
                   triggerNotification(Haptics.NotificationFeedbackType.Success);
                   completeItem(item.id);
                 }
