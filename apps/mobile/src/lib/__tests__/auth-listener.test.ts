@@ -28,13 +28,17 @@ import { AUTH_HYDRATION } from '../auth-hydration';
  * calls these tests assert are gone (a reader needs to know why `getSession()`
  * is absent), so matching against the raw source would always fail.
  */
-const LAYOUT_CODE = readFileSync(join(__dirname, '../../app/_layout.tsx'), 'utf8')
-  .split('\n')
-  .filter((line) => {
-    const trimmed = line.trim();
-    return !trimmed.startsWith('//') && !trimmed.startsWith('*') && !trimmed.startsWith('/*');
-  })
-  .join('\n');
+const codeOf = (relativePath: string) =>
+  readFileSync(join(__dirname, relativePath), 'utf8')
+    .split('\n')
+    .filter((line) => {
+      const trimmed = line.trim();
+      return !trimmed.startsWith('//') && !trimmed.startsWith('*') && !trimmed.startsWith('/*');
+    })
+    .join('\n');
+const LAYOUT_CODE = codeOf('../../app/_layout.tsx');
+/** The sign-out local cleanup the listener calls, moved out of the layout (issue 365 T15). */
+const CLEANUP_CODE = codeOf('../../features/auth/clear-local-user-data.ts');
 
 const fakeSession = { access_token: 't', user: { id: 'u1' } } as unknown as Session;
 
@@ -67,7 +71,8 @@ describe('_layout.tsx auth wiring', () => {
   it('captures no Sentry messages — telemetry goes to breadcrumbs, not issues', () => {
     expect(LAYOUT_CODE).not.toContain('captureMessage(');
     expect(LAYOUT_CODE).toContain('addBreadcrumb(AUTH_HYDRATION_TIMEOUT_MESSAGE');
-    expect(LAYOUT_CODE).toContain('addBreadcrumb(SIGNOUT_UNSYNCED_MESSAGE');
+    expect(CLEANUP_CODE).not.toContain('captureMessage(');
+    expect(CLEANUP_CODE).toContain('addBreadcrumb(SIGNOUT_UNSYNCED_MESSAGE');
   });
 
   // Raising the timeout alone was explicitly NOT the fix, but the old 8s budget

@@ -13,6 +13,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const LAYOUT_SOURCE = readFileSync(path.join(__dirname, '..', 'app', '_layout.tsx'), 'utf8');
+/** The sign-out branch's local cleanup, moved out of the layout (issue 365 T15). */
+const CLEANUP_SOURCE = readFileSync(
+  path.join(__dirname, '..', 'features', 'auth', 'clear-local-user-data.ts'),
+  'utf8',
+);
 
 /** The listener body, from the session branch to the ref update. */
 function listenerSource(): { sessionBranch: string; signOutBranch: string } {
@@ -36,10 +41,12 @@ describe('root layout auth listener and the Get Started checklist', () => {
 
   it('keeps the checklist on sign-out, including a forced one', () => {
     const { signOutBranch } = listenerSource();
-    // The forced path is the same branch: it clears the onboarding run...
-    expect(signOutBranch).toContain('useOnboardingStore.getState().resetForSignOut();');
+    // The forced path is the same branch: its local cleanup clears the onboarding run...
+    expect(signOutBranch).toContain('clearLocalUserData();');
+    expect(CLEANUP_SOURCE).toContain('useOnboardingStore.getState().resetForSignOut();');
     // ...but never the owner-keyed checklist.
     expect(signOutBranch).not.toMatch(/useChecklistStore\.getState\(\)\.reset\(\)/);
     expect(LAYOUT_SOURCE).not.toMatch(/useChecklistStore\.getState\(\)\.reset\(\)/);
+    expect(CLEANUP_SOURCE).not.toMatch(/useChecklistStore\.getState\(\)\.reset\(\)/);
   });
 });
