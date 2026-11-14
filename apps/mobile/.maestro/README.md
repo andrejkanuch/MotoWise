@@ -235,7 +235,7 @@ the flows below.
   the review step, taps Analyze and asserts the localized "You're offline. Your answers are kept…"
   line with "Try Again", and no "Failed to analyze" / "Network request failed". No request is sent,
   so nothing is seeded. The 10 s / 75 s / 240 s timings (part b) and iOS are the jest suite
-  `new-timeout.test.tsx`. **Authored from source 2026-11-14, pending on-device validation.**
+  `new-timeout.test.tsx`. **Validated on the Android emulator 2026-11-14** (red on main, green on the fix).
   `test:e2e:diagnose-offline` on the `e2e-android-local` build.
 
   All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /

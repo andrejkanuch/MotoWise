@@ -32,9 +32,17 @@ jest.mock('@/lib/subscription', () => ({
   presentPaywall: (...args: unknown[]) => mockPresentPaywall(...args),
 }));
 let mockOnline = true;
+// Android with a network the OS connectivity check has not validated (a VPN, a
+// blocked check host): connected, but `isInternetReachable` is false.
+let mockUnvalidated = false;
 jest.mock('expo-network', () => ({
+  NetworkStateType: { NONE: 'NONE', UNKNOWN: 'UNKNOWN', WIFI: 'WIFI' },
   getNetworkStateAsync: () =>
-    Promise.resolve({ isConnected: mockOnline, isInternetReachable: mockOnline }),
+    Promise.resolve({
+      type: mockOnline ? 'WIFI' : 'NONE',
+      isConnected: mockOnline,
+      isInternetReachable: mockOnline && !mockUnvalidated,
+    }),
   addNetworkStateListener: () => ({ remove: () => {} }),
 }));
 // The real English copy, so the assertions read what a rider reads (and can
@@ -193,6 +201,7 @@ beforeEach(() => {
   jest.useFakeTimers();
   jest.clearAllMocks();
   mockOnline = true;
+  mockUnvalidated = false;
   quotaReply = { used: 0 };
   submitReply = 'hang';
   serveApi();
@@ -328,6 +337,15 @@ describe('diagnose submit: offline and error copy', () => {
     );
     expect(mockTrackEvent).not.toHaveBeenCalledWith('diagnostic_submitted', expect.anything());
     expect(useDiagnosticFlowStore.getState().freeTextDescription).toBe(PROBLEM);
+  });
+
+  it('a connected network the OS has not validated still sends', async () => {
+    mockUnvalidated = true;
+    await openFilledReviewStep();
+    await pressAnalyze();
+
+    expect(submitCalls()).toBe(1);
+    expect(screen.queryByText(OFFLINE_COPY)).toBeNull();
   });
 
   it.each([

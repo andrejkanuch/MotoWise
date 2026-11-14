@@ -46,14 +46,18 @@ const FAILURE_COPY: Record<
 };
 
 /**
- * Only a definite "no connection" blocks the send: `isInternetReachable` can be
- * null/undefined while the OS is still deciding, and a failed read of the
- * state sends anyway (the request then fails as it would have).
+ * Only a definite "no connection" blocks the send: no active network at all
+ * (airplane mode, no Wi-Fi or cellular). `isInternetReachable` is not used: on
+ * Android it needs the OS connectivity check (NET_CAPABILITY_VALIDATED), which
+ * stays false on some working networks (VPNs, blocked check host) and right
+ * after reconnecting, and expo-network reports `UNKNOWN` with both flags false
+ * when it cannot read the state. Those cases send anyway (the request then
+ * fails as it would have), so a rider is never locked out of submitting.
  */
 async function isDefinitelyOffline(): Promise<boolean> {
   try {
     const net = await Network.getNetworkStateAsync();
-    return net.isConnected === false || net.isInternetReachable === false;
+    return net.type === Network.NetworkStateType.NONE;
   } catch {
     return false;
   }

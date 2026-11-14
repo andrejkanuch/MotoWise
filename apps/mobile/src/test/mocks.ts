@@ -38,8 +38,13 @@ export function makeMmkvMock() {
 /** A `expo-network` stand-in fixed to the given connectivity. */
 export function mockNetwork(online: boolean) {
   return {
+    NetworkStateType: { NONE: 'NONE', UNKNOWN: 'UNKNOWN', WIFI: 'WIFI' },
     getNetworkStateAsync: () =>
-      Promise.resolve({ isConnected: online, isInternetReachable: online }),
+      Promise.resolve({
+        type: online ? 'WIFI' : 'NONE',
+        isConnected: online,
+        isInternetReachable: online,
+      }),
     addNetworkStateListener: () => ({ remove: () => {} }),
   };
 }
