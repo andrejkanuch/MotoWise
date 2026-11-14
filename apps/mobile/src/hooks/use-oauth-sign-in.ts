@@ -70,8 +70,17 @@ export function useOAuthSignIn(surface: AuthSurface): OAuthHandlers {
       method: AuthMethod,
     ): Promise<void> => {
       // A tap ignored by the in-flight guard leaves the pending one's busy state alone.
-      const ran = await signIn(provider, method, surface, () => setBusyProvider(method));
-      if (ran && mountedRef.current) setBusyProvider(null);
+      // A sign-in that started always clears it, even if something in it threw, so
+      // the buttons never stay disabled.
+      let started = false;
+      try {
+        await signIn(provider, method, surface, () => {
+          started = true;
+          setBusyProvider(method);
+        });
+      } finally {
+        if (started && mountedRef.current) setBusyProvider(null);
+      }
     };
     return {
       onApple: () => run(signInWithApple, AUTH_METHOD.APPLE),
@@ -96,13 +105,12 @@ async function signIn(
   method: AuthMethod,
   surface: AuthSurface,
   onStart: () => void,
-): Promise<boolean> {
-  if (oauthInFlight) return false;
+): Promise<void> {
+  if (oauthInFlight) return;
   oauthInFlight = true;
-  onStart();
   try {
+    onStart();
     await runSignIn(provider, method, surface);
-    return true;
   } finally {
     oauthInFlight = false;
   }

@@ -102,6 +102,7 @@ export function OAuthButtons({ onApple, onGoogle, busyProvider = null }: OAuthBu
           onPress={onApple}
           disabled={disabled}
           accessibilityRole="button"
+          accessibilityLabel={t('auth.continueWithApple')}
           accessibilityState={{ disabled, busy: appleBusy }}
           style={({ pressed }) => [
             authButton(oc.textPrimary),
@@ -122,6 +123,9 @@ export function OAuthButtons({ onApple, onGoogle, busyProvider = null }: OAuthBu
         onPress={onGoogle}
         disabled={disabled}
         accessibilityRole="button"
+        // A label keeps Android's content description non-empty, so it is rewritten
+        // when busy clears (without one, a stale "busy" stays after the sign-in settles).
+        accessibilityLabel={t('auth.continueWithGoogle')}
         accessibilityState={{ disabled, busy: googleBusy }}
         android_ripple={{ color: oc.line, foreground: true }}
         style={({ pressed }) => [

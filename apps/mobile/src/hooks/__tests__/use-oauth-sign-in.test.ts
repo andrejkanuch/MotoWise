@@ -455,4 +455,23 @@ describe('useOAuthSignIn busyProvider (issue 365 T12)', () => {
 
     expect(result.current.busyProvider).toBeNull();
   });
+
+  it('clears even when presenting the error throws, and the next tap goes through', async () => {
+    mockSignInWithGoogle.mockRejectedValueOnce(new Error('boom'));
+    mockPresentOAuthError.mockImplementationOnce(() => {
+      throw new Error('alert failed');
+    });
+    const { result } = await renderHook(() => useOAuthSignIn(SURFACE));
+
+    await act(async () => {
+      await result.current.onGoogle().catch(() => {});
+    });
+    expect(result.current.busyProvider).toBeNull();
+
+    mockSignInWithGoogle.mockResolvedValueOnce({ isNewUser: false });
+    await act(async () => {
+      await result.current.onGoogle();
+    });
+    expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
+  });
 });
