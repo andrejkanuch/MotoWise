@@ -58,7 +58,7 @@
     "app/(onboarding)/personalizing.tsx": 597,
     "app/(onboarding)/reveal.tsx": 347,
     "app/(tabs)/(diagnose)/[id].tsx": 500,
-    "app/(tabs)/(discover)/index.tsx": 1093,
+    "app/(tabs)/(discover)/index.tsx": 1059,
     "app/(tabs)/(garage)/add-bike.tsx": 387,
     "app/(tabs)/(garage)/add-document.tsx": 404,
     "app/(tabs)/(garage)/add-expense.tsx": 370,

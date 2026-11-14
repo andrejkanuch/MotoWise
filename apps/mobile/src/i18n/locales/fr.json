@@ -2240,7 +2240,11 @@
     "routesFoundCount_one": "{{count}} itinéraire trouvé",
     "routesFoundCount_few": "{{count}} itinéraires trouvés",
     "routesFoundCount_many": "{{count}} itinéraires trouvés",
-    "routesFoundCount_other": "{{count}} itinéraires trouvés"
+    "routesFoundCount_other": "{{count}} itinéraires trouvés",
+    "loadErrorTitle": "Impossible de charger les itinéraires",
+    "loadErrorBody": "Vérifiez votre connexion et réessayez.",
+    "retry": "Réessayer",
+    "loadingRoutes": "Chargement des itinéraires"
   },
   "mapPicker": {
     "title": "Style de carte",
@@ -2253,7 +2257,11 @@
     "viewAll": "Tout voir",
     "editorsPick": "Coup de cœur",
     "elevLabel": "{{value}} m D+",
-    "ratingLabel": "Note : {{value}}"
+    "ratingLabel": "Note : {{value}}",
+    "locationTitle": "Itinéraires près de chez vous",
+    "locationReason": "Partagez votre position pour voir les balades dans votre pays. Elle sert uniquement à trouver des itinéraires près de vous.",
+    "useLocation": "Utiliser ma position",
+    "openSettings": "Activer dans Réglages"
   },
   "checklist": {
     "getStarted": "Pour bien démarrer",

@@ -2205,7 +2205,11 @@
     "routesFoundCount_one": "{{count}} rota bulundu",
     "routesFoundCount_few": "{{count}} rota bulundu",
     "routesFoundCount_many": "{{count}} rota bulundu",
-    "routesFoundCount_other": "{{count}} rota bulundu"
+    "routesFoundCount_other": "{{count}} rota bulundu",
+    "loadErrorTitle": "Rotalar yüklenemedi",
+    "loadErrorBody": "Bağlantını kontrol edip tekrar dene.",
+    "retry": "Tekrar dene",
+    "loadingRoutes": "Rotalar yükleniyor"
   },
   "mapPicker": {
     "title": "Harita Stili",
@@ -2218,7 +2222,11 @@
     "viewAll": "Tümünü gör",
     "editorsPick": "Editörün Seçimi",
     "elevLabel": "{{value}}m yükselti",
-    "ratingLabel": "{{value}} puan"
+    "ratingLabel": "{{value}} puan",
+    "locationTitle": "Yakınındaki rotalar",
+    "locationReason": "Ülkendeki rotaları görmek için konumunu paylaş. Yalnızca yakınındaki rotaları bulmak için kullanılır.",
+    "useLocation": "Konumumu kullan",
+    "openSettings": "Ayarlar'dan aç"
   },
   "checklist": {
     "getStarted": "Başlayalım",

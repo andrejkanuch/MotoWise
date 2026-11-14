@@ -2205,7 +2205,11 @@
     "routesFoundCount_one": "พบ {{count}} เส้นทาง",
     "routesFoundCount_few": "พบ {{count}} เส้นทาง",
     "routesFoundCount_many": "พบ {{count}} เส้นทาง",
-    "routesFoundCount_other": "พบ {{count}} เส้นทาง"
+    "routesFoundCount_other": "พบ {{count}} เส้นทาง",
+    "loadErrorTitle": "โหลดเส้นทางไม่สำเร็จ",
+    "loadErrorBody": "ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง",
+    "retry": "ลองอีกครั้ง",
+    "loadingRoutes": "กำลังโหลดเส้นทาง"
   },
   "mapPicker": {
     "title": "รูปแบบแผนที่",
@@ -2218,7 +2222,11 @@
     "viewAll": "ดูทั้งหมด",
     "editorsPick": "ตัวเลือกของบรรณาธิการ",
     "elevLabel": "{{value}}ม. ความสูง",
-    "ratingLabel": "{{value}} คะแนน"
+    "ratingLabel": "{{value}} คะแนน",
+    "locationTitle": "เส้นทางใกล้คุณ",
+    "locationReason": "แชร์ตำแหน่งของคุณเพื่อดูเส้นทางในประเทศของคุณ ใช้เพื่อค้นหาเส้นทางใกล้คุณเท่านั้น",
+    "useLocation": "ใช้ตำแหน่งของฉัน",
+    "openSettings": "เปิดในการตั้งค่า"
   },
   "checklist": {
     "getStarted": "เริ่มต้นใช้งาน",

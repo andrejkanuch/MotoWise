@@ -2283,7 +2283,11 @@
     "routesFoundCount_one": "Nájdená {{count}} trasa",
     "routesFoundCount_few": "Nájdené {{count}} trasy",
     "routesFoundCount_many": "Nájdených {{count}} trás",
-    "routesFoundCount_other": "Nájdených {{count}} trás"
+    "routesFoundCount_other": "Nájdených {{count}} trás",
+    "loadErrorTitle": "Trasy sa nepodarilo načítať",
+    "loadErrorBody": "Skontroluj pripojenie a skús to znova.",
+    "retry": "Skúsiť znova",
+    "loadingRoutes": "Načítavam trasy"
   },
   "mapPicker": {
     "title": "Štýl mapy",
@@ -2296,7 +2300,11 @@
     "viewAll": "Zobraziť všetky",
     "editorsPick": "Výber redakcie",
     "elevLabel": "{{value}}m prevýšenie",
-    "ratingLabel": "{{value}} hodnotenie"
+    "ratingLabel": "{{value}} hodnotenie",
+    "locationTitle": "Trasy v okolí",
+    "locationReason": "Zdieľaj polohu a uvidíš trasy vo svojej krajine. Používa sa len na hľadanie trás v okolí.",
+    "useLocation": "Použiť moju polohu",
+    "openSettings": "Zapnúť v Nastaveniach"
   },
   "checklist": {
     "getStarted": "Začíname",

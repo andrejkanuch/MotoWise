@@ -2205,7 +2205,11 @@
     "routesFoundCount_one": "{{count}}件のルート",
     "routesFoundCount_few": "{{count}}件のルート",
     "routesFoundCount_many": "{{count}}件のルート",
-    "routesFoundCount_other": "{{count}}件のルート"
+    "routesFoundCount_other": "{{count}}件のルート",
+    "loadErrorTitle": "ルートを読み込めませんでした",
+    "loadErrorBody": "接続を確認して、もう一度お試しください。",
+    "retry": "再試行",
+    "loadingRoutes": "ルートを読み込み中"
   },
   "mapPicker": {
     "title": "地図スタイル",
@@ -2218,7 +2222,11 @@
     "viewAll": "すべて表示",
     "editorsPick": "編集部のおすすめ",
     "elevLabel": "{{value}}m 標高差",
-    "ratingLabel": "{{value}} 評価"
+    "ratingLabel": "{{value}} 評価",
+    "locationTitle": "近くのルート",
+    "locationReason": "位置情報を共有すると、あなたの国のルートが表示されます。近くのルートを探すためだけに使います。",
+    "useLocation": "現在地を使う",
+    "openSettings": "設定でオンにする"
   },
   "checklist": {
     "getStarted": "はじめよう",

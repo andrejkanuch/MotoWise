@@ -2205,7 +2205,11 @@
     "routesFoundCount_one": "{{count}} रूट मिला",
     "routesFoundCount_few": "{{count}} रूट मिले",
     "routesFoundCount_many": "{{count}} रूट मिले",
-    "routesFoundCount_other": "{{count}} रूट मिले"
+    "routesFoundCount_other": "{{count}} रूट मिले",
+    "loadErrorTitle": "रूट लोड नहीं हो सके",
+    "loadErrorBody": "अपना कनेक्शन जाँचें और फिर से कोशिश करें।",
+    "retry": "फिर से कोशिश करें",
+    "loadingRoutes": "रूट लोड हो रहे हैं"
   },
   "mapPicker": {
     "title": "मानचित्र शैली",
@@ -2218,7 +2222,11 @@
     "viewAll": "सभी देखें",
     "editorsPick": "संपादक की पसंद",
     "elevLabel": "{{value}}m ऊंचाई",
-    "ratingLabel": "{{value}} रेटिंग"
+    "ratingLabel": "{{value}} रेटिंग",
+    "locationTitle": "आपके पास के रूट",
+    "locationReason": "अपने देश की राइड देखने के लिए अपनी लोकेशन शेयर करें। इसका इस्तेमाल सिर्फ़ आपके पास के रूट ढूँढने के लिए होता है।",
+    "useLocation": "मेरी लोकेशन इस्तेमाल करें",
+    "openSettings": "सेटिंग्स में चालू करें"
   },
   "checklist": {
     "getStarted": "शुरू करें",
