@@ -9,9 +9,14 @@
 #   3. onboarding-email-code-verify.yaml  — types the code; asserts onboarding
 #      continues to Home.
 #
+# RELAUNCH=1 adds a middle part (issue 365 T13a, FS-OB3) between 1 and 2:
+#   onboarding-email-code-relaunch.yaml — kills and relaunches the app (state
+#   kept); asserts the code step reopens for TEST_EMAIL with no password field.
+#
 # Usage:
 #   pnpm --filter @motovault/mobile test:e2e:email-code
 #   DEVICE=<simulator udid> pnpm --filter @motovault/mobile test:e2e:email-code
+#   RELAUNCH=1 sh apps/mobile/scripts/run-onboarding-email-code-e2e.sh
 #
 # E2E_VERIFY_FLOW swaps part 2 (run-onboarding-paywall-e2e.sh uses it); any
 # EXPECTED_ARM is passed through to that flow.
@@ -142,6 +147,13 @@ fi
 [ "$PART1" -eq 0 ] || exit "$PART1"
 [ -n "$USER_ID" ] || { echo "error: part 1 passed but no new account exists for $TEST_EMAIL"; exit 1; }
 echo "  signed up user id=$USER_ID"
+
+if [ "${RELAUNCH:-}" = "1" ]; then
+  echo "→ relaunch: kill the app on the code step and reopen it"
+  # shellcheck disable=SC2086
+  maestro $DEVICE_ARGS test "$MOBILE_DIR/.maestro/flows/onboarding-email-code-relaunch.yaml" \
+    --env APP_ID="$APP_ID" --env TEST_EMAIL="$TEST_EMAIL"
+fi
 
 echo "→ fetching a confirmation code for the pending signup"
 CODE=$(admin POST generate_link "$(jq -n --arg e "$TEST_EMAIL" --arg p "$TEST_PASSWORD" '{type:"signup",email:$e,password:$p}')" \

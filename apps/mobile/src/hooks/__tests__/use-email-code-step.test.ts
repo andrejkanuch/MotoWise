@@ -1,3 +1,18 @@
+const mockTrackEvent = jest.fn();
+jest.mock('../../lib/analytics', () => ({
+  trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+  AnalyticsEvent: new Proxy({}, { get: (_t, prop) => String(prop) }),
+}));
+const mockSaveEmailDraft = jest.fn(async (_draft: unknown) => {});
+const mockReadEmailDraft = jest.fn(async (): Promise<unknown> => null);
+const mockClearEmailDraft = jest.fn(async () => {});
+jest.mock('../../lib/onboarding-email-draft', () => ({
+  ...jest.requireActual('../../lib/onboarding-email-draft'),
+  saveEmailDraft: (draft: unknown) => mockSaveEmailDraft(draft),
+  readEmailDraft: () => mockReadEmailDraft(),
+  clearEmailDraft: () => mockClearEmailDraft(),
+}));
+
 import { act, renderHook } from '@testing-library/react-native';
 import { BackHandler } from 'react-native';
 import { useEmailCodeStep } from '../use-email-code-step';
@@ -29,6 +44,11 @@ beforeEach(() => {
 
 afterEach(() => {
   jest.restoreAllMocks();
+  mockTrackEvent.mockClear();
+  mockSaveEmailDraft.mockClear();
+  mockReadEmailDraft.mockReset();
+  mockReadEmailDraft.mockResolvedValue(null);
+  mockClearEmailDraft.mockClear();
 });
 
 describe('useEmailCodeStep', () => {
@@ -146,5 +166,114 @@ describe('useEmailCodeStep', () => {
     await act(async () => result.current.back());
     expect(result.current.codeStep).toBeNull();
     expect(clearPassword).toHaveBeenCalledTimes(1);
+  });
+});
+
+// issue 365 T13a (FS-OB3): the onboarding screens keep {email, codeSentAt} in
+// SecureStore while a code step is open, so a relaunch reopens it.
+describe('useEmailCodeStep with a persisted draft', () => {
+  const NOW = Date.UTC(2026, 10, 14, 9, 0, 0);
+  const MINUTE = 60_000;
+
+  beforeEach(() => {
+    jest.spyOn(Date, 'now').mockReturnValue(NOW);
+  });
+
+  it('does not touch SecureStore without persistDraft', async () => {
+    const { result } = await renderHook(() => useEmailCodeStep({ clearPassword: jest.fn() }));
+    await act(async () => result.current.open({ ...STEP }));
+
+    expect(mockReadEmailDraft).not.toHaveBeenCalled();
+    expect(mockSaveEmailDraft).not.toHaveBeenCalled();
+  });
+
+  it('persists {email, codeSentAt} on open, never the password', async () => {
+    const { result } = await renderHook(() =>
+      useEmailCodeStep({ clearPassword: jest.fn(), persistDraft: true }),
+    );
+
+    await act(async () => result.current.open({ ...STEP }));
+
+    expect(mockSaveEmailDraft).toHaveBeenCalledWith({ email: STEP.email, codeSentAt: NOW });
+    expect(JSON.stringify(mockSaveEmailDraft.mock.calls)).not.toContain(STEP.password);
+  });
+
+  it('persists a rate-limited open too', async () => {
+    const { result } = await renderHook(() =>
+      useEmailCodeStep({ clearPassword: jest.fn(), persistDraft: true }),
+    );
+
+    await act(async () => result.current.openRateLimited(STEP.email, STEP.password, 42_000));
+
+    expect(mockSaveEmailDraft).toHaveBeenCalledWith({ email: STEP.email, codeSentAt: NOW });
+  });
+
+  it('"Change email" clears the draft', async () => {
+    const { result } = await renderHook(() =>
+      useEmailCodeStep({ clearPassword: jest.fn(), persistDraft: true }),
+    );
+    await act(async () => result.current.open({ ...STEP }));
+
+    await act(async () => result.current.close());
+
+    expect(mockClearEmailDraft).toHaveBeenCalledTimes(1);
+  });
+
+  it('reopens the code step for the saved address within 1 h, without a password', async () => {
+    mockReadEmailDraft.mockResolvedValue({ email: STEP.email, codeSentAt: NOW - 20 * MINUTE });
+    const onStaleDraft = jest.fn();
+
+    const { result } = await renderHook(() =>
+      useEmailCodeStep({ clearPassword: jest.fn(), persistDraft: true, onStaleDraft }),
+    );
+    await act(async () => {});
+
+    expect(result.current.codeStep?.email).toBe(STEP.email);
+    expect(result.current.codeStep?.password).toBeUndefined();
+    expect(onStaleDraft).not.toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith('EMAIL_CODE_STEP_RESTORED', { age_s: 1200 });
+  });
+
+  it('keeps the resend wait the rider had left when it reopens', async () => {
+    mockReadEmailDraft.mockResolvedValue({ email: STEP.email, codeSentAt: NOW - 20_000 });
+
+    const { result } = await renderHook(() =>
+      useEmailCodeStep({ clearPassword: jest.fn(), persistDraft: true }),
+    );
+    await act(async () => {});
+
+    expect(result.current.codeStep?.initialCooldownMs).toBe(40_000);
+  });
+
+  it('after 1 h hands the address to the form instead of reopening the step', async () => {
+    mockReadEmailDraft.mockResolvedValue({ email: STEP.email, codeSentAt: NOW - 61 * MINUTE });
+    const onStaleDraft = jest.fn();
+
+    const { result } = await renderHook(() =>
+      useEmailCodeStep({ clearPassword: jest.fn(), persistDraft: true, onStaleDraft }),
+    );
+    await act(async () => {});
+
+    expect(result.current.codeStep).toBeNull();
+    expect(onStaleDraft).toHaveBeenCalledWith(STEP.email);
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('a step the rider opened before the read finished wins over the draft', async () => {
+    let resolveRead: (draft: unknown) => void = () => {};
+    mockReadEmailDraft.mockReturnValue(
+      new Promise((resolve) => {
+        resolveRead = resolve;
+      }),
+    );
+    const { result } = await renderHook(() =>
+      useEmailCodeStep({ clearPassword: jest.fn(), persistDraft: true }),
+    );
+
+    await act(async () => result.current.open({ email: 'new@example.com', password: 'pw' }));
+    await act(async () => resolveRead({ email: STEP.email, codeSentAt: NOW - MINUTE }));
+
+    expect(result.current.codeStep?.email).toBe('new@example.com');
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });

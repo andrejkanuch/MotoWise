@@ -22,6 +22,7 @@ import {
   sendSignupCode,
   verifySignupCode,
 } from '../../lib/email-confirmation';
+import { clearEmailDraft } from '../../lib/onboarding-email-draft';
 import { supabase } from '../../lib/supabase';
 import { space } from '../../theme/spacing';
 import { radius, type } from '../../theme/type';
@@ -183,6 +184,8 @@ export function EmailCodeStep({
     event: typeof AnalyticsEvent.EMAIL_CODE_VERIFIED | typeof AnalyticsEvent.EMAIL_CODE_RECOVERED,
   ) => {
     triggerNotification(Haptics.NotificationFeedbackType.Success);
+    // Signed in: nothing left to restore after a relaunch (issue 365 T13a).
+    void clearEmailDraft();
     trackEvent(event, { source });
     trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: EMAIL_AUTH_METHOD, surface });
   };

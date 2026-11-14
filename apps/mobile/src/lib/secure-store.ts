@@ -102,6 +102,11 @@ export const SECURE_STORE_KEY = {
    * resumes the previous install's session. See `secureStoreAuthAdapter`.
    */
   SESSION_INSTALL_ID: 'motovault.session-install-id',
+  /**
+   * The address an onboarding email code went to and when (issue 365 T13a,
+   * ruling D10). Never the password or the code. See `onboarding-email-draft`.
+   */
+  ONBOARDING_EMAIL_DRAFT: 'motovault.onboarding-email-draft',
 } as const;
 
 export type SecureStoreKey = (typeof SECURE_STORE_KEY)[keyof typeof SECURE_STORE_KEY];
