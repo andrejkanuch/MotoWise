@@ -25,6 +25,8 @@ import { AnalyticsEvent, trackEvent } from './analytics';
  * still counted; filter `below_min_ride = false` for real-ride insights.
  * `ride_auto_saved` stays as the auto-end diagnostic (idle minutes, waypoints);
  * `ride_ended` is the Stop tap, before the rider chose Save or Discard.
+ * A ride that is not kept fires `ride_discarded` instead (see trackRideDiscarded),
+ * never `ride_completed`.
  */
 export const RIDE_SAVE_TRIGGER = {
   SUMMARY: 'summary',
@@ -67,4 +69,45 @@ export function rideCompletedProperties(input: RideCompletedInput): Record<strin
 
 export function trackRideCompleted(input: RideCompletedInput): void {
   trackEvent(AnalyticsEvent.RIDE_COMPLETED, rideCompletedProperties(input));
+}
+
+/** Why an ended ride was not kept. */
+export const RIDE_DISCARD_REASON = {
+  /** Under the HUD's floors: a Start tap, not a ride (issue 365 T09, owner decision D3). */
+  BELOW_FLOOR: 'below_floor',
+  /** The rider chose Discard on the summary. */
+  RIDER: 'rider',
+} as const;
+
+export type RideDiscardReason = (typeof RIDE_DISCARD_REASON)[keyof typeof RIDE_DISCARD_REASON];
+
+/** Where the discard happened. */
+export const RIDE_DISCARD_TRIGGER = {
+  /** "End without saving" on the HUD's minimum-ride guard. */
+  GUARD: 'guard',
+  /** The headless 30-minute forgot-to-stop end (`autoEndRide`). */
+  AUTO_END: 'auto_end',
+  /** Discard on the ride summary. */
+  SUMMARY: 'summary',
+} as const;
+
+export type RideDiscardTrigger = (typeof RIDE_DISCARD_TRIGGER)[keyof typeof RIDE_DISCARD_TRIGGER];
+
+export interface RideDiscardedInput {
+  rideId: string;
+  distanceM: number;
+  durationS: number;
+  reason: RideDiscardReason;
+  trigger: RideDiscardTrigger;
+}
+
+/** `ride_discarded`: the one event for an ended ride that is deleted instead of kept. */
+export function trackRideDiscarded(input: RideDiscardedInput): void {
+  trackEvent(AnalyticsEvent.RIDE_DISCARDED, {
+    ride_id: input.rideId,
+    distance_m: Math.max(0, Math.round(input.distanceM)),
+    duration_s: Math.max(0, Math.round(input.durationS)),
+    reason: input.reason,
+    trigger: input.trigger,
+  });
 }

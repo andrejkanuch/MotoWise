@@ -2,6 +2,7 @@ import { useGlobalSearchParams, usePathname, useSegments } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { trackScreen } from '../lib/analytics';
 import { buildScreenView, screenKeyFor } from '../lib/analytics-screen';
+import { landingSheetQueue } from '../lib/landing-sheet-queue';
 import { postOnboardingLanding } from '../lib/post-onboarding-landing';
 import { useAuthStore } from '../stores/auth.store';
 
@@ -48,6 +49,9 @@ export function useScreenTracking(): void {
     const view = buildScreenView(segmentsRef.current, paramsRef.current, lastScreen.current);
     trackScreen(view.name, view.properties);
     lastScreen.current = view.name;
-    postOnboardingLanding.noteScreen(view.name, segmentsRef.current);
+    // The landing session owes the landing sheets (recall, Service plan ready; issue 365 T16b).
+    if (postOnboardingLanding.noteScreen(view.name, segmentsRef.current)) {
+      landingSheetQueue.noteLanding();
+    }
   }, [screenKey]);
 }

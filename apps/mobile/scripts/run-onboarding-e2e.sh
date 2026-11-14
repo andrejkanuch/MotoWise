@@ -23,6 +23,10 @@
 # created and its id is appended to the local E2E user ledger (e2e-mark-synthetic.sh),
 # so analytics baselines exclude it after teardown deletes it (#365 T02).
 #
+# Opt-in seeds (local stack only):
+#   E2E_SEED_DIAGNOSIS_USED=1  this month's free diagnosis is already used
+#                              (e2e-seed-diagnosis-used.sh; issue 365 T08)
+#
 # Prereq: install a STANDALONE / PREVIEW build (bundled JS, no Metro) with
 # EXPO_PUBLIC_OB_VARIANT=invested baked into its bundle, running on a booted
 # simulator/emulator. Metro-backed Expo dev-client builds are unsupported —
@@ -34,6 +38,8 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 MOBILE_DIR=$(dirname "$SCRIPT_DIR")
 # shellcheck source=./e2e-mark-synthetic.sh
 . "$SCRIPT_DIR/e2e-mark-synthetic.sh"
+# shellcheck source=./e2e-seed-diagnosis-used.sh
+. "$SCRIPT_DIR/e2e-seed-diagnosis-used.sh"
 REPO_ROOT=$(cd "$MOBILE_DIR/../.." && pwd)
 APP_ID=${APP_ID:-com.motovault.app}
 
@@ -85,6 +91,7 @@ admin() { # admin METHOD PATH [DATA]
 cleanup() {
   code=$?
   if [ -n "$USER_ID" ]; then
+    [ "${E2E_SEED_DIAGNOSIS_USED:-0}" = "1" ] && unseed_diagnosis_used "$USER_ID"
     echo "→ teardown: deleting test user $USER_ID"
     admin DELETE "users/$USER_ID" >/dev/null 2>&1 || echo "  warning: user delete failed — remove $TEST_EMAIL manually"
   fi
@@ -101,6 +108,9 @@ if [ -z "$USER_ID" ]; then
 fi
 echo "  created user id=$USER_ID"
 mark_synthetic "$USER_ID" || exit 1
+if [ "${E2E_SEED_DIAGNOSIS_USED:-0}" = "1" ]; then
+  seed_diagnosis_used "$USER_ID" || exit 1
+fi
 
 echo "→ running Maestro flow $E2E_FLOW (APP_ID=$APP_ID)"
 # Optional DISTANCE_UNIT (km|mi) reaches the service-plan flows' unit check.

@@ -212,6 +212,12 @@
     "startCta": "Iniciar um diagnóstico",
     "quotaRemaining": "Grátis este mês: restam {{count}} de {{limit}} diagnósticos",
     "quotaUsed": "O diagnóstico grátis deste mês já foi usado. Ele volta em {{date}}, ou assine o Pro para ter diagnósticos ilimitados.",
+    "limit": {
+      "usedBackOn": "O diagnóstico grátis deste mês já foi usado. Ele volta em {{date}}.",
+      "usedResetsNextMonth": "O diagnóstico grátis deste mês já foi usado. Ele renova no próximo mês.",
+      "seePro": "Ver planos Pro",
+      "done": "Concluir"
+    },
     "emptyExplainer": "Conte o que você ouve, vê ou sente e adicione uma foto se puder. Você recebe as causas prováveis, a urgência e os próximos passos.",
     "severityLevel": {
       "low": "Baixa",
@@ -2108,6 +2114,7 @@
     "gpsTip": "Dica: deixe o celular com o céu à vista para o GPS funcionar bem",
     "keepRiding": "Continuar rodando",
     "endAnyway": "Encerrar mesmo assim",
+    "endWithoutSaving": "Encerrar sem salvar",
     "reminderNudgeBody": "Seu rolê ainda está sendo gravado, mas você está parado há {{minutes}} minutos. Encerre ou continue.",
     "reminderFinalTitle": "Seu rolê ainda está sendo gravado",
     "reminderFinalBody": "Sem movimento há {{minutes}} minutos. Encerre o rolê para salvá-lo como estava quando você parou.",
@@ -2120,6 +2127,9 @@
     "rideAlertsChannel": "Alertas de rolê",
     "autoEndedTitle": "Rolê salvo",
     "autoEndedBody": "Você estava parado há {{minutes}} minutos, então encerramos o rolê e salvamos até onde você parou.",
+    "notSavedToast": "Não salvo: rolês com menos de {{meters}} m não são mantidos",
+    "autoDiscardedTitle": "Rolê não salvo",
+    "autoDiscardedBody": "Seu rolê foi curto demais para ser salvo",
     "serviceTitle": "O MotoVault está gravando seu rolê",
     "serviceBody": "Toque para voltar ao rolê. Encerre quando descer da moto.",
     "noGpsTitle": "Não conseguimos gravar este rolê",
@@ -3229,5 +3239,14 @@
     "newRoadsComputing": "Calculando…",
     "unlockPro": "Desbloquear com o Pro",
     "newRoadsLockedA11y": "Estradas novas neste rolê. Desbloquear com o Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Seu plano de manutenção está pronto",
+      "body": "O plano de manutenção do fabricante para sua {{bike}} já está na sua garagem. Vamos te lembrar antes de cada revisão.",
+      "bodyNoBike": "O plano de manutenção do fabricante para sua moto já está na sua garagem. Vamos te lembrar antes de cada revisão.",
+      "open": "Ver meu plano",
+      "notNow": "Agora não"
+    }
   }
 }

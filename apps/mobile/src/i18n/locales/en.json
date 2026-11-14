@@ -212,6 +212,12 @@
     "startCta": "Start a diagnosis",
     "quotaRemaining": "Free this month: {{count}} of {{limit}} diagnoses left",
     "quotaUsed": "This month's free diagnosis is used. It's back on {{date}}, or go Pro for unlimited.",
+    "limit": {
+      "usedBackOn": "This month's free diagnosis is used. It's back on {{date}}.",
+      "usedResetsNextMonth": "This month's free diagnosis is used. It resets next month.",
+      "seePro": "See Pro plans",
+      "done": "Done"
+    },
     "emptyExplainer": "Tell it what you hear, see or feel, and add a photo if you can. You get the likely causes, how urgent it is and the next steps.",
     "severityLevel": {
       "low": "Low",
@@ -2181,6 +2187,7 @@
     "gpsTip": "Tip: Make sure your phone has clear sky view for GPS tracking",
     "keepRiding": "Keep Riding",
     "endAnyway": "End Anyway",
+    "endWithoutSaving": "End without saving",
     "reminderNudgeBody": "Your ride is still recording, but you haven't moved for {{minutes}} minutes. End it or keep going.",
     "reminderFinalTitle": "Your ride is still recording",
     "reminderFinalBody": "No movement for {{minutes}} minutes. End the ride to save it as it was when you stopped.",
@@ -2193,6 +2200,9 @@
     "rideAlertsChannel": "Ride alerts",
     "autoEndedTitle": "Ride saved",
     "autoEndedBody": "You hadn't moved for {{minutes}} minutes, so we ended your ride and saved it up to where you stopped.",
+    "notSavedToast": "Not saved: rides under {{meters}} m aren't kept",
+    "autoDiscardedTitle": "Ride not saved",
+    "autoDiscardedBody": "Your ride was too short to save",
     "serviceTitle": "MotoVault is recording your ride",
     "serviceBody": "Tap to return to your ride. End it when you get off the bike.",
     "noGpsTitle": "We couldn't track this ride",
@@ -3166,5 +3176,14 @@
     "newRoadsComputing": "Working it out…",
     "unlockPro": "Unlock with Pro",
     "newRoadsLockedA11y": "New roads on this ride. Unlock with Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Your service plan is ready",
+      "body": "The manufacturer's service schedule for your {{bike}} is in your garage. We'll remind you before each service is due.",
+      "bodyNoBike": "The manufacturer's service schedule for your bike is in your garage. We'll remind you before each service is due.",
+      "open": "See my plan",
+      "notNow": "Not now"
+    }
   }
 }

@@ -23,4 +23,6 @@ fi
 echo "Running Maestro flows (APP_ID=$APP_ID) against the booted device…"
 # onboarding-signin flows need accounts in a set state, which only their runner
 # (scripts/run-onboarding-signin-e2e.sh) creates, so the general run skips them.
-exec maestro test "$MOBILE_DIR/.maestro/flows" --env APP_ID="$APP_ID" --exclude-tags onboarding-signin
+# android-oauth flows need an Android emulator with a signed-in Google account; run
+# them by tag (.maestro/README.md).
+exec maestro test "$MOBILE_DIR/.maestro/flows" --env APP_ID="$APP_ID" --exclude-tags onboarding-signin,android-oauth

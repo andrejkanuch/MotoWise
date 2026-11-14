@@ -98,6 +98,7 @@ jest.mock('@/utils/ride-storage', () => {
   };
 });
 jest.mock('@/utils/ride-sync-queue', () => ({
+  deleteEndedRide: jest.fn(() => Promise.resolve()),
   enqueueOrExecute: jest.fn(),
   enqueueWaypointUpload: jest.fn().mockResolvedValue(undefined),
 }));
@@ -107,15 +108,18 @@ jest.mock('@/lib/graphql-client', () => ({
   gqlFetcher: jest.fn(() => Promise.resolve(undefined)),
 }));
 jest.mock('@/lib/query-client', () => ({
-  queryClient: { getQueryData: jest.fn(() => undefined) },
+  queryClient: { getQueryData: jest.fn(() => undefined), invalidateQueries: jest.fn() },
 }));
 jest.mock('@/lib/query-keys', () => ({
-  queryKeys: { motorcycles: { all: ['motorcycles'] } },
+  queryKeys: { motorcycles: { all: ['motorcycles'] }, rides: { all: ['rides'] } },
 }));
 jest.mock('@/lib/invalidate', () => ({ invalidateSavedRide: jest.fn() }));
 jest.mock('@/lib/ride-analytics', () => ({
   RIDE_SAVE_TRIGGER: { NEW_RIDE: 'new_ride' },
+  RIDE_DISCARD_REASON: { BELOW_FLOOR: 'below_floor', RIDER: 'rider' },
+  RIDE_DISCARD_TRIGGER: { GUARD: 'guard', AUTO_END: 'auto_end', SUMMARY: 'summary' },
   trackRideCompleted: jest.fn(),
+  trackRideDiscarded: jest.fn(),
 }));
 jest.mock('@/utils/ride-heatmap', () => ({ encodePolyline: jest.fn(() => 'poly') }));
 jest.mock('@/lib/analytics', () => ({
@@ -156,7 +160,7 @@ import { trackEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { invalidateSavedRide } from '@/lib/invalidate';
 import { queryClient } from '@/lib/query-client';
-import { trackRideCompleted } from '@/lib/ride-analytics';
+import { trackRideCompleted, trackRideDiscarded } from '@/lib/ride-analytics';
 import { useRideStore } from '@/stores/ride.store';
 import * as gps from '@/utils/ride-location';
 import * as perms from '@/utils/ride-permissions';
@@ -165,9 +169,11 @@ import * as storage from '@/utils/ride-storage';
 import * as syncQueue from '@/utils/ride-sync-queue';
 import {
   buildRideSummaryHref,
+  discardEndedRide,
   elapsedRideSeconds,
   endRecoveredRide,
   endRideSession,
+  endRideWithoutSaving,
   finalizeEndedRide,
   pauseRideSession,
   readEndedRideSummary,
@@ -964,5 +970,57 @@ describe('finalizeEndedRide', () => {
     expect(finalizeEndedRide('ride-a')).toBe(true);
     mmkvState.currentId = 'ride-b'; // a new start already saved ride-a
     expect(finalizeEndedRide('ride-a')).toBe(false);
+  });
+});
+
+// Issue 365 T09 (FS-PO4b, D3): one discard path for the guard and the summary.
+describe('discardEndedRide', () => {
+  it('deletes the ride on the server, clears it from the phone and fires ride_discarded', async () => {
+    mmkvState.currentId = 'ride-d';
+    mmkvState.status = 'ended';
+
+    discardEndedRide(
+      { rideId: 'ride-d', distanceM: 12, durationS: 90 },
+      { reason: 'below_floor', trigger: 'guard' },
+    );
+
+    expect(syncQueue.deleteEndedRide).toHaveBeenCalledWith('ride-d');
+    expect(clearRideData).toHaveBeenCalledWith('ride-d');
+    expect(store.hydrate).toHaveBeenCalled();
+    expect(trackRideDiscarded).toHaveBeenCalledWith({
+      rideId: 'ride-d',
+      distanceM: 12,
+      durationS: 90,
+      reason: 'below_floor',
+      trigger: 'guard',
+    });
+    expect(trackRideCompleted).not.toHaveBeenCalled();
+    // The rides lists refetch once the delete has drained, not before.
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['rides'] });
+  });
+});
+
+describe('endRideWithoutSaving (the guard\'s "End without saving")', () => {
+  it('ends a 90 s / 20 m ride and discards it: never a summary to save', () => {
+    mmkvState.currentId = 'ride-g';
+    mmkvState.startedAt = Date.now() - 90_000;
+
+    const summary = endRideWithoutSaving('phone');
+
+    expect(summary?.rideId).toBe('ride-g');
+    expect(enqueue).toHaveBeenCalledWith('endRide', expect.anything());
+    expect(syncQueue.deleteEndedRide).toHaveBeenCalledWith('ride-g');
+    expect(trackRideDiscarded).toHaveBeenCalledWith(
+      expect.objectContaining({ rideId: 'ride-g', reason: 'below_floor', trigger: 'guard' }),
+    );
+    expect(clearRideData).toHaveBeenCalledWith('ride-g');
+    expect(trackRideCompleted).not.toHaveBeenCalled();
+  });
+
+  it('does nothing without a ride to end', () => {
+    expect(endRideWithoutSaving('phone')).toBeNull();
+    expect(syncQueue.deleteEndedRide).not.toHaveBeenCalled();
+    expect(trackRideDiscarded).not.toHaveBeenCalled();
   });
 });

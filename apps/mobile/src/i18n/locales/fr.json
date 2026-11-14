@@ -212,6 +212,12 @@
     "startCta": "Lancer un diagnostic",
     "quotaRemaining": "Diagnostics gratuits restants ce mois-ci : {{count}} sur {{limit}}",
     "quotaUsed": "Ton diagnostic gratuit du mois est utilisé. Il revient le {{date}}, ou passe à Pro pour un accès illimité.",
+    "limit": {
+      "usedBackOn": "Ton diagnostic gratuit du mois est utilisé. Il revient le {{date}}.",
+      "usedResetsNextMonth": "Ton diagnostic gratuit du mois est utilisé. Il revient le mois prochain.",
+      "seePro": "Voir les offres Pro",
+      "done": "Terminé"
+    },
     "emptyExplainer": "Décris ce que tu entends, vois ou ressens, et ajoute une photo si tu peux. Tu obtiens les causes probables, le degré d'urgence et les prochaines étapes.",
     "severityLevel": {
       "low": "Faible",
@@ -2108,6 +2114,7 @@
     "gpsTip": "Astuce : pour le suivi GPS, ton téléphone doit avoir une vue dégagée sur le ciel",
     "keepRiding": "Continuer à rouler",
     "endAnyway": "Terminer quand même",
+    "endWithoutSaving": "Terminer sans enregistrer",
     "reminderNudgeBody": "Ta sortie est toujours en cours d'enregistrement, mais tu n'as pas bougé depuis {{minutes}} minutes. Termine-la ou continue.",
     "reminderFinalTitle": "Ta sortie est toujours en cours d'enregistrement",
     "reminderFinalBody": "Aucun mouvement depuis {{minutes}} minutes. Termine la sortie pour l'enregistrer telle qu'elle était à ton arrêt.",
@@ -2120,6 +2127,9 @@
     "rideAlertsChannel": "Alertes de sortie",
     "autoEndedTitle": "Sortie enregistrée",
     "autoEndedBody": "Tu n'avais pas bougé depuis {{minutes}} minutes : on a terminé ta sortie et on l'a enregistrée jusqu'à ton arrêt.",
+    "notSavedToast": "Non enregistrée : les sorties de moins de {{meters}} m ne sont pas conservées",
+    "autoDiscardedTitle": "Sortie non enregistrée",
+    "autoDiscardedBody": "Ta sortie était trop courte pour être enregistrée",
     "serviceTitle": "MotoVault enregistre ta sortie",
     "serviceBody": "Touche pour revenir à ta sortie. Termine-la quand tu descends de la moto.",
     "noGpsTitle": "Impossible d'enregistrer cette sortie",
@@ -3229,5 +3239,14 @@
     "newRoadsComputing": "Calcul en cours…",
     "unlockPro": "Débloquer avec Pro",
     "newRoadsLockedA11y": "Routes nouvelles sur cette sortie. Débloquer avec Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Ton plan d'entretien est prêt",
+      "body": "Le plan d'entretien constructeur de ta {{bike}} est dans ton garage. On te préviendra avant chaque entretien.",
+      "bodyNoBike": "Le plan d'entretien constructeur de ta moto est dans ton garage. On te préviendra avant chaque entretien.",
+      "open": "Voir mon plan",
+      "notNow": "Plus tard"
+    }
   }
 }

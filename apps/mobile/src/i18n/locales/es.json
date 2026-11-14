@@ -212,6 +212,12 @@
     "startCta": "Iniciar un diagnóstico",
     "quotaRemaining": "Gratis este mes: te quedan {{count}} de {{limit}} diagnósticos",
     "quotaUsed": "Ya usaste el diagnóstico gratis de este mes. Se renueva el {{date}}, o hazte Pro para tener diagnósticos ilimitados.",
+    "limit": {
+      "usedBackOn": "Ya usaste el diagnóstico gratis de este mes. Vuelve el {{date}}.",
+      "usedResetsNextMonth": "Ya usaste el diagnóstico gratis de este mes. Se renueva el próximo mes.",
+      "seePro": "Ver planes Pro",
+      "done": "Listo"
+    },
     "emptyExplainer": "Cuenta lo que oyes, ves o sientes, y agrega una foto si puedes. Recibes las causas probables, qué tan urgente es y los siguientes pasos.",
     "severityLevel": {
       "low": "Baja",
@@ -2108,6 +2114,7 @@
     "gpsTip": "Consejo: para un buen registro GPS, deja tu teléfono con vista despejada al cielo",
     "keepRiding": "Seguir rodando",
     "endAnyway": "Terminar de todos modos",
+    "endWithoutSaving": "Terminar sin guardar",
     "reminderNudgeBody": "Tu rodada sigue grabándose, pero llevas {{minutes}} minutos sin moverte. Termínala o sigue rodando.",
     "reminderFinalTitle": "Tu rodada sigue grabándose",
     "reminderFinalBody": "Sin movimiento desde hace {{minutes}} minutos. Termina la rodada para guardarla tal como estaba cuando te detuviste.",
@@ -2120,6 +2127,9 @@
     "rideAlertsChannel": "Avisos de rodada",
     "autoEndedTitle": "Rodada guardada",
     "autoEndedBody": "Llevabas {{minutes}} minutos sin moverte, así que terminamos tu rodada y la guardamos hasta donde te detuviste.",
+    "notSavedToast": "No se guardó: no conservamos rodadas de menos de {{meters}} m",
+    "autoDiscardedTitle": "Rodada no guardada",
+    "autoDiscardedBody": "Tu rodada fue demasiado corta para guardarla",
     "serviceTitle": "MotoVault está grabando tu rodada",
     "serviceBody": "Toca para volver a tu rodada. Termínala cuando te bajes de la moto.",
     "noGpsTitle": "No pudimos registrar esta rodada",
@@ -3229,5 +3239,14 @@
     "newRoadsComputing": "Calculando…",
     "unlockPro": "Desbloquear con Pro",
     "newRoadsLockedA11y": "Carreteras nuevas en esta rodada. Desbloquear con Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Tu plan de mantenimiento está listo",
+      "body": "El calendario de mantenimiento del fabricante para tu {{bike}} ya está en tu garaje. Te avisaremos antes de cada servicio.",
+      "bodyNoBike": "El calendario de mantenimiento del fabricante para tu moto ya está en tu garaje. Te avisaremos antes de cada servicio.",
+      "open": "Ver mi plan",
+      "notNow": "Ahora no"
+    }
   }
 }
