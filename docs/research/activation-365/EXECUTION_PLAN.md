@@ -1556,7 +1556,9 @@ the bug and only protects the fixed behaviour.
 | 0 | 3.26.0 (b93 Android / b106 iOS), 3.27.0 (iOS b108; Android vc95 internal only), 3.28.0 (iOS b111 from 11-11; Android vc98 from ~11-12) | before 2026-11-12 | both | null | — (baseline) | — | Riders 14 d, per-person platform: Android 3.26.0 108, 3.28.0 5; iOS 3.26.0 37, 3.27.0 14, 3.28.0 11 [SOURCE: V3 P1]. Play production 3.28.0 vc98 (review cleared ~11-12, 80%); vc99 = internal draft named "3.26.0"; App Store 3.28.0 b111, nothing in review [SOURCE: V3 §2–3]. Latest OTA groups: 3.28.0 `fece7a3c`, 3.26.0 `bd05b306`; none on 3.27.0 |
 | 1 | API `49db3863` (Render `dep-dbrh42m7bikc73f0ebg0`) | 2026-11-13 | server | null (`lvl n/a`) | T05e (#471) — measurement for FS-R2-5, FS-PO4b: server events `onboarding_bike_created`, `ride_saved` | `204938`; text `#365 fixes: server api 49db3863 lvl n/a — FS-R2-5, FS-PO4b (T05e measurement: onboarding_bike_created, ride_saved)` | Live 13:37 UTC; reaches every app version at once. Measurement only: §6.1 rows for FS-R2-5 (T25b) and FS-PO4b (T09) stay `open`. `ride_saved` misses server-ended rides; FS-PO4b stays on the weekly DB check (§5A.4) |
 | 2 | API `8fd7cf6f` (Render `dep-dbrhcgqjnfac739gqms0`) | 2026-11-13 | server | null (`lvl n/a`) | T07a (#472) — FS-PO1H, FS-R2-4 (Exp 2): onboarding bike gets its OEM service plan in the rider's unit, `User.servicePlanTaskCount`/`servicePlanTier`, server event `service_plan_imported`; D7 cap (one maintenance push per bike per 7 days) | `204996`; text `#365 fixes: server api 8fd7cf6f lvl n/a — FS-PO1H, FS-R2-4 (T07a Exp 2: onboarding service plan import + per-bike reminder cap; event service_plan_imported)` | Live 13:55 UTC; reaches every app version at once. Both Exp 1 / onboarding-paywall arms (experiments.md §7). No migration. Client half (tier label, Maestro) is T07b in a store build; §6.1 rows stay `open` until T07b ships |
-| 3 | | | | | | | |
+| 3 | 3.29.0 (b`<n>`) — Release A | pending owner promotion | ios | 2 | T01, T04a–c, T05a–d (client; T05e is server, row 1), T07b, T08, T09, T10, T11, T12, T13a, T13b, T14, T15, T16a, T16b, T17, T29; PostHog RN SDK 4.86.0 (#477); E2E profiles (#476) — FS-M, FS-OB1a, FS-OB1c, FS-OB1e, FS-OB2a, FS-OB2b, FS-OB2c, FS-OB3, FS-OB5, FS-OB6, S6, FS-PO1H, FS-R2-4, FS-PO2a, FS-PO2b, FS-PO3b, FS-PO4b, FS-PO7, FS-PO8, FS-PO10, FS-PO12, FS-PO13, FS-PO17 | pending (made at go-live): text `#365 fixes: ios 3.29.0 (b<n>) lvl 2 — FS-M, FS-OB1a, FS-OB1c, FS-OB1e, FS-OB2a, FS-OB2b, FS-OB2c, FS-OB3, FS-OB5, FS-OB6, S6, FS-PO1H, FS-R2-4, FS-PO2a, FS-PO2b, FS-PO3b, FS-PO4b, FS-PO7, FS-PO8, FS-PO10, FS-PO12, FS-PO13, FS-PO17` | Cut commit = squash merge of the release PR (CUT_PR). Build number from EAS (`appVersionSource: remote`). Phased-release start = go-live. Pre-promotion E2E links: pending (release flow set, `apps/mobile/.maestro/README.md`) |
+| 4 | 3.29.0 (vc`<n>`) — Release A | pending owner promotion | android | 2 | same as row 3 — FS-M, FS-OB1a, FS-OB1c, FS-OB1e, FS-OB2a, FS-OB2b, FS-OB2c, FS-OB3, FS-OB5, FS-OB6, S6, FS-PO1H, FS-R2-4, FS-PO2a, FS-PO2b, FS-PO3b, FS-PO4b, FS-PO7, FS-PO8, FS-PO10, FS-PO12, FS-PO13, FS-PO17 | pending (made at go-live): text `#365 fixes: android 3.29.0 (vc<n>) lvl 2 — FS-M, FS-OB1a, FS-OB1c, FS-OB1e, FS-OB2a, FS-OB2b, FS-OB2c, FS-OB3, FS-OB5, FS-OB6, S6, FS-PO1H, FS-R2-4, FS-PO2a, FS-PO2b, FS-PO3b, FS-PO4b, FS-PO7, FS-PO8, FS-PO10, FS-PO12, FS-PO13, FS-PO17` | Same cut commit as row 3. Carries the FCM config (#393). **vc99 decision: dropped** — the vc99 internal draft was not promoted before the cut, so FCM ships in 3.29.0 (T18 rule); the draft is left untouched on internal for the owner to discard. Staged % at go-live: pending. E2E links: pending |
+| 5 | | | | | | | |
 
 **Template — example row, NOT a real go-live (#365 T03a).** Copy its shape; build numbers, dates and ids are placeholders. Procedure: `docs/runbooks/mobile-release.md` → "#365 release marking".
 
@@ -1580,48 +1582,48 @@ This table is the only record of which level ships which spec (no code map; doc 
 
 | Spec | Task(s) | Level | Release row (§6) | Maestro run (PR link) | 2-wk read | 4-wk read | 8-wk read | Status |
 |---|---|---|---|---|---|---|---|---|
-| FS-M | T01, T18 | | | n/a | | | | open |
-| FS-OB1a | T11 | | | | | | | open |
+| FS-M | T01, T18 | 2 | | n/a | | | | open |
+| FS-OB1a | T11 | 2 | | | | | | open |
 | FS-OB1b | T19a, T19b | | | | | | | open |
-| FS-OB1c | T13b | | | | | | | open |
+| FS-OB1c | T13b | 2 | | | | | | open |
 | FS-OB1d | T20 (same build as T19a) | | | | | | | open |
-| FS-OB1e | T14, T14b | | | | | | | open |
+| FS-OB1e | T14, T14b | 2 (T14; T14b later) | | | | | | open |
 | FS-OB1f | T38 | | | n/a | | | | open (conditional) |
-| FS-OB2a | T04a, T36 | | | | | | | open (measure) |
-| FS-OB2b | T12 | | | n/a | | | | open |
-| FS-OB2c | T12 | | | | | | | open |
-| FS-OB3 | T13a | | | | | | | open |
+| FS-OB2a | T04a, T36 | 2 (T04a measure) | | | | | | open (measure) |
+| FS-OB2b | T12 | 2 | | n/a | | | | open |
+| FS-OB2c | T12 | 2 | | | | | | open |
+| FS-OB3 | T13a | 2 | | | | | | open |
 | FS-OB4 | T25a, T25b | | | | | | | open |
-| FS-OB5 | T04a | | | | | | | open (measure) |
-| FS-OB6 | T16a | | | | | | | open |
+| FS-OB5 | T04a | 2 (T04a measure) | | | | | | open (measure) |
+| FS-OB6 | T16a | 2 | | | | | | open |
 | FS-OB7 | — | — | — | — | | | | not fixing (paywall A/B) |
-| S6 / FS-OB1 | T11, T13a/b, T14, T19a/b, T20 | | | n/a | | | | open |
+| S6 / FS-OB1 | T11, T13a/b, T14, T19a/b, T20 | 2 (T11, T13a/b, T14; T19a/b, T20 later) | | n/a | | | | open |
 | FS-PO1 | T22 | | | | | | | open |
-| FS-PO1H (S4) | T07a, T07b | | | | | | | open |
+| FS-PO1H (S4) | T07a, T07b | 2 (T07b client; T07a server §6 row 2) | | | | | | open |
 | FS-R2-3 | T23, T26 | | | | | | | open |
-| FS-R2-4 | T07a | | | | | | | open |
+| FS-R2-4 | T07a | 2 (T07b client; T07a server §6 row 2) | | | | | | open |
 | FS-R2-5 | T25b | | | n/a | | | | open |
-| FS-PO2a | T08 | | | | | | | open |
-| FS-PO2b | T17 | | | | | | | open |
+| FS-PO2a | T08 | 2 | | | | | | open |
+| FS-PO2b | T17 | 2 | | | | | | open |
 | FS-PO2c | T24 | | | | | | | open |
 | FS-PO2d | T06 | — | — | — | | | | research |
 | FS-PO3 / S5 | T21 | | | | | | | open |
-| FS-PO3b | T01, T18, T35 | | | n/a | | | | open |
+| FS-PO3b | T01, T18, T35 | 2 (T01, T18) | | n/a | | | | open |
 | FS-PO4a | T31 | | | | | | | open (Exp 1) |
-| FS-PO4b | T09 | | | | | | | open |
+| FS-PO4b | T09 | 2 | | | | | | open |
 | FS-PO5 | T03b (alert) | | | n/a | | | | guard (not a bug) |
 | FS-PO6 | T28 | | | | | | | open |
-| FS-PO7 | T29 | | | | | | | open |
-| FS-PO8 | T06, T29 (Release A target) | | | | | | | open |
+| FS-PO7 | T29 | 2 | | | | | | open |
+| FS-PO8 | T06, T29 (Release A target) | 2 (T29) | | | | | | open |
 | FS-PO9 | T30–T35 | | | n/a | | | | Exp 1 outcome |
-| FS-PO10 | T10 | | | | | | | open |
+| FS-PO10 | T10 | 2 | | | | | | open |
 | FS-PO11 | — | — | — | whats-new.yaml | | | | guard (settled) |
-| FS-PO12 | T15, T15b | | | | | | | open |
-| FS-PO13 | T14, T15, T15b | | | | | | | open |
+| FS-PO12 | T15, T15b | 2 (T15; T15b later) | | | | | | open |
+| FS-PO13 | T14, T15, T15b | 2 (T14, T15; T15b later) | | | | | | open |
 | FS-PO14 | T27 | | | | | | | open |
 | FS-PO15 | — (ledger, §10) | — | — | — | | | | not fixing now |
 | FS-PO16 | — (ledger, §10) | — | — | — | | | | not fixing now |
-| FS-PO17 | T16b | | | | | | | open |
+| FS-PO17 | T16b | 2 | | | | | | open |
 | FS-EXP1 | T30–T35, T40 | | | | | | | open |
 
 **Template — example row, NOT a real status (#365 T03a).** Shows FS-PO2a after a hypothetical Release A go-live on Android (§6 example row) and a 2-week read; placeholders in angle brackets.

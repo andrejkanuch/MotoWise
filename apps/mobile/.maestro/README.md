@@ -260,6 +260,44 @@ the flows below.
   a real Play Store install; the positive case (confirmation shown) is verified manually on an
   Android device. The parse + make-resolution logic is unit-tested (`pending-intent.test.ts`).
 
+## Release flow set (store builds; #365 T18 first)
+
+Run before a store build is promoted (`docs/runbooks/mobile-release.md`, check 2), on local
+E2E builds of the **cut commit**, one device at a time. Every run uses a build with
+`EXPO_PUBLIC_E2E_NO_VENDOR_SDKS=1` and `EXPO_PUBLIC_E2E_RUN=1` pointed at the **local** stack
+(local Supabase + a local API started from the cut commit): `e2e-android-local` on Android
+(`10.0.2.2`), and on iOS an `e2e-simulator` build with the local URLs (`127.0.0.1`) set by a
+temporary, uncommitted override (the committed `e2e-simulator` profile talks to production).
+Export the local `SUPABASE_URL` / keys for the runners. Afterwards check in PostHog
+(read-only) that no event with `properties.e2e_run = true` arrived during the runs.
+Link each log in the release PR. Onboarding needs the live NHTSA API.
+
+| Flow (runner) | Task / spec | iOS | Android |
+|---|---|---|---|
+| `smoke.yaml` (`maestro test`) | sanity | yes | yes |
+| `onboarding.yaml` (`test:e2e:onboarding`) | runbook | yes | yes |
+| `onboarding-email-code-signup` → `-relaunch` → `-verify` (`RELAUNCH=1 test:e2e:email-code`) | T13a FS-OB3 | yes | yes |
+| `onboarding-signin-unfinished-account`, `onboarding-signin-onboarded-account` (`test:e2e:onboarding-signin`) | T11 FS-OB1a | yes | yes |
+| `discover-first-open-android.yaml` (`SIGNIN_CASES=discover test:e2e:onboarding-signin`) | T29 FS-PO7/PO8 | yes | yes, en and es-ES |
+| `onboarding-service-plan`, `onboarding-make-only-service-plan` (`test:e2e:service-plan`, `-make-only`) | T07b FS-PO1H | yes | yes |
+| `post-onboarding-landing.yaml` (`test:e2e:post-onboarding`) | T16a FS-OB6, T16b FS-PO17 | yes | yes |
+| `post-onboarding-no-signin.yaml` (`test:e2e:post-onboarding-no-signin`) | T15 FS-PO12/PO13 | yes | yes |
+| `checklist-first-ride.yaml` (`test:e2e:checklist-first-ride`) | T10 FS-PO10 | yes | yes |
+| `ride-standstill-not-saved.yaml` (`test:e2e:ride-standstill-not-saved`) | T09 FS-PO4b | yes | yes |
+| `log-ride.yaml` (`test:e2e:log-ride`) | T05c ids, T09 | yes | yes |
+| `whats-new.yaml` (via `onboarding.yaml` runner, `E2E_FLOW=whats-new.yaml`) | FS-PO11 guard | yes | yes |
+| `onboarding-complete-relaunch.yaml` (`test:e2e:onboarding-complete-relaunch`) | T14 FS-OB1e | — (airplane mode) | yes |
+| `onboarding-bike-resume.yaml` (`test:e2e:onboarding-bike-resume`, "Don't keep activities" on) | T13b FS-OB1c | — | yes |
+| `diagnose-limit-loop.yaml` (`test:e2e:diagnose-limit-loop`, seeded) | T08 FS-PO2a | — (jest) | yes |
+| `diagnose-offline.yaml` (`test:e2e:diagnose-offline`) | T17 FS-PO2b | — (jest) | yes |
+| `onboarding-oauth-cancel.yaml` (tag `android-oauth`; emulator with a signed-in Google account) | T12 FS-OB2c | — | yes |
+
+**Owner-gated, not part of the local set:** `onboarding-paywall-verify.yaml` both arms
+(`test:e2e:onboarding-paywall`, iOS `e2e-simulator-paywall` build, vendor SDKs on, writes to
+production analytics and RevenueCat); it runs only with the owner's go-ahead (runbook check 1).
+The PostHog SDK device smoke (#477 PR body) needs PostHog **on** and pointed at a local capture
+endpoint, so it uses its own local build, not the vendor-SDKs-off builds above.
+
 ## One-time setup
 
 1. **Maestro CLI** (requires a JDK — the JDK 17 from the Android setup works):

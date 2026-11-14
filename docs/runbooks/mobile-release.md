@@ -47,11 +47,15 @@ caught it.
    an account. Setup is
    in `apps/mobile/.maestro/README.md`; the iOS AutoFill prerequisite is in
    `onboarding-email-code-signup.yaml`.
-2. **Unit tests pass:** run `pnpm verify:mobile`. It includes
+2. **The release flow set passes on local E2E builds of the cut commit** (#365 T18 and
+   every later store build): the per-platform list in `apps/mobile/.maestro/README.md` →
+   "Release flow set". Vendor SDKs off, local Supabase + local API only, so no run reaches
+   production. Link each run's log in the release PR.
+3. **Unit tests pass:** run `pnpm verify:mobile`. It includes
    `onboarding-paywall-ab.test.ts`, which fails if an assignable onboarding variant or
    the kill switch has no paywall position.
 
-Do not promote a build that fails either check. A paywall that is missing in
+Do not promote a build that fails any of these checks. A paywall that is missing in
 production is caught after the fact by the PostHog alert on onboarding paywall reach,
 not before.
 
@@ -94,7 +98,8 @@ session always runs the binary's embedded JS.
 - A hotfix OTA on a runtime **< 3.29.0** has no level: those bases have no
   `activation.ts` (T01 first ships in 3.29.0), T01 is never cherry-picked onto them, and
   no level number is used up (`docs/runbooks/mobile-ota.md` → "#365 release marking").
-- Levels: 0 = pre-release JS (dev and E2E builds); 1 = not used; 2 = Release A 3.29.0;
+- Levels: 0 = pre-release JS (commits before the 3.29.0 cut; dev and E2E builds carry
+  their commit's level, and every #365 metric drops E2E events by `e2e_run`); 1 = not used; 2 = Release A 3.29.0;
   3 = Release B 3.30.0; 4 and up = later store builds and any hotfix OTA, each taking the
   **next unused number** in plan §6 (a hotfix branch off an older commit must not reuse a
   number `main` already shipped, and the next store cut skips the hotfix's number).
