@@ -565,8 +565,7 @@ function RootLayout() {
   // `__loadSession` twice: two chunked Keychain reads and, at cold start, two
   // racing blocking token refreshes. (BUG-4 Q1)
   useEffect(() => {
-    // Issue 365 T15: a null session after onboarding is held for a grace window
-    // (lib/auth-state-change); `apply` never sees it unless it turns out real.
+    // Issue 365 T15: `apply` sees a post-onboarding null only once it proves real.
     const guard = createAuthBlipGuard<Session>({
       graceMs: AUTH_BLIP_GRACE_MS,
       shouldDeferNullSession: (prevUserId) =>
@@ -577,6 +576,7 @@ function RootLayout() {
           onboardingCompleted: useAuthStore.getState().onboardingCompleted,
           explicitSignOut: isExplicitSignOutInProgress(),
         }).shouldDeferNullSession,
+      onFlushError: (err) => captureException(err, { source: 'layout.authBlipGuard.flush' }),
       apply: (_event, session) => {
         setSession(session);
 

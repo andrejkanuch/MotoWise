@@ -157,6 +157,7 @@ describe('session blip after onboarding completion (issue 365 T15)', () => {
     function setup({ completed = true, explicit = false } = {}) {
       const state = { completed, explicit };
       const apply = jest.fn();
+      const onFlushError = jest.fn();
       const guard = createAuthBlipGuard<TestSession>({
         graceMs: AUTH_BLIP_GRACE_MS,
         shouldDeferNullSession: (prevUserId) =>
@@ -168,10 +169,11 @@ describe('session blip after onboarding completion (issue 365 T15)', () => {
             explicitSignOut: state.explicit,
           }).shouldDeferNullSession,
         apply,
+        onFlushError,
       });
       guard.handle('SIGNED_IN', session('user-1'));
       apply.mockClear();
-      return { guard, apply, state };
+      return { guard, apply, state, onFlushError };
     }
 
     const nullApplies = (apply: jest.Mock) => apply.mock.calls.filter(([, s]) => s === null);
@@ -228,6 +230,17 @@ describe('session blip after onboarding completion (issue 365 T15)', () => {
       const { guard, apply } = setup({ completed: false });
       guard.handle('SIGNED_OUT', null);
       expect(apply).toHaveBeenCalledWith('SIGNED_OUT', null);
+    });
+
+    it('a throw while applying the held null on the timer is reported, not thrown', () => {
+      const { guard, apply, onFlushError } = setup();
+      const error = new Error('cleanup failed');
+      apply.mockImplementationOnce(() => {
+        throw error;
+      });
+      guard.handle('SIGNED_OUT', null);
+      expect(() => jest.advanceTimersByTime(AUTH_BLIP_GRACE_MS)).not.toThrow();
+      expect(onFlushError).toHaveBeenCalledWith(error);
     });
 
     it('dispose cancels a pending grace timer', () => {

@@ -161,6 +161,12 @@ export interface AuthBlipGuardOptions<S extends { user?: { id: string } | null }
   shouldDeferNullSession: (prevUserId: string | null) => boolean;
   /** The real auth-state-change handler. Never sees a held null session. */
   apply: (event: string, session: S | null) => void;
+  /**
+   * A held null applied when the grace window ends runs from a timer, outside
+   * Supabase's callback (which catches listener errors). A throw there would be
+   * an uncaught JS error, fatal in a release build; it goes here instead.
+   */
+  onFlushError: (error: unknown) => void;
 }
 
 /**
@@ -175,6 +181,7 @@ export function createAuthBlipGuard<S extends { user?: { id: string } | null }>(
   graceMs,
   shouldDeferNullSession,
   apply,
+  onFlushError,
 }: AuthBlipGuardOptions<S>) {
   let lastUserId: string | null = null;
   let held: { event: string; timer: ReturnType<typeof setTimeout> } | null = null;
@@ -194,6 +201,13 @@ export function createAuthBlipGuard<S extends { user?: { id: string } | null }>(
     const event = release();
     if (event !== null) run(event, null);
   };
+  const flushOnTimer = () => {
+    try {
+      flush();
+    } catch (error) {
+      onFlushError(error);
+    }
+  };
 
   return {
     handle(event: string, session: S | null) {
@@ -205,7 +219,7 @@ export function createAuthBlipGuard<S extends { user?: { id: string } | null }>(
         } else if (held) {
           held.event = event;
         } else {
-          held = { event, timer: setTimeout(flush, graceMs) };
+          held = { event, timer: setTimeout(flushOnTimer, graceMs) };
         }
         return;
       }

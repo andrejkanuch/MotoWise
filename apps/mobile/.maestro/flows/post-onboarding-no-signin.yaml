@@ -61,9 +61,10 @@ env:
 # Discover
 - tapOn:
     id: "tab-discover"
-- waitForAnimationToEnd:
-    timeout: 5000
-- assertVisible:
-    id: "tab-discover"
+# `tab-discover` is the tab button, visible on every tab, so wait for content
+# only the Discover screen renders: its Plan Trip button (accessibility label).
+- extendedWaitUntil:
+    visible: "Plan a new trip"
+    timeout: 15000
 - assertNotVisible: ".*Sign in.*|.*Continue with Google.*|.*Choose an account.*"
 - assertNotVisible: "Let's get started"

@@ -285,6 +285,49 @@ describe('loginRevenueCat', () => {
     expect(mockPurchases.setEmail).not.toHaveBeenCalled();
   });
 
+  // Issue 365 T15: a held null session flushed by a different user's session
+  // calls logout and login in the same tick. The old user's logOut must land
+  // before the new user's logIn, or the new rider ends on an anonymous customer.
+  it('runs a same-tick logout before the next login, in call order', async () => {
+    mockIsAnonymous.mockResolvedValue(false);
+    mockLogOut.mockResolvedValue({ entitlements: { active: {} } });
+
+    await Promise.all([logoutRevenueCat(), loginRevenueCat('user-2')]);
+
+    expect(mockLogOut).toHaveBeenCalledTimes(1);
+    expect(mockPurchases.logIn).toHaveBeenCalledWith('user-2');
+    expect(mockLogOut.mock.invocationCallOrder[0]).toBeLessThan(
+      mockPurchases.logIn.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('does not let a hung logout block the next login for good', async () => {
+    jest.useFakeTimers();
+    let finishLogOut: () => void = () => {};
+    mockIsAnonymous.mockResolvedValue(false);
+    mockLogOut.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishLogOut = resolve;
+        }),
+    );
+    try {
+      const logout = logoutRevenueCat();
+      const login = loginRevenueCat('user-3');
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+      expect(mockPurchases.logIn).not.toHaveBeenCalled();
+
+      await jest.advanceTimersByTimeAsync(10_000);
+      await login;
+      expect(mockPurchases.logIn).toHaveBeenCalledWith('user-3');
+
+      finishLogOut();
+      await logout;
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('reports a setEmail failure and does not throw', async () => {
     const error = new Error('setEmail failed');
     mockPurchases.setEmail.mockRejectedValueOnce(error);

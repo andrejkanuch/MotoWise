@@ -51,16 +51,21 @@ supabase.auth
   .catch((err) => captureException(err, { source: 'supabase.syncAutoRefresh' }));
 
 /**
- * Sign out safely — no-ops when the session is already gone instead of
- * throwing "the current user is anonymous".  Failures are logged to Sentry.
+ * Sign out safely — when the session is already gone it signs out locally only
+ * (no server call), so it never throws "the current user is anonymous".
+ * Failures are logged to Sentry.
  */
 export async function safeSignOut(): Promise<void> {
   const {
     data: { session },
   } = await supabase.auth.getSession();
-  if (session) {
-    await withExplicitSignOut(() => supabase.auth.signOut()).catch((err) => {
-      captureException(err, { source: 'supabase.safeSignOut' });
-    });
-  }
+  // No stored session can mean the auth listener is holding a null session as a
+  // possible blip (issue 365 T15) while the app still shows the rider signed in.
+  // A local sign-out makes no network call but still emits the marked SIGNED_OUT,
+  // so Log out applies at once instead of after the grace window.
+  await withExplicitSignOut(() =>
+    session ? supabase.auth.signOut() : supabase.auth.signOut({ scope: 'local' }),
+  ).catch((err) => {
+    captureException(err, { source: 'supabase.safeSignOut' });
+  });
 }
