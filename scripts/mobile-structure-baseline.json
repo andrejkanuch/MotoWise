@@ -53,7 +53,7 @@
     "app/(modals)/start-ride.tsx": 579,
     "app/(modals)/trip-detail.tsx": 1876,
     "app/(onboarding)/account.tsx": 303,
-    "app/(onboarding)/bike-setup.tsx": 560,
+    "app/(onboarding)/bike-setup.tsx": 550,
     "app/(onboarding)/maintenance.tsx": 545,
     "app/(onboarding)/personalizing.tsx": 573,
     "app/(onboarding)/reveal.tsx": 347,

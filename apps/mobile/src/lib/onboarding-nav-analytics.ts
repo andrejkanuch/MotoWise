@@ -3,6 +3,7 @@ import { useOnboardingStore } from '../stores/onboarding.store';
 import { AnalyticsEvent, trackEvent } from './analytics';
 import { trackOnboardingFlowEvent } from './onboarding-analytics';
 import { consumeOnboardingButtonBack } from './onboarding-back-marker';
+import { getOnboardingVariant } from './onboarding-experiment';
 
 // -------------------------------------------------------------------
 // Onboarding navigation, resume and gate events (issue 365 T04b)
@@ -99,12 +100,16 @@ function within(at: number | null, now: number, windowMs: number): boolean {
 }
 
 /**
- * An onboarding screen gained focus: starts its on-screen clock and persists it
- * as the last viewed step for `onboarding_resumed`.
+ * An onboarding screen gained focus: starts its on-screen clock, persists it as
+ * the last viewed step for `onboarding_resumed`, and raises the furthest step
+ * reached, the resume target (issue 365 T13b; a back-walk never lowers it).
  */
 export function recordOnboardingFocus(screen: string, stackIndex: number, now = Date.now()) {
   focused = { screen, at: now, stackIndex };
-  if (isOnboardingRoute(screen)) useOnboardingStore.getState().setLastViewedScreen(screen, now);
+  if (!isOnboardingRoute(screen)) return;
+  const store = useOnboardingStore.getState();
+  store.setLastViewedScreen(screen, now);
+  store.raiseFurthestScreen(screen, getOnboardingVariant());
 }
 
 /** Fires `onboarding_back`. `to` is a route name, or ONBOARDING_BACK_EXIT. */

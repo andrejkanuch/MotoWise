@@ -47,6 +47,7 @@ const mockNavigation = {
 
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { useState } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import { OB_SCREEN } from '@/config/onboarding';
 import i18n from '@/i18n';
@@ -94,17 +95,27 @@ function Harness({
         onSelectOther={() => {}}
         telemetry={telemetry}
       />
-      <ModelPicker
-        makeName="Yamaha"
-        isCustomMake={false}
-        models={MODELS}
-        isLoading={false}
-        selectedModel={null}
-        onSelect={() => {}}
-        onDismiss={() => {}}
-        telemetry={telemetry}
-      />
+      <ModelPickerWithQuery telemetry={telemetry} />
     </>
+  );
+}
+
+/** The screen owns the model query and clears it with the make; remounting does the same here. */
+function ModelPickerWithQuery({ telemetry: tel }: { telemetry: BikeSetupTelemetry }) {
+  const [query, setQuery] = useState('');
+  return (
+    <ModelPicker
+      makeName="Yamaha"
+      isCustomMake={false}
+      models={MODELS}
+      isLoading={false}
+      selectedModel={null}
+      query={query}
+      onQueryChange={setQuery}
+      onSelect={() => {}}
+      onDismiss={() => {}}
+      telemetry={tel}
+    />
   );
 }
 

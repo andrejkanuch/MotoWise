@@ -51,6 +51,8 @@ jest.mock('../../lib/analytics', () => ({
   AnalyticsEvent: new Proxy({}, { get: (_t, prop) => String(prop) }),
 }));
 jest.mock('../../lib/onboarding-analytics', () => ({ trackOnboardingEvent: jest.fn() }));
+// The focus tracker reads the variant to raise the furthest step (issue 365 T13b).
+jest.mock('../../lib/onboarding-experiment', () => ({ getOnboardingVariant: () => 'shipped' }));
 jest.mock('../../lib/analytics-consent', () => ({
   signUpConsentMetadata: () => ({ analytics_consent: 'granted' }),
 }));

@@ -1,0 +1,100 @@
+# Onboarding resume keeps in-screen progress (issue 365 T13b, friction spec FS-OB1c).
+#
+# Android emulator with Developer options > "Don't keep activities" ON, against
+# a standalone / preview build (clearState, see .maestro/README.md). Nothing here
+# signs in or creates an account: both cases stop before the account step's
+# buttons are used, so the run writes nothing to the backend.
+#
+# (a) Bike setup: pick a make, type a model, kill, relaunch. Red on main: the
+#     relaunch lands on bike setup's empty make list ("Popular makes").
+# (c) Reach the account step with two goals, kill, relaunch, Back. Red on main:
+#     goals shows "0 of 5 picked" with Continue disabled.
+#
+# Run: pnpm --filter @motovault/mobile test:e2e:onboarding-bike-resume
+appId: ${APP_ID}
+env:
+  APP_ID: com.motovault.app
+tags:
+  - onboarding-resume
+---
+# ── (a) the bike draft survives a relaunch ─────────────────────────────
+- clearState
+- clearKeychain
+- launchApp
+- extendedWaitUntil:
+    visible: "Ask App Not to Track"
+    timeout: 15000
+    optional: true
+- tapOn:
+    text: "Ask App Not to Track"
+    optional: true
+- extendedWaitUntil:
+    visible: "Let's get started"
+    timeout: 120000
+- tapOn: "Let's get started"
+- extendedWaitUntil:
+    visible: ".*How long have you.*|Help shape MotoVault"
+    timeout: 15000
+- runFlow:
+    when:
+      visible: "Help shape MotoVault"
+    commands:
+      - tapOn: "Don't allow"
+- tapOn: ".*Just getting started.*"
+- extendedWaitUntil:
+    visible: "(?i)Popular makes"
+    timeout: 15000
+# Whole-label match: the search placeholder mentions makes too.
+- tapOn: "(?i)Honda"
+- tapOn: "(?i)Search Honda models.*"
+- inputText: "Africa"
+- assertVisible: "Africa"
+- hideKeyboard
+
+- stopApp
+- launchApp:
+    clearState: false
+    stopApp: true
+# Resumes on bike setup with the make picked (the plate and its "Change"
+# control, not the make list) and the typed model still in the search field.
+- extendedWaitUntil:
+    visible: "Africa"
+    timeout: 30000
+- assertNotVisible: "(?i)Popular makes"
+- assertVisible: "(?i).*Honda.*"
+- assertVisible: "Change"
+
+# ── (c) goals keep both picks after a cold resume to account + Back ────
+- runFlow:
+    file: _shared/onboarding-to-account.yaml
+    env:
+      EXTRA_GOAL: "Maintain my bike"
+- stopApp
+- launchApp:
+    clearState: false
+    stopApp: true
+- extendedWaitUntil:
+    visible: "Continue with email"
+    timeout: 30000
+# The shell's Back chevron (common.back). No goal-chip testIDs until T19a lands,
+# so the check reads the picked counter and the checked rows.
+- tapOn: "Back"
+# commit_first has the commitment step between goals and account: one more Back.
+- extendedWaitUntil:
+    visible: "2 of 5 picked|Not now"
+    timeout: 15000
+- runFlow:
+    when:
+      visible: "Not now"
+    commands:
+      - tapOn: "Back"
+- extendedWaitUntil:
+    visible: "2 of 5 picked"
+    timeout: 15000
+- assertNotVisible: "0 of 5 picked"
+- assertVisible:
+    text: ".*Track my rides.*"
+    checked: true
+- assertVisible:
+    text: ".*Maintain my bike.*"
+    checked: true

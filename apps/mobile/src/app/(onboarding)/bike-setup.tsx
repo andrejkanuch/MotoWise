@@ -8,8 +8,9 @@ import { useQuery } from '@tanstack/react-query';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { bikeSetupStart, type PickedMake } from '../../components/onboarding/bike-setup/bike-draft';
 import { BikePhotoField } from '../../components/onboarding/bike-setup/bike-photo-field';
 import {
   BIKE_PICKED_VIA,
@@ -19,9 +20,11 @@ import {
   detectTypeFromModel,
   typeFromMake,
 } from '../../components/onboarding/bike-setup/bike-type';
+import { CustomMakeInput } from '../../components/onboarding/bike-setup/custom-make-input';
 import { MakeGrid } from '../../components/onboarding/bike-setup/make-grid';
 import { ModelPicker } from '../../components/onboarding/bike-setup/model-picker';
-import { MakeBadge, PickerLabel } from '../../components/onboarding/bike-setup/picker-ui';
+import { MakeBadge } from '../../components/onboarding/bike-setup/picker-ui';
+import { useBikeDraftSync } from '../../components/onboarding/bike-setup/use-bike-draft-sync';
 import { useBikeSetupTelemetry } from '../../components/onboarding/bike-setup/use-bike-setup-telemetry';
 import { VariantSelector } from '../../components/onboarding/bike-setup/variant-selector';
 import { YearStepper } from '../../components/onboarding/bike-setup/year-stepper';
@@ -69,24 +72,18 @@ export default function BikeSetupScreen() {
   // Seed the unit from the user's profile preference (the per-bike unit is deprecated).
   const mileageUnit = useMileageUnit();
 
-  // ── Local state ─────────────────────────────────────────────
-  const [year, setYear] = useState(
-    existingBikeData?.year ? String(existingBikeData.year) : String(currentYear - 3),
+  const setBikeDraft = useOnboardingStore((s) => s.setBikeDraft);
+
+  // ── Local state: from the bike draft (issue 365 T13b) or the saved bike ──
+  const [start] = useState(() =>
+    bikeSetupStart(useOnboardingStore.getState().bikeDraft, existingBikeData, currentYear - 3),
   );
-  const [selectedMake, setSelectedMake] = useState<{
-    makeId: number;
-    makeName: string;
-  } | null>(
-    existingBikeData?.make && existingBikeData?.makeId
-      ? { makeId: existingBikeData.makeId, makeName: existingBikeData.make }
-      : null,
-  );
-  const [isCustomMake, setIsCustomMake] = useState(false);
-  const [customMakeName, setCustomMakeName] = useState('');
-  const [selectedModel, setSelectedModel] = useState<{
-    modelId: number;
-    modelName: string;
-  } | null>(existingBikeData?.model ? { modelId: 0, modelName: existingBikeData.model } : null);
+  const [year, setYear] = useState(start.year);
+  const [selectedMake, setSelectedMake] = useState<PickedMake | null>(start.make);
+  const [isCustomMake, setIsCustomMake] = useState(start.isCustomMake);
+  const [customMakeName, setCustomMakeName] = useState(start.customMakeName);
+  const [selectedModel, setSelectedModel] = useState(start.model);
+  const [modelQuery, setModelQuery] = useState(start.modelQuery);
   const [showPartialCapture, setShowPartialCapture] = useState(false);
   // Once the rider taps "Not my bike", drop the intent confirmation and fall
   // through to the normal grid for the rest of this screen's lifetime.
@@ -96,6 +93,15 @@ export default function BikeSetupScreen() {
   const [variant, setVariant] = useState<MotorcycleVariant | null>(
     existingBikeData?.variant ?? null,
   );
+  const modelName = selectedModel?.modelName ?? null;
+  useBikeDraftSync({
+    year,
+    make: selectedMake,
+    isCustomMake,
+    customMakeName,
+    modelName,
+    modelQuery,
+  });
   const telemetry = useBikeSetupTelemetry({
     year,
     restored: { make: !!selectedMake, model: !!selectedMake && !!selectedModel },
@@ -231,6 +237,7 @@ export default function BikeSetupScreen() {
     setIsCustomMake(false);
     setCustomMakeName('');
     setSelectedModel(null);
+    setModelQuery('');
   };
 
   const handleSelectOther = () => {
@@ -238,6 +245,7 @@ export default function BikeSetupScreen() {
     setIsCustomMake(true);
     setSelectedMake(null);
     setSelectedModel(null);
+    setModelQuery('');
   };
 
   const handleChangeMake = () => {
@@ -246,6 +254,7 @@ export default function BikeSetupScreen() {
     setIsCustomMake(false);
     setCustomMakeName('');
     setSelectedModel(null);
+    setModelQuery('');
   };
 
   const handleSelectModel = (model: { modelId: number; modelName: string }) => {
@@ -274,6 +283,7 @@ export default function BikeSetupScreen() {
       ...(variant ? { variant } : {}),
     });
 
+    setBikeDraft(null);
     setLastCompletedScreen(OB_SCREEN.BIKE_SETUP);
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.BIKE_SETUP, {
       bike_year: yearNum,
@@ -322,6 +332,7 @@ export default function BikeSetupScreen() {
       mileageUnit: preBikeMileageUnit ?? existingBikeData?.mileageUnit ?? mileageUnit,
     });
 
+    setBikeDraft(null);
     setLastCompletedScreen(OB_SCREEN.BIKE_SETUP);
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, OB_SCREEN.BIKE_SETUP, {
       bike_year: yearNum,
@@ -344,6 +355,7 @@ export default function BikeSetupScreen() {
 
   const handleSkip = () => {
     setBikeData(null);
+    setBikeDraft(null);
     setLastCompletedScreen(OB_SCREEN.BIKE_SETUP);
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, OB_SCREEN.BIKE_SETUP, {
       skipped_section: 'bike_setup',
@@ -502,31 +514,7 @@ export default function BikeSetupScreen() {
           {/* Custom make name input (only for "Other"). Stays mounted while
               typing — it used to unmount after the first character. */}
           {isCustomMake && (
-            <View>
-              <PickerLabel>{t('onboarding.v2BikeSetupMakeName')}</PickerLabel>
-              <TextInput
-                value={customMakeName}
-                onChangeText={setCustomMakeName}
-                placeholder={t('onboarding.v2BikeSetupMakeNamePlaceholder')}
-                placeholderTextColor={oc.textMuted}
-                accessibilityLabel={t('onboarding.v2BikeSetupMakeName')}
-                autoCapitalize="words"
-                maxLength={50}
-                autoFocus
-                selectionColor={oc.warm}
-                style={[
-                  type.body,
-                  {
-                    minHeight: 52,
-                    paddingHorizontal: space.md,
-                    borderRadius: radius.control,
-                    borderCurve: 'continuous',
-                    backgroundColor: oc.surface,
-                    color: oc.textPrimary,
-                  },
-                ]}
-              />
-            </View>
+            <CustomMakeInput value={customMakeName} onChangeText={setCustomMakeName} />
           )}
 
           {showBrandHero && activeMakeName && (
@@ -536,6 +524,8 @@ export default function BikeSetupScreen() {
               models={models}
               isLoading={modelsResult.isLoading}
               selectedModel={selectedModel}
+              query={modelQuery}
+              onQueryChange={setModelQuery}
               onSelect={handleSelectModel}
               onDismiss={() => setSelectedModel(null)}
               telemetry={telemetry}

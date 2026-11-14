@@ -6,7 +6,8 @@
 #   BIKE_MAKE + BIKE_MODEL (+ BIKE_YEAR) — that model instead of the default
 #     Honda Africa Twin (onboarding-service-plan.yaml: Yamaha MT-09 2019);
 #   MAKE_ONLY="true" — "Not sure of the details?" then the Honda make chip: a
-#     make-only bike (onboarding-make-only-service-plan.yaml).
+#     make-only bike (onboarding-make-only-service-plan.yaml);
+#   EXTRA_GOAL — a second goal label to pick (onboarding-bike-resume.yaml).
 # Lives in _shared/ so the flows/*.yaml glob does not run it on its own.
 appId: ${APP_ID}
 env:
@@ -203,9 +204,16 @@ env:
           timeout: 30000
       - tapOn: "Continue"
 
-# 9. Goals (multi-select → Continue)
+# 9. Goals (multi-select → Continue). EXTRA_GOAL (a goal label, e.g.
+# "Maintain my bike") picks a second goal: onboarding-bike-resume.yaml checks
+# both picks come back after a relaunch.
 - assertVisible: ".*Track my rides.*"
 - tapOn: ".*Track my rides.*"
+- runFlow:
+    when:
+      true: ${typeof EXTRA_GOAL !== 'undefined'}
+    commands:
+      - tapOn: ".*${EXTRA_GOAL}.*"
 - tapOn: "Continue"
 
 # 10. Maintenance (skip the OEM deck)
