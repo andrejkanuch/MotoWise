@@ -25,6 +25,7 @@ import {
   RIDE_GUARD_ACTION,
   type RideGuardSnapshot,
   trackRideGuard,
+  withLiveDistance,
 } from '../../features/ride/ride-guard';
 import { RideGuardSheet } from '../../features/ride/ride-guard-sheet';
 import { RIDE_TEST_ID } from '../../features/ride/ride-test-ids';
@@ -229,8 +230,8 @@ export default function RideHudScreen() {
     }
     guardSheetRef.current?.close();
     setGuardData(null);
-    // Under 50 m (not the no-GPS branch): "End without saving", Home with a notice.
-    if (guardData && guardEndDiscards(guardData)) {
+    // Still under 50 m now (not the no-GPS branch): "End without saving", Home with a notice.
+    if (guardData && guardEndDiscards(withLiveDistance(guardData))) {
       if (!endRideWithoutSaving('phone')) return;
       useRideNoticeStore.getState().showNotSaved();
       return router.replace(HOME_HREF);

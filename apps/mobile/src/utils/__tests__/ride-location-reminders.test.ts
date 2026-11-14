@@ -80,8 +80,11 @@ import { trackEvent } from '../../lib/analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { gpsFilter } from '../ride-gps-filter';
 import {
+  type AutoPauseEffect,
+  type AutoPauseState,
   autoEndRide,
   BACKGROUND_LOCATION_TASK,
+  decideAutoPause,
   endAutoPauseEpisode,
   gpsStartCount,
   gpsStartInFlight,
@@ -438,6 +441,54 @@ describe('autoEndRide (30 min without movement)', () => {
     // No saved ride to open: the tap must not lead to a deleted ride.
     expect(content.data).toEqual({ kind: 'ride_idle', rideId: RIDE_ID, autoEnded: false });
     expect(rideMMKV.getCurrentId()).toBeUndefined();
+  });
+
+  it('discards a Start tap left alone, measured from the stop, not from the confirmed idle', () => {
+    // Stationary from the start: the stop begins at the first slow sample and is
+    // confirmed AUTO_PAUSE_DURATION_MS (60 s) later, so `idleSince` sits ~61 s after
+    // the start. Drive the real state machine to its auto-end effect.
+    const start = T0 - 3_600_000;
+    rideMMKV.setStartedAt(start);
+    const pos = { lat: 50, lng: 14 };
+    let state: AutoPauseState = {
+      zeroSpeedTimer: null,
+      zeroSpeedAnchor: null,
+      continuousAutoPauseStart: null,
+      forgotToStopNotified: false,
+    };
+    let subState: string | undefined;
+    let autoEnd: Extract<AutoPauseEffect, { kind: 'autoEnd' }> | undefined;
+    for (let now = start + 1_000; !autoEnd && now < start + 3_600_000; now += 30_000) {
+      const d = decideAutoPause(state, { rawSpeed: 0, pos }, subState, now);
+      state = d.next;
+      if (d.effects.some((e) => e.kind === 'setSubState')) subState = 'stopped';
+      autoEnd = d.effects.find((e) => e.kind === 'autoEnd') as typeof autoEnd;
+    }
+    if (!autoEnd) throw new Error('the state machine never auto-ended');
+    expect(autoEnd.idleSince - start).toBeGreaterThanOrEqual(60_000);
+
+    autoEndRide(autoEnd.idleSince, autoEnd.stoppedSince);
+
+    expect(deleteEndedRide).toHaveBeenCalledWith(RIDE_ID);
+    expect(trackEvent).toHaveBeenCalledWith(
+      'ride_discarded',
+      expect.objectContaining({ reason: 'below_floor', trigger: 'auto_end', duration_s: 1 }),
+    );
+    const events = (trackEvent as jest.Mock).mock.calls.map(([event]) => event);
+    expect(events).not.toContain('ride_completed');
+  });
+
+  it('keeps a ride whose riding before the stop passed the time floor (40 s, 0 m)', () => {
+    const start = T0 - 3_600_000;
+    rideMMKV.setStartedAt(start);
+
+    autoEndRide(start + 100_000, start + 40_000);
+
+    expect(deleteEndedRide).not.toHaveBeenCalled();
+    expect(trackEvent).toHaveBeenCalledWith(
+      'ride_completed',
+      expect.objectContaining({ ride_id: RIDE_ID, save_trigger: 'auto_end' }),
+    );
   });
 
   it('keeps an auto-ended ride over one floor: 5 s but 80 m is saved as today', () => {

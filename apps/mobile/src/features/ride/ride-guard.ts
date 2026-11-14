@@ -95,6 +95,17 @@ export function guardEndDiscards(snapshot: RideGuardSnapshot): boolean {
   return snapshot.distance_m < MIN_RIDE_DISTANCE_M && !isNoGpsRide(snapshot.elapsed_s);
 }
 
+/**
+ * The sheet's snapshot with the distance the ride has now. Recording runs while
+ * the sheet is open, so its snapshot can be stale by the time the rider taps:
+ * the discard decision reads the live distance so a ride that crossed 50 m since
+ * is kept, never deleted.
+ */
+export function withLiveDistance(snapshot: RideGuardSnapshot): RideGuardSnapshot {
+  const live = Math.round(useRideStore.getState().distance);
+  return { ...snapshot, distance_m: Math.max(snapshot.distance_m, live) };
+}
+
 export function trackRideGuard(
   snapshot: RideGuardSnapshot,
   action: RideGuardAction,

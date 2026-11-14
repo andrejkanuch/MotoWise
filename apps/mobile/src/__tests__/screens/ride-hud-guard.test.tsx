@@ -250,6 +250,21 @@ describe('ride HUD guard: End without saving', () => {
     expect(mockReplace).toHaveBeenCalledWith('/ride-summary');
   });
 
+  it('keeps a ride that crossed 50 m while the sheet was open: ended and kept, not deleted', async () => {
+    mockElapsed = 20;
+    useRideStore.setState({ distance: 10 });
+    await renderHud();
+    await fireEvent.press(screen.getByText('mock-end-ride'));
+    // Recording runs on under the sheet.
+    useRideStore.setState({ distance: 70 });
+
+    await fireEvent.press(screen.getByTestId('ride-guard-end-anyway'));
+
+    expect(endRideWithoutSaving).not.toHaveBeenCalled();
+    expect(endRideSession).toHaveBeenCalledWith('phone');
+    expect(mockReplace).toHaveBeenCalledWith('/ride-summary');
+  });
+
   it('keeps a ride over 50 m that is only under the time floor as today', async () => {
     mockElapsed = 10;
     useRideStore.setState({ distance: 80 });
