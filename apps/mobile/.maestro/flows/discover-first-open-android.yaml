@@ -17,7 +17,12 @@ env:
 tags:
   - discover-first-open
 ---
-- runFlow: _shared/welcome-to-sign-in.yaml
+# Location starts not granted (launchApp would otherwise grant it, which hides
+# both the bug on main and the opt-in card on this branch).
+- runFlow:
+    file: _shared/welcome-to-sign-in.yaml
+    env:
+      LOCATION_UNSET: "true"
 
 - extendedWaitUntil:
     visible:
