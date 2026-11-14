@@ -3,6 +3,7 @@ jest.mock('../analytics', () => require('../../test/mocks').mockAnalytics());
 
 import { RideStatus } from '@motovault/graphql';
 import { CHECKLIST_ITEM_ID } from '../../stores/checklist.store';
+import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../../utils/ride-constants';
 import {
   type ChecklistSignals,
   deriveCompletedItems,
@@ -37,12 +38,60 @@ describe('deriveCompletedItems', () => {
 
   it('needs a finished ride, not one still recording or paused', () => {
     const ids = [CHECKLIST_ITEM_ID.FIRST_RIDE];
-    const unfinished = [{ status: RideStatus.Recording }, { status: RideStatus.Paused }];
+    const unfinished = [
+      { status: RideStatus.Recording, durationS: 600, distanceM: 5000 },
+      { status: RideStatus.Paused, durationS: 600, distanceM: 5000 },
+    ];
     expect(deriveCompletedItems(ids, { ...UNKNOWN, rides: unfinished })).toEqual([]);
     expect(
       deriveCompletedItems(ids, {
         ...UNKNOWN,
-        rides: [...unfinished, { status: RideStatus.Completed }],
+        rides: [...unfinished, { status: RideStatus.Completed, durationS: 60, distanceM: 800 }],
+      }),
+    ).toEqual(ids);
+  });
+
+  // FS-PO10 (issue 365 T10): a saved ride under the ride floors is a mis-tap or a
+  // test tap, not the rider's first ride.
+  it('does not tick the first ride from a 0 m ride', () => {
+    const ids = [CHECKLIST_ITEM_ID.FIRST_RIDE];
+    expect(
+      deriveCompletedItems(ids, {
+        ...UNKNOWN,
+        rides: [{ status: RideStatus.Completed, durationS: 600, distanceM: 0 }],
+      }),
+    ).toEqual([]);
+  });
+
+  it('ticks the first ride from a 60 s / 800 m ride', () => {
+    const ids = [CHECKLIST_ITEM_ID.FIRST_RIDE];
+    expect(
+      deriveCompletedItems(ids, {
+        ...UNKNOWN,
+        rides: [{ status: RideStatus.Completed, durationS: 60, distanceM: 800 }],
+      }),
+    ).toEqual(ids);
+  });
+
+  it('needs both floors (duration and distance) on the same ride', () => {
+    const ids = [CHECKLIST_ITEM_ID.FIRST_RIDE];
+    const subFloor = [
+      { status: RideStatus.Completed, durationS: MIN_RIDE_ELAPSED_S - 1, distanceM: 5000 },
+      { status: RideStatus.Completed, durationS: 600, distanceM: MIN_RIDE_DISTANCE_M - 1 },
+      { status: RideStatus.Completed, durationS: null, distanceM: null },
+    ];
+    expect(deriveCompletedItems(ids, { ...UNKNOWN, rides: subFloor })).toEqual([]);
+    expect(
+      deriveCompletedItems(ids, {
+        ...UNKNOWN,
+        rides: [
+          ...subFloor,
+          {
+            status: RideStatus.Completed,
+            durationS: MIN_RIDE_ELAPSED_S,
+            distanceM: MIN_RIDE_DISTANCE_M,
+          },
+        ],
       }),
     ).toEqual(ids);
   });
@@ -70,7 +119,7 @@ describe('deriveCompletedItems', () => {
   it('only returns items it was asked about', () => {
     const everything: ChecklistSignals = {
       bikes: [{ id: 'b', primaryPhotoUrl: 'https://x.test/p.jpg' }],
-      rides: [{ status: RideStatus.Completed }],
+      rides: [{ status: RideStatus.Completed, durationS: 600, distanceM: 5000 }],
       expenseCounts: [1],
       receiptScansUsed: 1,
     };

@@ -1,12 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { meOptions } from '../../lib/query-options';
 
 /**
- * `outcome` on `auth_post_signin_wait` (issue 365 T04a, FS-OB2b). `TIMEOUT` is for the
- * bounded wait T12 adds; today the step waits for the server state without a limit.
+ * How long the step waits for the server onboarding state after the session lands
+ * before it moves on anyway (issue 365 T12, FS-OB2b). `me` retries with backoff, so
+ * without a limit a slow or unreachable API held riders on "Creating your account…"
+ * for up to 141 s. Moving on is safe: the root NavigationGate still reads `me` and
+ * routes an already-onboarded account to the tabs once it arrives.
  */
+export const ACCOUNT_ME_WAIT_MS = 8_000;
+
+/** `outcome` on `auth_post_signin_wait` (issue 365 T04a, FS-OB2b). */
 const POST_SIGNIN_WAIT_OUTCOME = {
   ADVANCED: 'advanced',
   ALREADY_ONBOARDED: 'already_onboarded',
@@ -31,23 +37,36 @@ const POST_SIGNIN_WAIT_OUTCOME = {
  * accounts that still need it; already-onboarded accounts fall through to the
  * NavigationGate's (tabs) redirect with no flash.
  *
+ * The wait is bounded by ACCOUNT_ME_WAIT_MS: if `me` is still loading then, the
+ * flow advances (`outcome: 'timeout'`).
+ *
  * The decision fires `auth_post_signin_wait` once: how long it waited from the
  * session landing (`wait_ms`) and which way it went (`outcome`).
  */
 export function useAccountAdvance(hasSession: boolean, goNext: () => void): void {
   const advancedRef = useRef(false);
   const sessionSeenAtRef = useRef<number | null>(null);
+  const [timedOut, setTimedOut] = useState(false);
 
   // Server onboarding state for the just-authenticated account. Shares the root
   // NavigationGate's cache key, so this is usually a cache hit (no extra fetch).
   const meQuery = useQuery({ ...meOptions(), enabled: hasSession });
 
+  // The limit runs from the session landing until the step decides.
+  useEffect(() => {
+    if (!hasSession) return;
+    const timer = setTimeout(() => setTimedOut(true), ACCOUNT_ME_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, [hasSession]);
+
   useEffect(() => {
     if (!hasSession || advancedRef.current) return;
     sessionSeenAtRef.current ??= Date.now();
     // Wait for the server onboarding state to settle (unless it errored — then we
-    // can't know, so proceed with the flow rather than strand the user here).
-    if (meQuery.isLoading && !meQuery.isError) return;
+    // can't know, so proceed with the flow rather than strand the user here), but
+    // never longer than ACCOUNT_ME_WAIT_MS.
+    const stillLoading = meQuery.isLoading && !meQuery.isError;
+    if (stillLoading && !timedOut) return;
 
     const alreadyOnboarded =
       (meQuery.data?.me?.preferences as { onboardingCompleted?: boolean } | null | undefined)
@@ -64,13 +83,15 @@ export function useAccountAdvance(hasSession: boolean, goNext: () => void): void
     // resolve in PostHog.
     trackEvent(AnalyticsEvent.AUTH_POST_SIGNIN_WAIT, {
       wait_ms: Date.now() - sessionSeenAtRef.current,
-      outcome: waitOutcome(meQuery.isError, alreadyOnboarded),
+      outcome: stillLoading
+        ? POST_SIGNIN_WAIT_OUTCOME.TIMEOUT
+        : waitOutcome(meQuery.isError, alreadyOnboarded),
     });
 
     // Already-onboarded → let the root gate redirect to (tabs); don't push the
     // notifications step. New accounts → continue the onboarding flow.
     if (!alreadyOnboarded) goNext();
-  }, [hasSession, goNext, meQuery.isLoading, meQuery.isError, meQuery.data]);
+  }, [hasSession, goNext, meQuery.isLoading, meQuery.isError, meQuery.data, timedOut]);
 }
 
 // The outcome names the way the step went. A failed refetch over cached data that

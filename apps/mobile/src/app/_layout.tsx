@@ -27,6 +27,7 @@ try {
   // Not available in Expo Go
 }
 
+import type { Session } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
 import {
   router as expoRouter,
@@ -45,16 +46,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SessionRestoring } from '../components/auth/session-restoring';
-import { clearSheetDrafts } from '../components/bike-hub/notes/unattached-note-photos';
 import { OB_VARIANT } from '../config/onboarding';
+import { clearLocalUserData } from '../features/auth/clear-local-user-data';
 import { refreshCarPlayHeadsUpData } from '../features/carplay/carplay-coordinator';
 import { usePhoneSceneVisible } from '../features/carplay/use-carplay';
-import { clearParkedScans } from '../features/receipt-scan/parked-scan-store';
 import { initReceiptScanQueue } from '../features/receipt-scan/receipt-scan-queue';
 import { ReceiptScanSaveSnackbar } from '../features/receipt-scan/receipt-scan-save-snackbar';
-import { clearAllReceiptSaveUndo } from '../features/receipt-scan/receipt-scan-undo-store';
 import { SCAN_RESUME_SOURCE } from '../features/receipt-scan/scan-flow-constants';
-import { clearScanConsent } from '../features/receipt-scan/scan-preferences';
+import { RideNotSavedToast } from '../features/ride/ride-not-saved-toast';
 import {
   receiveRideIdleResponse,
   rideIdleResponseKey,
@@ -107,14 +106,15 @@ import {
   shouldReportHydrationTimeout,
 } from '../lib/auth-hydration';
 import {
+  AUTH_BLIP_GRACE_MS,
+  createAuthBlipGuard,
   decideAuthStateChange,
-  SIGNOUT_UNSYNCED_MESSAGE,
-  SIGNOUT_UNSYNCED_SOURCE,
 } from '../lib/auth-state-change';
 import { bestEffortNativeCall, NativeSideEffect } from '../lib/best-effort-native';
 import { saveConsentToAccount } from '../lib/consent-account-sync';
 import { canShowConsentPrompt } from '../lib/consent-prompt';
 import { CORE_ACTION_KIND, recordCoreAction } from '../lib/core-action-milestones';
+import { isExplicitSignOutInProgress } from '../lib/explicit-sign-out';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
 import { invalidateMaintenanceTasks } from '../lib/invalidate';
@@ -122,7 +122,6 @@ import { MAINTENANCE_COMPLETION } from '../lib/maintenance-analytics';
 import { captureMetaAttribution } from '../lib/meta-attribution';
 import { migrateAsyncStorageToMMKV } from '../lib/migrate-async-to-mmkv';
 import {
-  cancelAllNotifications,
   cancelTaskNotification,
   NOTIFICATION_ACTION,
   NOTIFICATION_KIND,
@@ -134,17 +133,12 @@ import { resolveOnboardingVariant } from '../lib/onboarding-experiment';
 import { trackAuthSessionLost } from '../lib/onboarding-nav-analytics';
 import { isServerOnboardingComplete } from '../lib/onboarding-paywall';
 import { resolvePendingIntent } from '../lib/pending-intent-reader';
-import {
-  clearLastUserId,
-  getLastUserId,
-  PersistedQueryClientBoundary,
-} from '../lib/persisted-query-provider';
+import { getLastUserId, PersistedQueryClientBoundary } from '../lib/persisted-query-provider';
 import { registerForPushNotifications } from '../lib/push-token';
 import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
 import { meOptions } from '../lib/query-options';
-import { clearPersistedQueryCache } from '../lib/query-persist';
 import { refreshAfterSyncedOp } from '../lib/ride-sync-refresh';
 import { REVIEW_ACTION, recordReviewAction } from '../lib/store-review';
 import {
@@ -154,19 +148,15 @@ import {
   logoutRevenueCat,
 } from '../lib/subscription';
 import { supabase } from '../lib/supabase';
-import { clearAllWidgets, syncWidgets } from '../lib/widget-sync';
+import { syncWidgets } from '../lib/widget-sync';
 import { COLOR_SCHEME, useAuthStore } from '../stores/auth.store';
 import { useChecklistStore } from '../stores/checklist.store';
 import { useExperimentStore } from '../stores/experiment.store';
 import { useOnboardingStore } from '../stores/onboarding.store';
 import { PLATE_FONT } from '../theme/type';
 import { accountPreferenceUpdates } from '../utils/account-preferences';
-import { rideMMKV } from '../utils/ride-storage';
 import {
-  clearDeliveredQueue,
   drainQueue,
-  getPendingCount,
-  hasPendingSyncWork,
   redriveDeadLetterQueue,
   redriveDeadLetterQueueOnce,
   setDeadLetterListener,
@@ -576,141 +566,92 @@ function RootLayout() {
   // `__loadSession` twice: two chunked Keychain reads and, at cold start, two
   // racing blocking token refreshes. (BUG-4 Q1)
   useEffect(() => {
+    // Issue 365 T15: `apply` sees a post-onboarding null only once it proves real.
+    const guard = createAuthBlipGuard<Session>({
+      graceMs: AUTH_BLIP_GRACE_MS,
+      shouldDeferNullSession: (prevUserId) =>
+        decideAuthStateChange({
+          sessionUserId: null,
+          prevUserId,
+          hasPersistedUser: getLastUserId() !== null,
+          onboardingCompleted: useAuthStore.getState().onboardingCompleted,
+          explicitSignOut: isExplicitSignOutInProgress(),
+        }).shouldDeferNullSession,
+      onFlushError: (err) => captureException(err, { source: 'layout.authBlipGuard.flush' }),
+      apply: (_event, session) => {
+        setSession(session);
+
+        const sessionUserId = session?.user?.id ?? null;
+        const decision = decideAuthStateChange({
+          sessionUserId,
+          prevUserId: prevUserIdRef.current,
+          // Survives cold starts (the per-mount ref does not): a server-revoked
+          // session surfacing as a null INITIAL_SESSION still cleans up. (todo 188)
+          hasPersistedUser: getLastUserId() !== null,
+        });
+
+        if (sessionUserId) {
+          loginRevenueCat(sessionUserId, session?.user?.email);
+          if (decision.shouldIdentify) {
+            // identify() merges the current anonymous distinct_id onto the user,
+            // so pre-signup events (install, /login views) attach to the person.
+            // Skipped on TOKEN_REFRESHED/USER_UPDATED for the same id. (todo 191)
+            identifyUser(sessionUserId);
+          }
+          // A session just became available — drain immediately. The sync queue now
+          // head-of-line blocks on UNAUTHENTICATED instead of dead-lettering, so
+          // "auth restored" is a real recovery signal, and it was the one trigger
+          // missing: the others (mount, app resume, connectivity restore) can all be
+          // hours away from the moment the token comes back. Fires on SIGNED_IN and
+          // TOKEN_REFRESHED alike, which is exactly when a blocked queue can proceed.
+          drainQueue();
+          // Same trigger, same reason for CarPlay: a head unit connected while the
+          // rider was signed out skipped its user-scoped heads-up load (rather than
+          // firing a request the API can only reject — MOTO-VAULT-REACT-NATIVE-1J).
+          // No-ops when no head unit is attached.
+          refreshCarPlayHeadsUpData();
+          // A new account on this device (or the same one after Log out, which
+          // removed the device's token): claim the push token for it now. The
+          // mount-time registration ran before any session existed or for the
+          // previous account. Idempotent; a no-op without notification permission.
+          if (decision.shouldRegisterPush) void registerForPushNotifications();
+          // The Get Started card belongs to one account: a different rider on this
+          // device starts clean, the same one keeps their ticks across sign-out.
+          useChecklistStore.getState().claimForUser(sessionUserId);
+        } else {
+          if (decision.shouldClearLocalData) trackAuthSessionLost(_event); // before resetUser
+          if (decision.shouldResetUser) {
+            // Reset only when we PREVIOUSLY had a user in this app session. On a
+            // cold-start anonymous launch, onAuthStateChange fires with a null
+            // session (INITIAL_SESSION) — calling reset() there rotates the
+            // anonymous id and orphans pre-signup events, breaking cross-signup
+            // funnels. (Defect 1) Reset/RC-logout only on a real sign-out.
+            logoutRevenueCat();
+            resetUser();
+          }
+          if (decision.shouldClearLocalData) {
+            // Decoupled from reset (todo 188): runs whenever a user previously
+            // existed by EITHER the per-mount ref OR the persisted signal, so a
+            // server-revoked session that only surfaces on the next cold start
+            // still clears this device's user data.
+            clearLocalUserData();
+          }
+        }
+
+        prevUserIdRef.current = sessionUserId;
+      },
+    });
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       invalidateGqlAccessTokenCache();
-      setSession(session);
-
-      const sessionUserId = session?.user?.id ?? null;
-      const decision = decideAuthStateChange({
-        sessionUserId,
-        prevUserId: prevUserIdRef.current,
-        // Persistent "a user was signed in on this device" signal that survives
-        // cold starts (the per-mount ref is null on every launch). Lets a
-        // server-revoked session surfacing as a null INITIAL_SESSION still run
-        // local cleanup. (todo 188)
-        hasPersistedUser: getLastUserId() !== null,
-      });
-
-      if (sessionUserId) {
-        loginRevenueCat(sessionUserId, session?.user?.email);
-        if (decision.shouldIdentify) {
-          // identify() merges the current anonymous distinct_id onto the user,
-          // so pre-signup events (install, /login views) attach to the person.
-          // Skipped on TOKEN_REFRESHED/USER_UPDATED for the same id. (todo 191)
-          identifyUser(sessionUserId);
-        }
-        // A session just became available — drain immediately. The sync queue now
-        // head-of-line blocks on UNAUTHENTICATED instead of dead-lettering, so
-        // "auth restored" is a real recovery signal, and it was the one trigger
-        // missing: the others (mount, app resume, connectivity restore) can all be
-        // hours away from the moment the token comes back. Fires on SIGNED_IN and
-        // TOKEN_REFRESHED alike, which is exactly when a blocked queue can proceed.
-        drainQueue();
-        // Same trigger, same reason for CarPlay: a head unit connected while the
-        // rider was signed out skipped its user-scoped heads-up load (rather than
-        // firing a request the API can only reject — MOTO-VAULT-REACT-NATIVE-1J).
-        // No-ops when no head unit is attached.
-        refreshCarPlayHeadsUpData();
-        // A new account on this device (or the same one after Log out, which
-        // removed the device's token): claim the push token for it now. The
-        // mount-time registration ran before any session existed or for the
-        // previous account. Idempotent; a no-op without notification permission.
-        if (decision.shouldRegisterPush) void registerForPushNotifications();
-        // The Get Started card belongs to one account: a different rider on this
-        // device starts clean, the same one keeps their ticks across sign-out.
-        useChecklistStore.getState().claimForUser(sessionUserId);
-      } else {
-        if (decision.shouldClearLocalData) trackAuthSessionLost(_event); // before resetUser
-        if (decision.shouldResetUser) {
-          // Reset only when we PREVIOUSLY had a user in this app session. On a
-          // cold-start anonymous launch, onAuthStateChange fires with a null
-          // session (INITIAL_SESSION) — calling reset() there rotates the
-          // anonymous id and orphans pre-signup events, breaking cross-signup
-          // funnels. (Defect 1) Reset/RC-logout only on a real sign-out.
-          logoutRevenueCat();
-          resetUser();
-        }
-        if (decision.shouldClearLocalData) {
-          // Decoupled from reset (todo 188): runs whenever a user previously
-          // existed by EITHER the per-mount ref OR the persisted signal, so a
-          // server-revoked session that only surfaces on the next cold start
-          // still clears this device's user data.
-          queryClient.clear();
-          clearPersistedQueryCache();
-          clearLastUserId();
-          // Preserve unsynced rides across a forced sign-out / token revocation:
-          // keep the sync queue AND the active ride's local data while a ride is
-          // in progress or ops are still pending, so they drain once auth is
-          // restored instead of silently vanishing.
-          //
-          // Safe on a shared device because the ride queue is owner-scoped: each
-          // op carries the `userId` that enqueued it and `isOwnedByCurrentSession`
-          // refuses to drain anyone else's. It did NOT used to be — the backend
-          // does not reject a cross-owner `startRide` (it stamps `user_id` from
-          // whatever JWT presents it), so what the earlier note here described as
-          // a dead-lettered edge case was in fact rider A's GPS track being
-          // written into rider B's account.
-          // `hasPendingSyncWork()`, NOT `getQueueLength()`. The old guard counted
-          // only the main queue, which is empty precisely when every op has already
-          // been dead-lettered — so the branch meant to PRESERVE unsynced rides
-          // instead ran `clearAll`, removing DEAD_LETTER_KEY and destroying them.
-          // Its warning never fired either, being gated on the same wrong counter.
-          // And `clearDeliveredQueue` can no longer touch the dead-letter queue even
-          // if this condition is ever wrong again.
-          const activeRideId = rideMMKV.getCurrentId();
-          if (!hasPendingSyncWork() && activeRideId == null) {
-            clearDeliveredQueue();
-          } else {
-            // Intentional data-preservation path (a ride was active or ops were
-            // still queued/dead-lettered when a null session was observed —
-            // server-forced OR user-initiated sign-out), not a crash. A
-            // breadcrumb, NOT captureMessage: Sentry has no non-issue message
-            // destination, so `level: 'warning'` only recoloured the badge while
-            // the signal still sat under `is:unresolved` — and the synthetic
-            // stacktrace split one string across two issues besides.
-            // (MOTO-VAULT-REACT-NATIVE-2T / -39)
-            addBreadcrumb(SIGNOUT_UNSYNCED_MESSAGE, SIGNOUT_UNSYNCED_SOURCE, {
-              pendingCount: getPendingCount(),
-              hasActiveRide: activeRideId != null,
-            });
-            trackEvent(AnalyticsEvent.SIGNOUT_WITH_UNSYNCED_DATA, {
-              pending_count: getPendingCount(),
-              has_active_ride: activeRideId != null,
-            });
-          }
-          cancelAllNotifications();
-          clearAllWidgets();
-          // Receipt-scan local surfaces are per-user and device-global: wipe the
-          // parked-scan store, the post-save undo store, and the first-scan AI
-          // consent flag so a second rider on a shared device never inherits the
-          // previous account's scans/undo or skips the consent disclosure. The
-          // offline queue is intentionally preserved (its drain is owner-scoped)
-          // so a signed-out user's pending captures still upload on their return.
-          clearParkedScans();
-          clearAllReceiptSaveUndo();
-          clearScanConsent();
-          // The onboarding run (answers, resume point, garage_first hold and the
-          // completion marker) belongs to the account that made it. Kept, the next
-          // account on this device resumed at the last screen with the previous
-          // rider's answers and skipped onboarding and its paywall.
-          useOnboardingStore.getState().resetForSignOut();
-          // The Get Started card is NOT reset here: it is owner-keyed, so the same
-          // rider signing back in keeps it (a server-onboarded account never re-runs
-          // `initialize`, so a reset lost it for good), and `claimForUser` in the
-          // session branch resets it when a different account signs in.
-          // Note/Odometer work a drag-down parked belongs to the session that wrote it.
-          // Store-only: a user sign-out released its photos before the session ended
-          // (`releaseSheetDraftsForSignOut`); a forced one cannot, so they stay.
-          clearSheetDrafts();
-        }
-      }
-
-      prevUserIdRef.current = sessionUserId;
+      guard.handle(event, session);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      guard.dispose();
+    };
   }, [setSession]);
 
   // Handle deep link auth callback (email confirmation / password reset)
@@ -1087,9 +1028,8 @@ function RootLayout() {
             <StatusBar style={resolvedScheme === COLOR_SCHEME.DARK ? 'light' : 'dark'} />
             <PersistedQueryClientBoundary>
               <NavigationGate onSettled={hideSplash} />
-              {/* Root-mounted so the post-save "Saved — Undo" toast (U7d) survives
-                  the scan modal's dismissal and lands on the returning screen. */}
               <ReceiptScanSaveSnackbar />
+              <RideNotSavedToast />
             </PersistedQueryClientBoundary>
           </KeyboardProvider>
         </PostHogSurveyProvider>

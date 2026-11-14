@@ -2,13 +2,13 @@ import { TripTemplatesDocument, type TripTemplatesQuery } from '@motovault/graph
 import { COUNTRY_NAMES, type SupportedCountryCode } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { Award, ChevronRight } from 'lucide-react-native';
+import { Award, ChevronRight, MapPin } from 'lucide-react-native';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
-import { useUserCountry } from '../../hooks/use-user-country';
+import { LOCATION_ACCESS, useUserCountry } from '../../hooks/use-user-country';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useEditorialTheme } from '../../theme/editorial';
@@ -31,7 +31,7 @@ export const NearYouSection = memo(function NearYouSection({
   const { t: theme } = useEditorialTheme();
   const { t: i18n } = useTranslation();
   const reducedMotion = useReducedMotion();
-  const { data: detected } = useUserCountry();
+  const { data: detected, requestLocation } = useUserCountry();
   const userCountry = detected?.countryCode ?? null;
 
   const { data: tripsData } = useQuery({
@@ -45,6 +45,17 @@ export const NearYouSection = memo(function NearYouSection({
     enabled: !!userCountry,
     staleTime: 10 * 60 * 1000,
   });
+
+  // Issue 365 (FS-PO8): Discover never asks for location on open. The rider
+  // opts in here; until then this card stands in for the "near you" rides.
+  if (detected && detected.access !== LOCATION_ACCESS.GRANTED) {
+    return (
+      <UseLocationPrompt
+        blocked={detected.access === LOCATION_ACCESS.BLOCKED}
+        onPress={requestLocation}
+      />
+    );
+  }
 
   if (!userCountry) return null;
 
@@ -103,6 +114,60 @@ export const NearYouSection = memo(function NearYouSection({
         ))}
       </ScrollView>
     </Animated.View>
+  );
+});
+
+// --- Location opt-in ---
+
+const UseLocationPrompt = memo(function UseLocationPrompt({
+  blocked,
+  onPress,
+}: {
+  blocked: boolean;
+  onPress: () => void;
+}) {
+  const { t: theme } = useEditorialTheme();
+  const { t: i18n } = useTranslation();
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        gap: space.sm,
+        padding: space.md,
+        backgroundColor: theme.surface,
+        borderWidth: 1,
+        borderColor: theme.line,
+        borderRadius: 16,
+        borderCurve: 'continuous',
+      }}
+    >
+      <MapPin size={20} color={theme.warm2} />
+      <View style={{ flex: 1, gap: space.xs }}>
+        <Text style={[type.bodyStrong, { color: theme.ink }]} accessibilityRole="header">
+          {i18n('nearYou.locationTitle')}
+        </Text>
+        <Text style={[type.caption, { color: theme.ink2 }]}>{i18n('nearYou.locationReason')}</Text>
+        <Pressable
+          testID="near-you-use-location"
+          onPress={onPress}
+          accessibilityRole="button"
+          style={{
+            alignSelf: 'flex-start',
+            minHeight: 44,
+            justifyContent: 'center',
+            marginTop: space.xxs,
+            paddingHorizontal: space.md,
+            borderRadius: 999,
+            borderCurve: 'continuous',
+            backgroundColor: theme.warm,
+          }}
+        >
+          <Text style={[type.label, SYSTEM_WEIGHT.semibold, { color: theme.onWarm }]}>
+            {i18n(blocked ? 'nearYou.openSettings' : 'nearYou.useLocation')}
+          </Text>
+        </Pressable>
+      </View>
+    </View>
   );
 });
 

@@ -2090,6 +2090,7 @@
     "gpsTip": "Tipp: Achte auf freie Sicht zum Himmel für das GPS-Tracking",
     "keepRiding": "Weiterfahren",
     "endAnyway": "Trotzdem beenden",
+    "endWithoutSaving": "Ohne Speichern beenden",
     "reminderNudgeBody": "Deine Fahrt wird noch aufgezeichnet, aber du hast dich seit {{minutes}} Minuten nicht bewegt. Beende sie oder fahr weiter.",
     "reminderFinalTitle": "Deine Fahrt wird noch aufgezeichnet",
     "reminderFinalBody": "Seit {{minutes}} Minuten keine Bewegung. Beende die Fahrt, um sie so zu speichern, wie sie beim Anhalten war.",
@@ -2102,6 +2103,9 @@
     "rideAlertsChannel": "Fahrt-Hinweise",
     "autoEndedTitle": "Fahrt gespeichert",
     "autoEndedBody": "Du hast dich {{minutes}} Minuten nicht bewegt. Wir haben deine Fahrt beendet und bis zu deinem Halt gespeichert.",
+    "notSavedToast": "Nicht gespeichert: Fahrten unter {{meters}} m werden nicht behalten",
+    "autoDiscardedTitle": "Fahrt nicht gespeichert",
+    "autoDiscardedBody": "Deine Fahrt war zu kurz zum Speichern",
     "serviceTitle": "MotoVault zeichnet deine Fahrt auf",
     "serviceBody": "Tippe, um zur Fahrt zurückzukehren. Beende sie, wenn du absteigst.",
     "noGpsTitle": "Diese Fahrt konnte nicht aufgezeichnet werden",
@@ -2210,7 +2214,11 @@
     "routesFoundCount_one": "{{count}} Route gefunden",
     "routesFoundCount_few": "{{count}} Routen gefunden",
     "routesFoundCount_many": "{{count}} Routen gefunden",
-    "routesFoundCount_other": "{{count}} Routen gefunden"
+    "routesFoundCount_other": "{{count}} Routen gefunden",
+    "loadErrorTitle": "Routen konnten nicht geladen werden",
+    "loadErrorBody": "Prüfe deine Verbindung und versuche es erneut.",
+    "retry": "Erneut versuchen",
+    "loadingRoutes": "Routen werden geladen"
   },
   "mapPicker": {
     "title": "Kartenstil",
@@ -2223,12 +2231,16 @@
     "viewAll": "Alle anzeigen",
     "editorsPick": "Empfehlung der Redaktion",
     "elevLabel": "{{value}}m Höhe",
-    "ratingLabel": "{{value}} Bewertung"
+    "ratingLabel": "{{value}} Bewertung",
+    "locationTitle": "Routen in deiner Nähe",
+    "locationReason": "Teile deinen Standort, um Touren in deinem Land zu sehen. Er wird nur genutzt, um Routen in deiner Nähe zu finden.",
+    "useLocation": "Meinen Standort verwenden",
+    "openSettings": "In den Einstellungen aktivieren"
   },
   "checklist": {
     "getStarted": "Erste Schritte",
     "progressLabel": "{{completed}} von {{total}}",
-    "seeFirstRideStats": "Sieh dir die Statistik deiner ersten Fahrt an",
+    "recordFirstRide": "Zeichne deine erste Fahrt auf",
     "findRouteNearYou": "Finde eine Route in deiner Nähe",
     "trackFirstExpense": "Trage deine erste Ausgabe ein",
     "completeBikeProfile": "Vervollständige dein Motorradprofil",

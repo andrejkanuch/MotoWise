@@ -127,7 +127,7 @@
     "v2ExperienceHeadline": "¿Cuánto tiempo llevas conduciendo moto?"
   },
   "checklist": {
-    "seeFirstRideStats": "Mira las estadísticas de tu primera salida"
+    "recordFirstRide": "Graba tu primera salida"
   },
   "bikeHub": {
     "segment": {
@@ -420,6 +420,9 @@
     "rideAlertsChannel": "Avisos de salida",
     "autoEndedTitle": "Salida guardada",
     "autoEndedBody": "Llevabas {{minutes}} minutos sin moverte, así que hemos terminado tu salida y la hemos guardado hasta donde te detuviste.",
+    "notSavedToast": "No se ha guardado: no conservamos salidas de menos de {{meters}} m",
+    "autoDiscardedTitle": "Salida no guardada",
+    "autoDiscardedBody": "Tu salida ha sido demasiado corta para guardarla",
     "serviceTitle": "MotoVault está grabando tu salida",
     "serviceBody": "Toca para volver a tu salida. Termínala cuando te bajes de la moto.",
     "noGpsTitle": "No hemos podido registrar esta salida"

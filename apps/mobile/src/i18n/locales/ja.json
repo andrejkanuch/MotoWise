@@ -2090,6 +2090,7 @@
     "gpsTip": "ヒント: GPS追跡のため、スマートフォンが空をはっきり見渡せるようにしてください",
     "keepRiding": "ライドを続ける",
     "endAnyway": "終了する",
+    "endWithoutSaving": "保存せずに終了",
     "reminderNudgeBody": "ライドはまだ記録中ですが、{{minutes}}分間移動していません。終了するか、走行を続けてください。",
     "reminderFinalTitle": "ライドはまだ記録中です",
     "reminderFinalBody": "{{minutes}}分間移動がありません。停車時点のライドを保存するには終了してください。",
@@ -2102,6 +2103,9 @@
     "rideAlertsChannel": "ライド通知",
     "autoEndedTitle": "ライドを保存しました",
     "autoEndedBody": "{{minutes}}分間移動がなかったため、ライドを終了し、停車した地点まで保存しました。",
+    "notSavedToast": "保存されませんでした：{{meters}}m未満のライドは保存されません",
+    "autoDiscardedTitle": "ライドは保存されませんでした",
+    "autoDiscardedBody": "ライドが短すぎるため保存できませんでした",
     "serviceTitle": "MotoVaultがライドを記録中",
     "serviceBody": "タップしてライドに戻ります。バイクを降りたら終了してください。",
     "noGpsTitle": "このライドを記録できませんでした",
@@ -2210,7 +2214,11 @@
     "routesFoundCount_one": "{{count}}件のルート",
     "routesFoundCount_few": "{{count}}件のルート",
     "routesFoundCount_many": "{{count}}件のルート",
-    "routesFoundCount_other": "{{count}}件のルート"
+    "routesFoundCount_other": "{{count}}件のルート",
+    "loadErrorTitle": "ルートを読み込めませんでした",
+    "loadErrorBody": "接続を確認して、もう一度お試しください。",
+    "retry": "再試行",
+    "loadingRoutes": "ルートを読み込み中"
   },
   "mapPicker": {
     "title": "地図スタイル",
@@ -2223,12 +2231,16 @@
     "viewAll": "すべて表示",
     "editorsPick": "編集部のおすすめ",
     "elevLabel": "{{value}}m 標高差",
-    "ratingLabel": "{{value}} 評価"
+    "ratingLabel": "{{value}} 評価",
+    "locationTitle": "近くのルート",
+    "locationReason": "位置情報を共有すると、あなたの国のルートが表示されます。近くのルートを探すためだけに使います。",
+    "useLocation": "現在地を使う",
+    "openSettings": "設定でオンにする"
   },
   "checklist": {
     "getStarted": "はじめよう",
     "progressLabel": "{{completed}} / {{total}}",
-    "seeFirstRideStats": "最初のライドの統計を見る",
+    "recordFirstRide": "最初のライドを記録する",
     "findRouteNearYou": "近くのルートを探す",
     "trackFirstExpense": "最初の支出を記録する",
     "completeBikeProfile": "バイクのプロフィールを完成させる",

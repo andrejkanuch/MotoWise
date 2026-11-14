@@ -1,10 +1,17 @@
 const mockTrackEvent = jest.fn();
 jest.mock('../analytics', () => ({
-  AnalyticsEvent: { RIDE_COMPLETED: 'ride_completed' },
+  AnalyticsEvent: { RIDE_COMPLETED: 'ride_completed', RIDE_DISCARDED: 'ride_discarded' },
   trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
 }));
 
-import { RIDE_SAVE_TRIGGER, rideCompletedProperties, trackRideCompleted } from '../ride-analytics';
+import {
+  RIDE_DISCARD_REASON,
+  RIDE_DISCARD_TRIGGER,
+  RIDE_SAVE_TRIGGER,
+  rideCompletedProperties,
+  trackRideCompleted,
+  trackRideDiscarded,
+} from '../ride-analytics';
 
 beforeEach(() => mockTrackEvent.mockClear());
 
@@ -92,5 +99,25 @@ describe('trackRideCompleted', () => {
       'ride_completed',
       expect.objectContaining({ ride_id: 'r4', distance_km: 12, auto_ended: true }),
     );
+  });
+});
+
+// Issue 365 T09 (FS-PO4b): one event for every ride that is not kept.
+describe('trackRideDiscarded', () => {
+  it('sends ride_discarded with why and from where', () => {
+    trackRideDiscarded({
+      rideId: 'r9',
+      distanceM: 12.6,
+      durationS: 4.4,
+      reason: RIDE_DISCARD_REASON.BELOW_FLOOR,
+      trigger: RIDE_DISCARD_TRIGGER.AUTO_END,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith('ride_discarded', {
+      ride_id: 'r9',
+      distance_m: 13,
+      duration_s: 4,
+      reason: 'below_floor',
+      trigger: 'auto_end',
+    });
   });
 });
