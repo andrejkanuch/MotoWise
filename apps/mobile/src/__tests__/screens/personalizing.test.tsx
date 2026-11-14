@@ -283,6 +283,32 @@ describe('personalizing CTA states (FS-OB6)', () => {
     expect(screen.queryByText(RETRY)).toBeNull();
   });
 
+  it('failed after a stall: Retry starts a fresh pending state with no Skip until its own 10 s', async () => {
+    const first = deferred<unknown>();
+    completeOnboardingWith(() => first.promise);
+    await renderScreen();
+
+    // The first save stalls (Skip only), then fails (Retry + Skip).
+    await advance(10500);
+    expect(screen.getByText(SKIP)).toBeTruthy();
+    await act(async () => {
+      first.reject(new Error('network'));
+    });
+    expect(screen.getByText(RETRY)).toBeTruthy();
+
+    // Retry: the new attempt is pending again, with neither Retry nor Skip.
+    completeOnboardingWith(() => new Promise(() => {}));
+    await tapPrimary();
+    expect(screen.queryByText(RETRY)).toBeNull();
+    expect(screen.queryByText(SKIP)).toBeNull();
+
+    await advance(9000);
+    expect(screen.queryByText(SKIP)).toBeNull();
+    await advance(1500);
+    expect(screen.getByText(SKIP)).toBeTruthy();
+    expect(screen.queryByText(RETRY)).toBeNull();
+  });
+
   it('success: navigates once and the payoff never renders again', async () => {
     await renderPayoff();
 

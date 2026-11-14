@@ -382,9 +382,8 @@ export default function PersonalizingScreen() {
     }
   }, [mutationDone, animationDone, isResumed, reset, setOnboardingCompleted]);
 
-  // Safety net on a slow save: after SETUP_STALL_MS offer only Skip. Never Retry
-  // here: the save may still succeed, and a second run would race the first.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: re-armed by each retry
+  // Slow save: after SETUP_STALL_MS only Skip, never Retry (the save may still succeed).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-armed by each retry (Retry clears setupStalled)
   useEffect(() => {
     if (mutationDone || setupFailed) return;
     const timeout = setTimeout(() => setSetupStalled(true), SETUP_STALL_MS);
@@ -555,6 +554,7 @@ export default function PersonalizingScreen() {
               label: t('common.retry'),
               onPress: () => {
                 setSetupFailed(false);
+                setSetupStalled(false);
                 setMutationDone(false);
                 setRetryCount((c) => c + 1);
               },
