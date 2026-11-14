@@ -94,10 +94,9 @@ env:
                   visible:
                     id: "start-ride-screen"
                 commands:
-                  - tapOn:
-                      text: "Close"
-                      childOf:
-                        id: "start-ride-screen"
+                  # No childOf: on iOS the Close button is not nested under
+                  # start-ride-screen in the XCUITest hierarchy.
+                  - tapOn: "Close"
       - tapOn:
           text: "Open my garage"
           optional: true
