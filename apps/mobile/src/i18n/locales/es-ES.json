@@ -231,7 +231,16 @@
     "howUrgent": "¿Cómo de urgente es?",
     "urgencyStranded": "La moto no anda / no puedo salir",
     "includeMaintenanceHint": "Revisiones, recambios y modificaciones, notas, salidas recientes y diagnósticos anteriores ayudan a la IA a diagnosticar tu moto",
-    "problemRequired": "Describe el problema o añade una foto para analizarlo. Toca para editar."
+    "problemRequired": "Describe el problema o añade una foto para analizarlo. Toca para editar.",
+    "submit": {
+      "stillWorking": "Sigue en proceso…",
+      "deadline": "Sigue en proceso: si termina, aparecerá en tus diagnósticos.",
+      "offline": "No tienes conexión. Tus respuestas se guardan; vuelve a intentarlo cuando vuelvas a estar en línea.",
+      "throttled": "Hay demasiadas solicitudes ahora. Espera un minuto y vuelve a intentarlo.",
+      "server": "Algo ha ido mal por nuestra parte. Tus respuestas se guardan; vuelve a intentarlo.",
+      "checkFailed": "No hemos podido comprobar si tu diagnóstico ha terminado.",
+      "retryCheck": "Reintentar"
+    }
   },
   "notifications": {
     "trialReminder": {

@@ -1450,7 +1450,16 @@
     "problemRequired": "Décris le problème ou ajoute une photo pour lancer l'analyse. Touche pour modifier.",
     "symptomsRequired": "Choisis ce que tu remarques, ou « Je ne sais pas trop ».",
     "descriptionRequired": "Décris ce qui se passe pour continuer.",
-    "removeOption": "Retirer {{label}}"
+    "removeOption": "Retirer {{label}}",
+    "submit": {
+      "stillWorking": "Toujours en cours…",
+      "deadline": "Toujours en cours — s'il aboutit, il apparaîtra dans tes diagnostics.",
+      "offline": "Tu es hors ligne. Tes réponses sont conservées — réessaie quand tu seras de nouveau en ligne.",
+      "throttled": "Trop de requêtes pour le moment. Attends une minute, puis réessaie.",
+      "server": "Un problème est survenu de notre côté. Tes réponses sont conservées — réessaie.",
+      "checkFailed": "Impossible de vérifier si ton diagnostic a abouti.",
+      "retryCheck": "Réessayer"
+    }
   },
   "notifications": {
     "title": "Notifications",

@@ -195,9 +195,8 @@ describe('gqlFetcher timeout', () => {
   });
 
   // Every LLM-backed / report-generating document: one dropped from
-  // LONG_RUNNING_DOCUMENTS would silently get the 30 s default.
+  // DOCUMENT_TIMEOUT_MS would silently get the 30 s default.
   it.each([
-    ['SubmitDiagnostic', SubmitDiagnosticDocument],
     ['ScanReceipt', ScanReceiptDocument],
     ['AskTripAssistant', AskTripAssistantDocument],
     ['GenerateArticle', GenerateArticleDocument],
@@ -218,6 +217,27 @@ describe('gqlFetcher timeout', () => {
     expect(error).toBeUndefined();
 
     await jest.advanceTimersByTimeAsync(GQL_TIMEOUT_MS.LONG_RUNNING - GQL_TIMEOUT_MS.DEFAULT);
+    await settled;
+    expect(error).toBeInstanceOf(GqlRequestTimeoutError);
+  });
+
+  // Issue 365 T17: the diagnosis deadline is 75 s, not the 300 s long-running one.
+  it('gives SubmitDiagnostic the 75 s diagnosis deadline', async () => {
+    jest.useFakeTimers();
+    hangUntilAborted();
+
+    let error: unknown;
+    const settled = gqlFetcher(
+      SubmitDiagnosticDocument as TypedDocumentNode<unknown, unknown>,
+      {},
+    ).catch((e: unknown) => {
+      error = e;
+    });
+    expect(GQL_TIMEOUT_MS.DIAGNOSIS).toBe(75_000);
+    await jest.advanceTimersByTimeAsync(GQL_TIMEOUT_MS.DIAGNOSIS - 1);
+    expect(error).toBeUndefined();
+
+    await jest.advanceTimersByTimeAsync(1);
     await settled;
     expect(error).toBeInstanceOf(GqlRequestTimeoutError);
   });

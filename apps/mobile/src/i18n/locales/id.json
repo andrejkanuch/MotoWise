@@ -1429,7 +1429,16 @@
     "problemRequired": "Jelaskan masalahnya atau tambahkan foto untuk dianalisis. Ketuk untuk mengedit.",
     "symptomsRequired": "Pilih yang Anda rasakan, atau “Saya tidak yakin”.",
     "descriptionRequired": "Jelaskan apa yang terjadi untuk melanjutkan.",
-    "removeOption": "Hapus {{label}}"
+    "removeOption": "Hapus {{label}}",
+    "submit": {
+      "stillWorking": "Masih diproses…",
+      "deadline": "Masih diproses — jika selesai, hasilnya akan muncul di diagnosis kamu.",
+      "offline": "Kamu sedang offline. Jawabanmu tetap tersimpan — coba lagi saat kembali online.",
+      "throttled": "Terlalu banyak permintaan saat ini. Tunggu sebentar, lalu coba lagi.",
+      "server": "Terjadi masalah di pihak kami. Jawabanmu tetap tersimpan — coba lagi.",
+      "checkFailed": "Tidak bisa memeriksa apakah diagnosis kamu sudah selesai.",
+      "retryCheck": "Coba lagi"
+    }
   },
   "notifications": {
     "title": "Notifikasi",

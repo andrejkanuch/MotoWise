@@ -1450,7 +1450,16 @@
     "problemRequired": "Describe el problema o agrega una foto para analizarlo. Toca para editar.",
     "symptomsRequired": "Elige lo que notas o “No sé bien”.",
     "descriptionRequired": "Describe lo que ocurre para continuar.",
-    "removeOption": "Quitar {{label}}"
+    "removeOption": "Quitar {{label}}",
+    "submit": {
+      "stillWorking": "Sigue en proceso…",
+      "deadline": "Sigue en proceso: si termina, aparecerá en tus diagnósticos.",
+      "offline": "No tienes conexión. Tus respuestas se guardan; inténtalo de nuevo cuando vuelvas a estar en línea.",
+      "throttled": "Hay demasiadas solicitudes ahora. Espera un minuto e inténtalo de nuevo.",
+      "server": "Algo salió mal de nuestro lado. Tus respuestas se guardan; inténtalo de nuevo.",
+      "checkFailed": "No pudimos comprobar si tu diagnóstico terminó.",
+      "retryCheck": "Reintentar"
+    }
   },
   "notifications": {
     "title": "Notificaciones",

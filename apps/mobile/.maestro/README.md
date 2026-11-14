@@ -230,6 +230,13 @@ the flows below.
   no "Try Again". iOS is covered by the jest suite `new-limit.test.tsx`. **Validated on the
   Android emulator 2026-11-14** (red on main, green on the fix). `test:e2e:diagnose-limit-loop` on the
   `e2e-android-local` build.
+- **`flows/diagnose-offline.yaml`** — the offline diagnose submit (issue 365 T17, FS-PO2b part a).
+  Android only (tag `android`, `setAirplaneMode`): fills the form online, turns airplane mode on at
+  the review step, taps Analyze and asserts the localized "You're offline. Your answers are kept…"
+  line with "Try Again", and no "Failed to analyze" / "Network request failed". No request is sent,
+  so nothing is seeded. The 10 s / 75 s / 240 s timings (part b) and iOS are the jest suite
+  `new-timeout.test.tsx`. **Validated on the Android emulator 2026-11-14** (red on main, green on the fix).
+  `test:e2e:diagnose-offline` on the `e2e-android-local` build.
 
   All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /
   `E2E_EMAIL_PREFIX` (set inline in the `test:e2e:*` package scripts) — no per-flow wrapper needed.

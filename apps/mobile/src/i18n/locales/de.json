@@ -1429,7 +1429,16 @@
     "problemRequired": "Beschreibe das Problem oder füge ein Foto hinzu, um es zu analysieren. Zum Bearbeiten tippen.",
     "symptomsRequired": "Wähle, was dir auffällt, oder „Ich bin nicht sicher“.",
     "descriptionRequired": "Beschreibe, was passiert, um fortzufahren.",
-    "removeOption": "{{label}} entfernen"
+    "removeOption": "{{label}} entfernen",
+    "submit": {
+      "stillWorking": "Läuft noch…",
+      "deadline": "Läuft noch — wenn sie fertig wird, erscheint sie in deinen Diagnosen.",
+      "offline": "Du bist offline. Deine Antworten bleiben erhalten — versuch es erneut, sobald du wieder online bist.",
+      "throttled": "Gerade zu viele Anfragen. Warte eine Minute und versuch es dann erneut.",
+      "server": "Bei uns ist etwas schiefgelaufen. Deine Antworten bleiben erhalten — versuch es erneut.",
+      "checkFailed": "Wir konnten nicht prüfen, ob deine Diagnose fertig wurde.",
+      "retryCheck": "Erneut versuchen"
+    }
   },
   "notifications": {
     "title": "Benachrichtigungen",

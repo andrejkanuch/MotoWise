@@ -7,6 +7,36 @@ export type Urgency = 'stranded' | 'soon' | 'preventive';
 export type WizardSubStep = 0 | 1 | 2;
 export type WizardField = 'symptoms' | 'location' | 'timing';
 
+/**
+ * Why the last submit failed (issue 365 T17), as a copy key, never the
+ * server's text. A client deadline is not a failure here: see `DeadlineLock`.
+ */
+export const SUBMIT_FAILURE = {
+  OFFLINE: 'offline',
+  THROTTLED: 'throttled',
+  SERVER: 'server',
+} as const;
+export type SubmitFailure = (typeof SUBMIT_FAILURE)[keyof typeof SUBMIT_FAILURE];
+
+/** Where a submit that outlived the client deadline stands (issue 365 T17). */
+export const DEADLINE_LOCK_PHASE = {
+  /** The server may still be working: submit stays locked until its window ends. */
+  WAITING: 'waiting',
+  /** The window ended; the quota is being refetched. */
+  CHECKING: 'checking',
+  /** That refetch failed: Retry reruns it before submit can come back. */
+  CHECK_FAILED: 'check_failed',
+} as const;
+export type DeadlineLockPhase = (typeof DEADLINE_LOCK_PHASE)[keyof typeof DEADLINE_LOCK_PHASE];
+
+export interface DeadlineLock {
+  phase: DeadlineLockPhase;
+  /** When the request was sent (ms epoch); the server window counts from here. */
+  sentAtMs: number;
+  /** `diagnosticQuota.used` before the send, when it was known. */
+  usedAtSend: number | null;
+}
+
 export interface ManualBikeInfo {
   type: string;
   year?: number;
@@ -94,10 +124,16 @@ interface DiagnosticFlowState {
   dataSharingOptedIn: boolean;
   includeMaintenanceHistory: boolean;
   isSubmitting: boolean;
-  submitError: string | null;
+  submitFailure: SubmitFailure | null;
+  /**
+   * Set when the client deadline ran out before the server answered. Survives
+   * `reset()`: leaving and reopening the form must not unlock submit while the
+   * first request may still be using the free diagnosis.
+   */
+  deadlineLock: DeadlineLock | null;
   /**
    * The server answered FORBIDDEN: this month's free diagnosis is used (issue 365
-   * T08). Typed, not a `submitError`, so the review step shows the limit panel
+   * T08). Typed, not a `submitFailure`, so the review step shows the limit panel
    * instead of the server text and a "Try Again" that would re-submit.
    */
   limitReached: boolean;
@@ -120,7 +156,8 @@ interface DiagnosticFlowState {
   setDataSharingOptedIn: (opted: boolean) => void;
   setIncludeMaintenanceHistory: (include: boolean) => void;
   setIsSubmitting: (submitting: boolean) => void;
-  setSubmitError: (error: string | null) => void;
+  setSubmitFailure: (failure: SubmitFailure | null) => void;
+  setDeadlineLock: (lock: DeadlineLock | null) => void;
   setLimitReached: () => void;
   setIsTransitioning: (transitioning: boolean) => void;
   toggleWizardOption: (field: WizardField, value: string) => void;
@@ -150,12 +187,13 @@ const initialState = {
   dataSharingOptedIn: false,
   includeMaintenanceHistory: true,
   isSubmitting: false,
-  submitError: null as string | null,
+  submitFailure: null as SubmitFailure | null,
   limitReached: false,
 };
 
 export const useDiagnosticFlowStore = create<DiagnosticFlowState>()((set, get) => ({
   ...initialState,
+  deadlineLock: null,
 
   setStep: (step) => set({ currentStep: step }),
 
@@ -198,8 +236,9 @@ export const useDiagnosticFlowStore = create<DiagnosticFlowState>()((set, get) =
   setDataSharingOptedIn: (opted) => set({ dataSharingOptedIn: opted }),
   setIncludeMaintenanceHistory: (include) => set({ includeMaintenanceHistory: include }),
   setIsSubmitting: (submitting) => set({ isSubmitting: submitting }),
-  setSubmitError: (error) => set({ submitError: error }),
-  setLimitReached: () => set({ limitReached: true, submitError: null }),
+  setSubmitFailure: (failure) => set({ submitFailure: failure }),
+  setDeadlineLock: (lock) => set({ deadlineLock: lock }),
+  setLimitReached: () => set({ limitReached: true, submitFailure: null }),
   setIsTransitioning: (transitioning) => set({ isTransitioning: transitioning }),
 
   toggleWizardOption: (field, value) => {
@@ -282,7 +321,7 @@ export const useDiagnosticFlowStore = create<DiagnosticFlowState>()((set, get) =
     return s.currentStep / totalSteps;
   },
 
-  reset: () => set({ ...initialState }),
+  reset: () => set({ ...initialState }), // keeps `deadlineLock` (not in initialState)
 
   hasAnyData: () => {
     const s = get();
