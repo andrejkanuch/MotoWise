@@ -9,7 +9,7 @@ jest.mock('expo-keep-awake', () => ({
   activateKeepAwakeAsync: jest.fn(() => Promise.resolve()),
   deactivateKeepAwake: jest.fn(() => Promise.resolve()),
 }));
-jest.mock('expo-router', () => ({ useRouter: () => ({ replace: jest.fn() }) }));
+jest.mock('expo-router', () => ({ useRouter: () => ({ replace: mockReplace }) }));
 jest.mock('../../lib/analytics', () => require('../../test/mocks').mockAnalytics());
 jest.mock('../../utils/haptics', () => ({ triggerImpact: jest.fn() }));
 jest.mock('../../utils/ride-sync-queue', () => ({ hasPendingSyncWork: () => false }));
@@ -21,6 +21,7 @@ jest.mock('../../features/ride/gps-lost-banner', () => ({ GpsLostBanner: () => n
 jest.mock('../../features/ride/ride-controller', () => ({
   buildRideSummaryHref: jest.fn(() => '/ride-summary'),
   endRideSession: jest.fn(() => null),
+  endRideWithoutSaving: jest.fn(() => ({ rideId: 'ride-1' })),
   pauseRideSession: jest.fn(),
   resumeRideSession: jest.fn(),
 }));
@@ -59,12 +60,13 @@ import { type MyRidesQuery, RideStatus } from '@motovault/graphql';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import RideHudScreen from '../../app/(modals)/ride-hud';
-import { endRideSession } from '../../features/ride/ride-controller';
+import { endRideSession, endRideWithoutSaving } from '../../features/ride/ride-controller';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
 import { rideMMKV } from '../../utils/ride-storage';
 
+const mockReplace = jest.fn();
 let mockElapsed = 0;
 let mockPointBuffer: unknown[] = [];
 let mockSheetProps: Record<string, unknown> = {};
@@ -191,7 +193,84 @@ describe('ride HUD minimum-ride guard', () => {
     expect(screen.getByTestId('ride-guard-end-anyway').props.accessibilityRole).toBe('button');
 
     await fireEvent.press(screen.getByTestId('ride-guard-end-anyway'));
-    expect(endRideSession).toHaveBeenCalledWith('phone');
     expect(guardCalls().at(-1)?.[1]).toMatchObject({ action: 'end', variant: 'default' });
+  });
+});
+
+// Issue 365 T09 (FS-PO4b, D3): a ride under the 50 m floor ended from the guard is
+// not saved: "End without saving" discards it and goes Home with a notice.
+describe('ride HUD guard: End without saving', () => {
+  const HOME = '/(tabs)/(home)';
+
+  beforeEach(() => {
+    jest.mocked(endRideSession).mockReturnValue({ rideId: RIDE_ID } as never);
+  });
+
+  async function endFromGuard() {
+    await renderHud();
+    await fireEvent.press(screen.getByText('mock-end-ride'));
+    await fireEvent.press(screen.getByTestId('ride-guard-end-anyway'));
+  }
+
+  it('discards a standstill ride and routes Home, never to the summary', async () => {
+    mockElapsed = 5;
+    useRideStore.setState({ distance: 0 });
+    await renderHud();
+    await fireEvent.press(screen.getByText('mock-end-ride'));
+    expect(screen.getByText('rideHud.endWithoutSaving')).toBeTruthy();
+
+    await fireEvent.press(screen.getByTestId('ride-guard-end-anyway'));
+
+    expect(endRideWithoutSaving).toHaveBeenCalledWith('phone');
+    expect(endRideSession).not.toHaveBeenCalled();
+    expect(mockReplace).toHaveBeenCalledWith(HOME);
+    expect(mockReplace).not.toHaveBeenCalledWith('/ride-summary');
+  });
+
+  it('discards a ride under 50 m even past the 30 s floor (90 s / 20 m)', async () => {
+    mockElapsed = 90;
+    useRideStore.setState({ distance: 20 });
+    await endFromGuard();
+
+    expect(endRideWithoutSaving).toHaveBeenCalledWith('phone');
+    expect(mockReplace).toHaveBeenCalledWith(HOME);
+  });
+
+  it('keeps the no-GPS branch (>= 120 s) as today: End Anyway opens the summary', async () => {
+    mockElapsed = 150;
+    useRideStore.setState({ distance: 0 });
+    await renderHud();
+    await fireEvent.press(screen.getByText('mock-end-ride'));
+    expect(screen.getByText('rideHud.endAnyway')).toBeTruthy();
+
+    await fireEvent.press(screen.getByTestId('ride-guard-end-anyway'));
+
+    expect(endRideWithoutSaving).not.toHaveBeenCalled();
+    expect(endRideSession).toHaveBeenCalledWith('phone');
+    expect(mockReplace).toHaveBeenCalledWith('/ride-summary');
+  });
+
+  it('keeps a ride that crossed 50 m while the sheet was open: ended and kept, not deleted', async () => {
+    mockElapsed = 20;
+    useRideStore.setState({ distance: 10 });
+    await renderHud();
+    await fireEvent.press(screen.getByText('mock-end-ride'));
+    // Recording runs on under the sheet.
+    useRideStore.setState({ distance: 70 });
+
+    await fireEvent.press(screen.getByTestId('ride-guard-end-anyway'));
+
+    expect(endRideWithoutSaving).not.toHaveBeenCalled();
+    expect(endRideSession).toHaveBeenCalledWith('phone');
+    expect(mockReplace).toHaveBeenCalledWith('/ride-summary');
+  });
+
+  it('keeps a ride over 50 m that is only under the time floor as today', async () => {
+    mockElapsed = 10;
+    useRideStore.setState({ distance: 80 });
+    await endFromGuard();
+
+    expect(endRideWithoutSaving).not.toHaveBeenCalled();
+    expect(mockReplace).toHaveBeenCalledWith('/ride-summary');
   });
 });

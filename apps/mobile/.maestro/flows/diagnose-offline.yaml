@@ -1,0 +1,81 @@
+# Diagnose offline submit — issue 365 T17 (spec FS-PO2b, part a).
+#
+# A rider fills the diagnose form, loses the connection on the review step and
+# taps Analyze. Before the fix the request was sent anyway and the review step
+# showed the raw transport text ("Network request failed" / "Failed to
+# analyze"). Expected now: the offline pre-check (expo-network) sends nothing
+# and shows the localized "You're offline. Your answers are kept…" line, with
+# "Try Again" and the answers still in the form.
+#
+# The 10 s "Still working…", the 75 s deadline and the 240 s submit lock
+# (part b) are covered by jest only: Maestro cannot delay one GraphQL
+# operation. See components/diagnostic-flow/__tests__/new-timeout.test.tsx,
+# which is also the iOS check (`setAirplaneMode` is Android only).
+#
+# Run (Android emulator, `e2e-android-local` build against the LOCAL stack):
+#   SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROLE_KEY=... \
+#     pnpm --filter @motovault/mobile test:e2e:diagnose-offline
+# No diagnosis is created: the request never leaves the device.
+appId: ${APP_ID}
+tags:
+  - android
+env:
+  APP_ID: com.motovault.app
+  PROBLEM_TEXT: "Clicking noise from the front brake"
+---
+# 1. Setup — a signed-in Home with a bike in the garage.
+- runFlow: onboarding.yaml
+
+# 2. Diagnose → Start (online, so the quota loads and the entry gate passes).
+- tapOn:
+    id: "home-action-diagnose"
+- extendedWaitUntil:
+    visible:
+      id: "diagnose-new"
+    timeout: 10000
+- tapOn:
+    id: "diagnose-new"
+
+# 3. Fill the four steps (same path as diagnose-limit-loop.yaml).
+#    Step 1 — the bike is not preselected: tap the onboarding Honda card.
+- tapOn:
+    text: "Honda.*"
+- tapOn: "Next"
+#    Step 2 — free text.
+- tapOn: "I'll describe it myself"
+- tapOn:
+    text: "Describe what's happening.*"
+- inputText: ${PROBLEM_TEXT}
+- hideKeyboard
+- tapOn: "Next"
+#    Step 3 — no photo, no urgency.
+- scrollUntilVisible:
+    element:
+      text: "Next"
+    direction: DOWN
+- tapOn: "Next"
+#    Step 4 — the review step.
+- extendedWaitUntil:
+    visible: "Analyze"
+    timeout: 10000
+
+# 4. The connection drops, then Analyze.
+- setAirplaneMode: enabled
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn: "Analyze"
+
+# 5. The localized offline line, not the transport text.
+- extendedWaitUntil:
+    visible: "You're offline\\. Your answers are kept.*"
+    timeout: 10000
+- assertVisible: ".*offline.*"
+- assertNotVisible: ".*Failed to analyze.*|.*Network request failed.*"
+- assertNotVisible: ".*fetch failed.*"
+- assertVisible: "Try Again"
+# The answers are still on the review step.
+- assertVisible: ".*${PROBLEM_TEXT}.*"
+- takeScreenshot: diagnose-offline
+
+# 6. Back online: leave airplane mode so later flows start clean.
+- setAirplaneMode: disabled

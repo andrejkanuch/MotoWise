@@ -37,37 +37,42 @@ export const GQL_TIMEOUT_MS = {
    * this stays above that worst case while still being bounded.
    */
   LONG_RUNNING: 300_000,
+  /**
+   * `submitDiagnostic` (issue 365 T17, FS-PO2b). Successful diagnoses answer in
+   * 6 s p50 / 11 s p90; the failures were what ran on for minutes. The client
+   * gives up here, but the server may still finish within its own window
+   * (`DIAGNOSIS_SERVER_WINDOW_MS`), so the form stays locked until then.
+   */
+  DIAGNOSIS: 75_000,
 } as const;
 
 export type GqlTimeoutMs = (typeof GQL_TIMEOUT_MS)[keyof typeof GQL_TIMEOUT_MS];
 
 export interface GqlFetcherOptions {
-  /** Overrides the timeout resolved from the document (see `LONG_RUNNING_DOCUMENTS`). */
+  /** Overrides the timeout resolved from the document (see `DOCUMENT_TIMEOUT_MS`). */
   timeoutMs?: GqlTimeoutMs;
 }
 
 /**
- * Operations that get `GQL_TIMEOUT_MS.LONG_RUNNING` wherever they are called
- * from (hooks, offline queues, wrappers), matched by document identity — the
- * generated documents are module singletons, so no operation-name strings.
- * Callers with their own, shorter UX deadline keep it (receipt scan races
+ * Operations with a longer deadline wherever they are called from (hooks,
+ * offline queues, wrappers), matched by document identity — the generated
+ * documents are module singletons, so no operation-name strings. Callers with
+ * their own, shorter UX deadline keep it (receipt scan races
  * `ANALYZE_TIMEOUT_MS`; that race still wins).
  */
-const LONG_RUNNING_DOCUMENTS: ReadonlySet<unknown> = new Set<unknown>([
-  SubmitDiagnosticDocument,
-  ScanReceiptDocument,
-  AskTripAssistantDocument,
-  GenerateArticleDocument,
-  GenerateOnboardingInsightsDocument,
-  GenerateBikeHealthReportDocument,
-  RegenerateRideSummaryDocument,
+const DOCUMENT_TIMEOUT_MS: ReadonlyMap<unknown, GqlTimeoutMs> = new Map<unknown, GqlTimeoutMs>([
+  [SubmitDiagnosticDocument, GQL_TIMEOUT_MS.DIAGNOSIS],
+  [ScanReceiptDocument, GQL_TIMEOUT_MS.LONG_RUNNING],
+  [AskTripAssistantDocument, GQL_TIMEOUT_MS.LONG_RUNNING],
+  [GenerateArticleDocument, GQL_TIMEOUT_MS.LONG_RUNNING],
+  [GenerateOnboardingInsightsDocument, GQL_TIMEOUT_MS.LONG_RUNNING],
+  [GenerateBikeHealthReportDocument, GQL_TIMEOUT_MS.LONG_RUNNING],
+  [RegenerateRideSummaryDocument, GQL_TIMEOUT_MS.LONG_RUNNING],
 ]);
 
 function resolveTimeoutMs(document: unknown, options?: GqlFetcherOptions): GqlTimeoutMs {
   if (options?.timeoutMs !== undefined) return options.timeoutMs;
-  return LONG_RUNNING_DOCUMENTS.has(document)
-    ? GQL_TIMEOUT_MS.LONG_RUNNING
-    : GQL_TIMEOUT_MS.DEFAULT;
+  return DOCUMENT_TIMEOUT_MS.get(document) ?? GQL_TIMEOUT_MS.DEFAULT;
 }
 
 const OPERATION_NAME_PATTERN = /\b(?:query|mutation|subscription)\s+([A-Za-z_][A-Za-z0-9_]*)/;

@@ -84,7 +84,15 @@ jest.mock('../../lib/supabase', () => ({
   },
 }));
 jest.mock('../../stores/onboarding.store', () => ({
-  useOnboardingStore: { getState: () => ({ bikeData: null, setCodeStepPending: () => {} }) },
+  ACCOUNT_DRAFT_MODE: { EMAIL: 'email', CODE: 'code' },
+  useOnboardingStore: {
+    getState: () => ({
+      bikeData: null,
+      accountDraft: null,
+      setCodeStepPending: () => {},
+      setAccountDraft: () => {},
+    }),
+  },
 }));
 jest.mock('../../stores/auth.store', () => {
   const { create } = require('zustand');

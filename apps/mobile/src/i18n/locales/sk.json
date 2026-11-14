@@ -1475,7 +1475,16 @@
     "problemRequired": "Opíšte problém alebo pridajte fotku, aby sme ho mohli analyzovať. Ťuknutím upravíte.",
     "symptomsRequired": "Vyberte, čo spozorujete, alebo „Nie som si istý“.",
     "descriptionRequired": "Ak chcete pokračovať, opíšte, čo sa deje.",
-    "removeOption": "Odstrániť {{label}}"
+    "removeOption": "Odstrániť {{label}}",
+    "submit": {
+      "stillWorking": "Stále prebieha…",
+      "deadline": "Stále prebieha — ak sa dokončí, zobrazí sa v tvojich diagnostikách.",
+      "offline": "Si offline. Tvoje odpovede ostávajú uložené — skús to znova, keď budeš online.",
+      "throttled": "Momentálne príliš veľa požiadaviek. Počkaj minútu a skús to znova.",
+      "server": "Na našej strane sa niečo pokazilo. Tvoje odpovede ostávajú uložené — skús to znova.",
+      "checkFailed": "Nepodarilo sa overiť, či sa tvoja diagnostika dokončila.",
+      "retryCheck": "Skúsiť znova"
+    }
   },
   "notifications": {
     "title": "Notifikácie",
@@ -2151,6 +2160,7 @@
     "gpsTip": "Tip: uisti sa, že tvoj telefón má voľný výhľad na oblohu pre GPS sledovanie",
     "keepRiding": "Pokračovať v jazde",
     "endAnyway": "Aj tak ukončiť",
+    "endWithoutSaving": "Ukončiť bez uloženia",
     "reminderNudgeBody": "Tvoja jazda sa stále nahráva, ale už {{minutes}} minút si sa nepohol. Ukonči ju alebo pokračuj.",
     "reminderFinalTitle": "Tvoja jazda sa stále nahráva",
     "reminderFinalBody": "Žiadny pohyb {{minutes}} minút. Ukonči jazdu a uloží sa tak, ako bola, keď si zastavil.",
@@ -2163,6 +2173,9 @@
     "rideAlertsChannel": "Upozornenia na jazdu",
     "autoEndedTitle": "Jazda uložená",
     "autoEndedBody": "{{minutes}} minút si sa nepohol, preto sme jazdu ukončili a uložili po miesto, kde si zastavil.",
+    "notSavedToast": "Neuložené: jazdy kratšie ako {{meters}} m sa neukladajú",
+    "autoDiscardedTitle": "Jazda neuložená",
+    "autoDiscardedBody": "Tvoja jazda bola príliš krátka na uloženie",
     "serviceTitle": "MotoVault nahráva tvoju jazdu",
     "serviceBody": "Ťukni pre návrat k jazde. Ukonči ju, keď zosadneš z motorky.",
     "noGpsTitle": "Túto jazdu sa nepodarilo zaznamenať",
@@ -2279,7 +2292,11 @@
     "routesFoundCount_one": "Nájdená {{count}} trasa",
     "routesFoundCount_few": "Nájdené {{count}} trasy",
     "routesFoundCount_many": "Nájdených {{count}} trás",
-    "routesFoundCount_other": "Nájdených {{count}} trás"
+    "routesFoundCount_other": "Nájdených {{count}} trás",
+    "loadErrorTitle": "Trasy sa nepodarilo načítať",
+    "loadErrorBody": "Skontroluj pripojenie a skús to znova.",
+    "retry": "Skúsiť znova",
+    "loadingRoutes": "Načítavam trasy"
   },
   "mapPicker": {
     "title": "Štýl mapy",
@@ -2292,12 +2309,16 @@
     "viewAll": "Zobraziť všetky",
     "editorsPick": "Výber redakcie",
     "elevLabel": "{{value}}m prevýšenie",
-    "ratingLabel": "{{value}} hodnotenie"
+    "ratingLabel": "{{value}} hodnotenie",
+    "locationTitle": "Trasy v okolí",
+    "locationReason": "Zdieľaj polohu a uvidíš trasy vo svojej krajine. Používa sa len na hľadanie trás v okolí.",
+    "useLocation": "Použiť moju polohu",
+    "openSettings": "Zapnúť v Nastaveniach"
   },
   "checklist": {
     "getStarted": "Začíname",
     "progressLabel": "{{completed}} z {{total}}",
-    "seeFirstRideStats": "Pozri si štatistiky prvej jazdy",
+    "recordFirstRide": "Zaznamenaj svoju prvú jazdu",
     "findRouteNearYou": "Nájdi trasu vo svojom okolí",
     "trackFirstExpense": "Zapíš svoj prvý výdavok",
     "completeBikeProfile": "Dokonči profil motorky",

@@ -7,6 +7,9 @@
 #      (onboarding-signin-unfinished-account.yaml).
 #   2. onboarded  — a confirmed account with preferences.onboardingCompleted=true
 #      must land on Home (onboarding-signin-onboarded-account.yaml).
+#   3. discover   — opt-in only (issue 365 T29, FS-PO8): an onboarded account
+#      opens Discover with no OS location dialog (discover-first-open-android.yaml).
+#      SIGNIN_CASES=discover; run it with the device locale in English and es-ES.
 #
 # Each case gets its own user, created confirmed through the admin API, marked
 # public.users.is_synthetic = true (e2e-mark-synthetic.sh) and deleted at
@@ -95,14 +98,15 @@ for case_name in $SIGNIN_CASES; do
   case "$case_name" in
     unfinished) flow=onboarding-signin-unfinished-account.yaml ;;
     onboarded) flow=onboarding-signin-onboarded-account.yaml ;;
-    *) echo "error: unknown case '$case_name' (unfinished | onboarded)"; exit 1 ;;
+    discover) flow=discover-first-open-android.yaml ;;
+    *) echo "error: unknown case '$case_name' (unfinished | onboarded | discover)"; exit 1 ;;
   esac
   email="e2e-signin-${case_name}+${STAMP}@motovault.app"
   echo "→ $case_name: creating confirmed user $email"
   id=$(create_user "$email")
   CREATED_IDS="$CREATED_IDS $id"
   mark_synthetic "$id" || exit 1
-  [ "$case_name" = "onboarded" ] && mark_onboarded "$id"
+  [ "$case_name" != "unfinished" ] && mark_onboarded "$id"
   echo "→ $case_name: running $flow"
   # shellcheck disable=SC2086
   maestro $DEVICE_ARGS test "$MOBILE_DIR/.maestro/flows/$flow" \

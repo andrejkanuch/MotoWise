@@ -50,6 +50,10 @@ const mockFetcher = jest.fn();
 jest.mock('../../lib/graphql-client', () => ({
   gqlFetcher: (...args: unknown[]) => mockFetcher(...(args as [])),
 }));
+const mockClearEmailDraft = jest.fn(async () => {});
+jest.mock('../../lib/onboarding-email-draft', () => ({
+  clearEmailDraft: () => mockClearEmailDraft(),
+}));
 jest.mock('../../lib/image-upload', () => ({ uploadBikePhoto: jest.fn() }));
 jest.mock('../../lib/subscription', () => ({ setSelfReportedSource: jest.fn() }));
 jest.mock('../../lib/onboarding-paywall', () => ({
@@ -156,5 +160,19 @@ describe('personalizing → onboarding_completed service plan', () => {
     const properties = await completedProperties();
     expect(properties.service_plan_task_count).toBe(0);
     expect(properties).not.toHaveProperty('service_plan_tier');
+  });
+});
+
+// issue 365 T13a (D10): the address is kept on the device only until onboarding ends.
+describe('personalizing → email draft', () => {
+  it('clears the SecureStore email draft once onboarding is complete', async () => {
+    completeOnboardingResult({ servicePlanTaskCount: 0, servicePlanTier: null });
+    // beforeEach's reset() also clears it; count only the completion.
+    mockClearEmailDraft.mockClear();
+    await renderScreen();
+    await completedProperties();
+
+    await waitFor(() => expect(useOnboardingStore.getState().completionSent).toBe(true));
+    expect(mockClearEmailDraft).toHaveBeenCalled();
   });
 });

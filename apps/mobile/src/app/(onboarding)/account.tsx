@@ -12,13 +12,14 @@ import {
 } from '../../components/auth/auth-field';
 import { authButton } from '../../components/auth/auth-styles';
 import { EMAIL_CODE_SOURCE, EmailCodeStep } from '../../components/auth/email-code-step';
+import { AccountProBadge } from '../../components/onboarding/account-pro-badge';
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import {
   OnboardingShell,
   OnboardingTextButton,
 } from '../../components/onboarding/onboarding-shell';
 import { useAccountAdvance } from '../../components/onboarding/use-account-advance';
-import { useCodeStepPending } from '../../components/onboarding/use-code-step-pending';
+import { hasAccountDraft, useAccountDraft } from '../../components/onboarding/use-account-draft';
 import { AUTH_EMAIL_MODE, AUTH_EMAIL_REDIRECT_TO, AUTH_SURFACE } from '../../config/auth';
 import { getPreviousRoute, OB_ROUTE, OB_SCREEN } from '../../config/onboarding';
 import { useEmailCodeStep } from '../../hooks/use-email-code-step';
@@ -35,7 +36,7 @@ import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { useSubscriptionStore } from '../../stores/subscription.store';
 import { space } from '../../theme/spacing';
-import { radius, type } from '../../theme/type';
+import { type } from '../../theme/type';
 
 const IS_IOS = process.env.EXPO_OS === 'ios';
 const SURFACE = AUTH_SURFACE.ONBOARDING_ACCOUNT;
@@ -78,15 +79,14 @@ export default function AccountScreen() {
     router.replace(previous);
   };
 
-  const [emailMode, setEmailMode] = useState(false);
+  const [emailMode, setEmailMode] = useState(hasAccountDraft); // relaunch: issue 365 T13a
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
 
-  // Back from the code step returns to the email form: the address stays, the
-  // password is typed again. Android hardware back does the same instead of
-  // popping the screen. Once a session exists the screen is advancing; the back
-  // press is swallowed, matching the hidden Back button.
+  // Back from the code step (Android back too) returns to the email form with the
+  // address kept, password retyped; swallowed once a session exists (Back is hidden).
+  // An open step survives a relaunch for an hour, then the form opens prefilled (FS-OB3).
   const {
     codeStep,
     open: openCodeStep,
@@ -94,8 +94,18 @@ export default function AccountScreen() {
     close: closeCodeStep,
     back: backFromCodeStep,
     onBusyChange: onCodeStepBusyChange,
-  } = useEmailCodeStep({ clearPassword: () => setPassword(''), backLocked: !!session });
-  useCodeStepPending(codeStep !== null);
+    onCodeResent,
+  } = useEmailCodeStep({
+    clearPassword: () => setPassword(''),
+    backLocked: !!session,
+    persistDraft: true,
+    formDirty: email.length > 0 || password.length > 0,
+    onDraftEmail: (address) => {
+      setEmail(address);
+      setEmailMode(true);
+    },
+  });
+  useAccountDraft(emailMode, codeStep !== null);
 
   useEffect(() => {
     trackOnboardingEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, OB_SCREEN.ACCOUNT, {
@@ -209,26 +219,7 @@ export default function AccountScreen() {
           onPress: () => router.push(OB_ROUTE.SIGN_IN),
         }}
       >
-        {isPro && !codeStep ? (
-          <View
-            style={{
-              alignSelf: 'flex-start',
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: space.xxs,
-              minHeight: 28,
-              paddingHorizontal: space.sm,
-              borderRadius: radius.pill,
-              borderCurve: 'continuous',
-              backgroundColor: oc.surface2,
-              marginBottom: space.lg,
-            }}
-          >
-            <Text style={[type.label, { color: oc.textPrimary }]}>
-              {t('onboarding.obAccountProBadge')}
-            </Text>
-          </View>
-        ) : null}
+        {isPro && !codeStep ? <AccountProBadge /> : null}
 
         {codeStep ? (
           <EmailCodeStep
@@ -239,6 +230,7 @@ export default function AccountScreen() {
             initialCooldownMs={codeStep.initialCooldownMs}
             onBack={closeCodeStep}
             onBusyChange={onCodeStepBusyChange}
+            onCodeResent={onCodeResent}
             onNeedsSignIn={() => router.push(OB_ROUTE.SIGN_IN)}
           />
         ) : emailMode ? (

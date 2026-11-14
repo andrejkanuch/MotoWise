@@ -5,6 +5,10 @@
 
 jest.mock('react-native-mmkv', () => require('../../test/mocks').makeMmkvMock());
 jest.mock('../../lib/analytics', () => require('../../test/mocks').mockAnalytics());
+const mockClearEmailDraft = jest.fn(async () => {});
+jest.mock('../../lib/onboarding-email-draft', () => ({
+  clearEmailDraft: () => mockClearEmailDraft(),
+}));
 
 import { isServerOnboardingComplete } from '../../lib/onboarding-paywall';
 import { useOnboardingStore } from '../onboarding.store';
@@ -101,5 +105,88 @@ describe('contact opt-in line (persist v9)', () => {
     const migrated = (await migrate(v8, 8)) as unknown as Record<string, unknown>;
 
     expect(migrated).toEqual({ ...v8, feedbackContactOptIn: false });
+  });
+});
+
+describe('account and bike drafts (persist v10, issue 365 T13a)', () => {
+  const migrate = async (state: unknown, version: number) => {
+    const { migrate: run } = useOnboardingStore.persist.getOptions();
+    if (!run) throw new Error('onboarding store has no migrate');
+    return (await run(state, version)) as unknown as Record<string, unknown>;
+  };
+
+  it('is version 10', () => {
+    expect(useOnboardingStore.persist.getOptions().version).toBe(10);
+  });
+
+  it('migrating a v9 store keeps every field and adds empty drafts', async () => {
+    const v9 = {
+      ridingGoals: ['track_rides'],
+      heardFrom: 'instagram',
+      lastCompletedScreen: 'paywall',
+      lastViewedScreen: 'account',
+      lastViewedAt: 1_763_000_000_000,
+      codeStepPending: true,
+      pendingIntent: null,
+      feedbackContactOptIn: true,
+    };
+
+    const migrated = await migrate({ ...v9 }, 9);
+
+    expect(migrated).toEqual({ ...v9, accountDraft: null, bikeDraft: null, furthestScreen: null });
+  });
+
+  it('a v10 store loads unchanged', async () => {
+    const v10 = {
+      ridingGoals: ['track_rides'],
+      accountDraft: { mode: 'code' },
+      bikeDraft: { makeId: 7, make: 'Yamaha', modelQuery: 'MT-0', year: 2019 },
+      furthestScreen: 'account',
+    };
+
+    expect(await migrate({ ...v10 }, 10)).toEqual(v10);
+  });
+
+  it('persists the account mode', () => {
+    useOnboardingStore.getState().setAccountDraft({ mode: 'code' });
+
+    expect(persisted()).toMatchObject({ accountDraft: { mode: 'code' } });
+  });
+
+  it('persists neither an email nor a password, anywhere in the state', () => {
+    const store = useOnboardingStore.getState();
+    store.setAccountDraft({ mode: 'code' });
+    store.setCodeStepPending(true);
+
+    const keys: string[] = [];
+    JSON.stringify(persisted(), (key, value) => {
+      keys.push(key.toLowerCase());
+      return value;
+    });
+    expect(keys.filter((k) => k.includes('email') || k.includes('password'))).toEqual([]);
+  });
+
+  it('completing onboarding clears the SecureStore email draft', () => {
+    mockClearEmailDraft.mockClear();
+
+    useOnboardingStore.getState().setCompletionSent(true);
+
+    expect(mockClearEmailDraft).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['reset()', () => useOnboardingStore.getState().reset()],
+    ['resetForSignOut()', () => useOnboardingStore.getState().resetForSignOut()],
+  ])('%s clears both drafts and the SecureStore email draft', (_name, run) => {
+    useOnboardingStore.getState().setAccountDraft({ mode: 'email' });
+    mockClearEmailDraft.mockClear();
+
+    run();
+
+    const state = useOnboardingStore.getState();
+    expect(state.accountDraft).toBeNull();
+    expect(state.bikeDraft).toBeNull();
+    expect(state.furthestScreen).toBeNull();
+    expect(mockClearEmailDraft).toHaveBeenCalledTimes(1);
   });
 });

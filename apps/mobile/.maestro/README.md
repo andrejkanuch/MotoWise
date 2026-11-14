@@ -85,6 +85,9 @@ the flows below.
   `delivered+<label>@resend.dev` test inbox (reports delivered, never bounces). The server side of
   the same contract runs in CI on every relevant PR: `scripts/e2e-email-confirmation.sh`
   (`.github/workflows/email-confirmation-e2e.yml`).
+  `RELAUNCH=1` adds `flows/onboarding-email-code-relaunch.yaml` between the two parts (issue 365
+  T13a, FS-OB3): it kills and relaunches the app with its state kept and asserts the code step
+  reopens for the same address with no password field.
 - **`flows/onboarding-signin-unfinished-account.yaml` + `flows/onboarding-signin-onboarded-account.yaml`** —
   returning-rider sign-in from Welcome (issue 365 T11, FS-OB1a). A confirmed account that has not
   finished onboarding must leave "Welcome back." for Experience with the "Account ready" notice
@@ -95,6 +98,17 @@ the flows below.
   SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=<local key> \
     DEVICE=<udid> pnpm --filter @motovault/mobile test:e2e:onboarding-signin
   ```
+- **`flows/discover-first-open-android.yaml`** — first Discover open raises no OS dialog (issue 365 T29,
+  FS-PO7/PO8): no location prompt until the rider taps `near-you-use-location`, rides (`trip-card-0`)
+  within 8 s, no `discover-retry`. Local stack only, through the sign-in runner:
+  `SIGNIN_CASES=discover DEVICE=<id> pnpm --filter @motovault/mobile test:e2e:onboarding-signin`. Run it on
+  the Android emulator (`e2e-android-local`) in English and with the device locale es-ES, and on the iOS simulator.
+  It passes `LOCATION_UNSET: "true"` to `_shared/welcome-to-sign-in.yaml`, so `launchApp` starts with location
+  not granted (by default Maestro's `launchApp` grants every permission, which hides the dialog). Maestro does
+  not interpolate `permissions` values, and a subflow's own `env` overrides the caller's, so the shared flow
+  has two literal `launchApp` branches and no default. Its text matches carry the Spanish strings for the
+  es-ES run. On iOS, a location alert left open by a failed run survives an app reinstall: reboot the
+  simulator before the next run.
 - **`flows/onboarding-oauth-cancel.yaml`** (tag `android-oauth`) — Google cancel on the onboarding
   account step (issue 365 T12, FS-OB2c): Back on the account picker returns to the account step with no
   "Something went wrong" alert and the button enabled; a double tap opens one picker. Android emulator
@@ -164,7 +178,16 @@ the flows below.
   ride") + the minimum-ride guard sheet. Since #365 T05c it uses ids only (`tab-ride-fab`,
   `start-ride-screen`, `start-ride-button`, `ride-hud-root`, `ride-guard-sheet`,
   `ride-guard-variant-default`, `ride-guard-keep`, `ride-guard-end-anyway`;
-  `src/features/ride/ride-test-ids.ts`). `test:e2e:log-ride`.
+  `src/features/ride/ride-test-ids.ts`). Since issue 365 T09 it rides a moving route (`travel`, ~400 m
+  over ~40 s) so the ride is over both floors and ends straight to the summary. `test:e2e:log-ride`.
+- **`flows/ride-standstill-not-saved.yaml`** — issue 365 T09 (FS-PO4b): a standstill ride ended from
+  the guard ("End without saving") is discarded: no "RIDE SAVED", a "Not saved" toast on Home, and My
+  Rides stays empty (`rides-empty-cta`). Red on `origin/main`. `test:e2e:ride-standstill-not-saved`.
+- **`flows/checklist-first-ride.yaml`** — FS-PO10 (issue 365 T10): the Get Started "Record your
+  first ride" row (`checklist-row-first_ride`) opens Start Ride (`start-ride-screen`) and is still
+  unticked after closing it. Red on `origin/main`, green on iOS and Android 2026-11-14. Maestro's
+  `checked:` selector reads the row state on Android only (iOS reports `checked=false` on every
+  node), so the flow also asserts the "0 of 5" counter. `test:e2e:checklist-first-ride`.
 - **`flows/bike-hub-overview.yaml`** — the redesigned bike screen (bike-detail redesign R1): four
   segments, Overview "Log" pill → Log sheet → Note sheet → save, the Notes screen with delete + Undo,
   and the Odometer sheet from the header chip. Needs a backend with migrations 00180–00182 (see
@@ -210,6 +233,13 @@ the flows below.
   no "Try Again". iOS is covered by the jest suite `new-limit.test.tsx`. **Validated on the
   Android emulator 2026-11-14** (red on main, green on the fix). `test:e2e:diagnose-limit-loop` on the
   `e2e-android-local` build.
+- **`flows/diagnose-offline.yaml`** — the offline diagnose submit (issue 365 T17, FS-PO2b part a).
+  Android only (tag `android`, `setAirplaneMode`): fills the form online, turns airplane mode on at
+  the review step, taps Analyze and asserts the localized "You're offline. Your answers are kept…"
+  line with "Try Again", and no "Failed to analyze" / "Network request failed". No request is sent,
+  so nothing is seeded. The 10 s / 75 s / 240 s timings (part b) and iOS are the jest suite
+  `new-timeout.test.tsx`. **Validated on the Android emulator 2026-11-14** (red on main, green on the fix).
+  `test:e2e:diagnose-offline` on the `e2e-android-local` build.
 
   All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /
   `E2E_EMAIL_PREFIX` (set inline in the `test:e2e:*` package scripts) — no per-flow wrapper needed.
@@ -320,7 +350,8 @@ Hard-won specifics for THIS app — check these first when a flow "should work" 
   (`src/features/ride/ride-guard-sheet.tsx`). Prefer a real selector over a `point:` tap whenever
   `inspect_screen` exposes one.
 - **GPS-dependent flows need `setLocation`.** The ride pre-flight GPS check and recording need a fix;
-  set one at the top of the flow (a stationary sim logs ~0 distance, which still saves).
+  set one at the top of the flow. A stationary sim logs ~0 distance, and since issue 365 T09 such a
+  ride ended from the guard is discarded, not saved: use `travel` for a ride that must be kept.
 
 ## Verified on a local stack (2026-10-07)
 

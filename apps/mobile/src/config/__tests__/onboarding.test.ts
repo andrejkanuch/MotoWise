@@ -120,6 +120,13 @@ describe('a persisted variant this bundle does not know', () => {
     );
   });
 
+  it('resumes at the account step after commitment in commit_first', () => {
+    // commitment.tsx records COMMITMENT on both the pledge and the skip.
+    expect(getResumeRoute(OB_VARIANT.COMMIT_FIRST, OB_SCREEN.COMMITMENT, withBike)).toBe(
+      OB_ROUTE.ACCOUNT,
+    );
+  });
+
   it('leaves both experiment arms on their own flows', () => {
     const garageFirst = getFlowScreens(OB_VARIANT.GARAGE_FIRST);
     const commitFirst = getFlowScreens(OB_VARIANT.COMMIT_FIRST);

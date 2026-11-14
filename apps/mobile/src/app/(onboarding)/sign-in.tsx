@@ -51,6 +51,7 @@ export default function OnboardingSignInScreen() {
 
   // Back from the code step returns to this form: the email stays, the password
   // is cleared. Android hardware back does the same instead of leaving sign-in.
+  // An open step survives a relaunch for an hour, then prefills the form (issue 365 T13a).
   const {
     codeStep,
     open: openCodeStep,
@@ -58,7 +59,13 @@ export default function OnboardingSignInScreen() {
     close: closeCodeStep,
     back: backFromCodeStep,
     onBusyChange: onCodeStepBusyChange,
-  } = useEmailCodeStep({ clearPassword: () => setPassword('') });
+    onCodeResent,
+  } = useEmailCodeStep({
+    clearPassword: () => setPassword(''),
+    persistDraft: true,
+    formDirty: email.length > 0 || password.length > 0,
+    onDraftEmail: setEmail,
+  });
 
   // The account exists but was never confirmed: send a fresh code and open the
   // code step. A failed send keeps the rider on this form — never "no account found".
@@ -166,6 +173,7 @@ export default function OnboardingSignInScreen() {
             initialCooldownMs={codeStep.initialCooldownMs}
             onBack={closeCodeStep}
             onBusyChange={onCodeStepBusyChange}
+            onCodeResent={onCodeResent}
             onNeedsSignIn={closeCodeStep}
           />
         ) : (
