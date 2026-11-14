@@ -34,12 +34,10 @@ tags:
     enabled: true
 - assertVisible: "Continue with email"
 
-# 3. Double tap: one picker. The second tap lands on the disabled button or on
-#    the picker already over it, so it is optional.
-- tapOn: "Continue with Google"
-- tapOn:
-    text: "Continue with Google"
-    optional: true
+# 3. Double tap: one picker. doubleTapOn sends both taps ~100 ms apart, before
+#    the picker can cover the button, so the second one really reaches the
+#    in-flight guard (two separate tapOn steps let the picker win the race).
+- doubleTapOn: "Continue with Google"
 - extendedWaitUntil:
     visible: "(?i)choose an account|sign in with google"
     timeout: 20000
