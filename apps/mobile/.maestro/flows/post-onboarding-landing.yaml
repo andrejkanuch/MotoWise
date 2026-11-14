@@ -1,5 +1,6 @@
 # FS-PO17 guard (issue 365 T16b, owner ruling D11): at most one modal sheet over
 # Home in the session the rider lands from onboarding, and none after it closes.
+# FS-OB6 guard (issue 365 T16a): "Open my garage" lands once; step 1b.
 #
 # Order of the landing-sheet queue: safety recall (`recall-sheet`), then
 # "Service plan ready" (`oem-imported-sheet`); What's New (`whats-new-sheet`)
@@ -17,11 +18,33 @@ appId: ${APP_ID}
 env:
   APP_ID: com.motovault.app
 ---
-# 1. Onboard and land on Home, keeping the landing sheet on screen.
+# 1. Onboard and land on Home, keeping the landing sheet on screen. "Open my
+# garage" is double-tapped: it must still land once (issue 365 T16a). On a
+# build with no paywall the second tap can open Start Ride from Home's Ride FAB;
+# onboarding.yaml closes it (the tap reached the new screen, not the CTA).
 - runFlow:
     file: onboarding.yaml
     env:
       KEEP_LANDING_SHEET: "true"
+      DOUBLE_TAP_GARAGE: "true"
+
+# 1b. FS-OB6 guard (issue 365 T16a): Home within 10 s, and the personalizing
+# screen (setup readout, payoff, its CTA or Retry) never shows again, now or
+# 5 s later. Guard only: Maestro cannot set the slow-network conditioner of the
+# repro; src/__tests__/screens/personalizing.test.tsx covers the CTA states.
+# Run once per onboarding paywall arm (garage_first and commit_first builds).
+- extendedWaitUntil:
+    visible:
+      id: "home-screen|recall-sheet|oem-imported-sheet"
+    timeout: 10000
+- assertNotVisible: ".*Personalizing.*|Setting up your ride.*|Welcome home, rider.*|Open my garage|Retry"
+- extendedWaitUntil:
+    visible: "FS-OB6 hold: this text never appears"
+    timeout: 5000
+    optional: true
+- assertNotVisible: ".*Personalizing.*|Setting up your ride.*|Welcome home, rider.*|Open my garage|Retry"
+- assertVisible:
+    id: "home-screen|recall-sheet|oem-imported-sheet"
 
 # 2. Give the queue its show delay, then capture what covers Home.
 - extendedWaitUntil:

@@ -1,6 +1,7 @@
 # Full onboarding E2E (INVESTED variant — the superset that visits every screen).
 #
-# Optional env: KEEP_LANDING_SHEET="true" leaves a landing sheet over Home (see the end).
+# Optional env: KEEP_LANDING_SHEET="true" leaves a landing sheet over Home (see the end);
+# DOUBLE_TAP_GARAGE="true" double-taps "Open my garage".
 # Optional env: NO_BIKE="true" skips bike setup ("I'll add my bike later"), so the
 # user finishes onboarding with an empty garage. Unset (the default) adds a Honda
 # Africa Twin, which every bike flow composed on this one relies on.
@@ -68,6 +69,34 @@ env:
       - tapOn:
           text: "Maybe later"
           optional: true
+      # post-onboarding-landing.yaml sets DOUBLE_TAP_GARAGE="true": the CTA
+      # must take one tap only (issue 365 T16a, FS-OB6).
+      - runFlow:
+          when:
+            true: ${typeof DOUBLE_TAP_GARAGE !== 'undefined' && DOUBLE_TAP_GARAGE === 'true'}
+          commands:
+            - doubleTapOn:
+                text: "Open my garage"
+                optional: true
+            # The second tap lands ~100 ms after the first. With no paywall to
+            # present (RevenueCat keys empty) Home is already up by then, so the
+            # tap reaches Home's centre Ride FAB and opens Start Ride. That is
+            # the tap landing on the new screen, not the CTA running twice:
+            # close Start Ride; post-onboarding-landing.yaml step 1b still
+            # asserts the personalizing screen never comes back.
+            - extendedWaitUntil:
+                visible:
+                  id: "start-ride-screen"
+                timeout: 3000
+                optional: true
+            - runFlow:
+                when:
+                  visible:
+                    id: "start-ride-screen"
+                commands:
+                  # No childOf: on iOS the Close button is not nested under
+                  # start-ride-screen in the XCUITest hierarchy.
+                  - tapOn: "Close"
       - tapOn:
           text: "Open my garage"
           optional: true

@@ -21,15 +21,15 @@ import {
 } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { OnboardingBikePlate } from '../../components/onboarding/onboarding-bike-plate';
 import { useOnboardingColors } from '../../components/onboarding/onboarding-colors';
 import { OnboardingShell } from '../../components/onboarding/onboarding-shell';
+import { PersonalizingSteps } from '../../components/onboarding/personalizing-steps';
 import { getPrimaryGoal, getTotalScreens, OB_SCREEN } from '../../config/onboarding';
 import { onboardingFeedbackContactInput } from '../../features/feedback/onboarding-contact-input';
 import { useOnboardingStep } from '../../hooks/use-onboarding-flow';
-import { tDynamic } from '../../i18n/t-dynamic';
 import { AnalyticsEvent, captureException, setUserPropertiesOnce } from '../../lib/analytics';
 import { createGaragePaywallHandoff } from '../../lib/garage-paywall-handoff';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -51,8 +51,7 @@ import { markWhatsNewSeenForNewRider } from '../../lib/whats-new';
 import { useAuthStore } from '../../stores/auth.store';
 import { useChecklistStore } from '../../stores/checklist.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { space } from '../../theme/spacing';
-import { radius, type } from '../../theme/type';
+import { radius } from '../../theme/type';
 
 // Onboarding still captures mileage with a per-bike mi/km toggle, but the app now
 // derives the display unit from the global users.measurement_system
@@ -88,6 +87,9 @@ const MIN_ANIMATION_MS = 1600;
  * leave the rider tapping a button that seems to do nothing.
  */
 const GARAGE_PAYWALL_ESCAPE_DELAY_MS = 6000;
+
+/** Save still in flight after this long: offer only "Skip and continue" (issue 365 T16a). */
+const SETUP_STALL_MS = 10_000;
 
 type BikeLike = { year?: number | null; make?: string | null; model?: string | null } | null;
 
@@ -155,7 +157,14 @@ export default function PersonalizingScreen() {
   const completionReported = useRef(false);
   const [animationDone, setAnimationDone] = useState(isResumed);
   const [showDone, setShowDone] = useState(false);
-  const [showRetry, setShowRetry] = useState(false);
+  /** The save failed: the only state that offers Retry. */
+  const [setupFailed, setSetupFailed] = useState(false);
+  /** Still saving after SETUP_STALL_MS: Skip only, the save may still succeed. */
+  const [setupStalled, setSetupStalled] = useState(false);
+  /** "Open my garage" was tapped: the CTA stays disabled with a spinner. */
+  const [ctaPending, setCtaPending] = useState(false);
+  /** The rider left for the garage: the payoff never renders again. */
+  const [leaving, setLeaving] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const reducedMotion = useReducedMotion();
 
@@ -335,7 +344,7 @@ export default function PersonalizingScreen() {
         source: 'onboarding.personalizing.completeOnboarding',
         attempt: String(retryCount),
       });
-      setShowRetry(true);
+      setSetupFailed(true);
     });
   }, [retryCount]);
 
@@ -373,21 +382,21 @@ export default function PersonalizingScreen() {
     }
   }, [mutationDone, animationDone, isResumed, reset, setOnboardingCompleted]);
 
-  // Safety net: if stuck for 8s total, show continue button
+  // Slow save: after SETUP_STALL_MS only Skip, never Retry (the save may still succeed).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-armed by each retry (Retry clears setupStalled)
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (!mutationDone && !showRetry) {
-        setShowRetry(true);
-      }
-    }, 8000);
+    if (mutationDone || setupFailed) return;
+    const timeout = setTimeout(() => setSetupStalled(true), SETUP_STALL_MS);
     return () => clearTimeout(timeout);
-  }, [mutationDone, showRetry]);
+  }, [mutationDone, setupFailed, retryCount]);
 
-  // Single completion trigger: reset onboarding state + flip the auth flag, which
-  // makes the root guard redirect to OB_ROUTE.HOME. Used by the payoff CTA and the
-  // retry/safety-net skip link (both before any navigation).
+  // Single completion trigger, idempotent: reset onboarding state + flip the auth
+  // flag, which makes the root guard redirect to OB_ROUTE.HOME. Used by the payoff
+  // CTA, the paywall hand-off and the Skip link; a second call does nothing.
   const handleContinue = () => {
+    if (leftOnboarding.current) return;
     leftOnboarding.current = true;
+    setLeaving(true);
     reset();
     setOnboardingCompleted(true);
   };
@@ -464,7 +473,11 @@ export default function PersonalizingScreen() {
     });
   }
 
+  const ctaTapped = useRef(false);
   const handleOpenGarage = () => {
+    if (ctaTapped.current) return;
+    ctaTapped.current = true;
+    setCtaPending(true);
     if (!showsGaragePaywall) {
       handleContinue();
       return;
@@ -476,9 +489,9 @@ export default function PersonalizingScreen() {
 
   // Cold-start resume: the staged setup UI must not appear on app load. Hold a
   // bare background while the mutation completes silently (then the root guard
-  // flips to the garage). Only if the silent completion errors or stalls past
-  // the 8s safety net does the full UI surface, with the retry controls.
-  if (isResumed && !showRetry) {
+  // flips to the garage); the full UI surfaces only if it fails or stalls.
+  // Same hold once the rider left: the payoff must never render again.
+  if (leaving || (isResumed && !setupFailed && !setupStalled)) {
     return <View style={{ flex: 1, backgroundColor: oc.background }} />;
   }
 
@@ -495,8 +508,9 @@ export default function PersonalizingScreen() {
         primary={{
           label: t('onboarding.personalizingDoneCta'),
           onPress: handleOpenGarage,
-          // Disabled while the paywall loads, so the tap visibly registered.
-          disabled: garagePaywallPending,
+          // Disabled with a spinner after the first tap, so it visibly registered.
+          disabled: ctaPending,
+          loading: ctaPending,
         }}
         secondary={
           showGarageEscape
@@ -527,7 +541,7 @@ export default function PersonalizingScreen() {
     );
   }
 
-  const canRetry = showRetry && retryCount < 2;
+  const canRetry = setupFailed && retryCount < 2;
 
   return (
     <OnboardingShell
@@ -539,7 +553,8 @@ export default function PersonalizingScreen() {
           ? {
               label: t('common.retry'),
               onPress: () => {
-                setShowRetry(false);
+                setSetupFailed(false);
+                setSetupStalled(false);
                 setMutationDone(false);
                 setRetryCount((c) => c + 1);
               },
@@ -547,51 +562,12 @@ export default function PersonalizingScreen() {
           : undefined
       }
       secondary={
-        showRetry
+        setupFailed || setupStalled
           ? { label: t('onboarding.personalizingSkip'), onPress: handleContinue }
           : undefined
       }
     >
-      {/* Calm progress readout: every step listed, each ticking off in turn. */}
-      <View
-        style={{
-          borderRadius: radius.card,
-          borderCurve: 'continuous',
-          backgroundColor: oc.surface,
-          overflow: 'hidden',
-        }}
-      >
-        {steps.map((stepKey, index) => {
-          const StepIcon = stepIcons[index];
-          const done = visibleSteps > index;
-          return (
-            <View
-              key={stepKey}
-              accessibilityState={{ checked: done }}
-              style={{
-                minHeight: 52,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: space.sm,
-                paddingHorizontal: space.md,
-                paddingVertical: space.sm,
-                borderTopWidth: index === 0 ? 0 : 1,
-                borderTopColor: oc.line,
-              }}
-            >
-              <StepIcon size={18} color={done ? oc.textSecondary : oc.textDimmed} />
-              <Text style={[type.body, { flex: 1, color: done ? oc.textPrimary : oc.textMuted }]}>
-                {tDynamic(t, `onboarding.${stepKey}`)}
-              </Text>
-              {done ? (
-                <Animated.View entering={reducedMotion ? undefined : FadeIn.duration(200)}>
-                  <Check size={18} color={oc.success} strokeWidth={2.6} />
-                </Animated.View>
-              ) : null}
-            </View>
-          );
-        })}
-      </View>
+      <PersonalizingSteps steps={steps} icons={stepIcons} visibleSteps={visibleSteps} />
     </OnboardingShell>
   );
 }
