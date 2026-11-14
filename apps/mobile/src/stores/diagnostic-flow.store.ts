@@ -95,6 +95,12 @@ interface DiagnosticFlowState {
   includeMaintenanceHistory: boolean;
   isSubmitting: boolean;
   submitError: string | null;
+  /**
+   * The server answered FORBIDDEN: this month's free diagnosis is used (issue 365
+   * T08). Typed, not a `submitError`, so the review step shows the limit panel
+   * instead of the server text and a "Try Again" that would re-submit.
+   */
+  limitReached: boolean;
 
   setStep: (step: Step) => void;
   goNext: () => void;
@@ -115,6 +121,7 @@ interface DiagnosticFlowState {
   setIncludeMaintenanceHistory: (include: boolean) => void;
   setIsSubmitting: (submitting: boolean) => void;
   setSubmitError: (error: string | null) => void;
+  setLimitReached: () => void;
   setIsTransitioning: (transitioning: boolean) => void;
   toggleWizardOption: (field: WizardField, value: string) => void;
   addCustomValue: (field: WizardField, value: string) => boolean;
@@ -144,6 +151,7 @@ const initialState = {
   includeMaintenanceHistory: true,
   isSubmitting: false,
   submitError: null as string | null,
+  limitReached: false,
 };
 
 export const useDiagnosticFlowStore = create<DiagnosticFlowState>()((set, get) => ({
@@ -191,6 +199,7 @@ export const useDiagnosticFlowStore = create<DiagnosticFlowState>()((set, get) =
   setIncludeMaintenanceHistory: (include) => set({ includeMaintenanceHistory: include }),
   setIsSubmitting: (submitting) => set({ isSubmitting: submitting }),
   setSubmitError: (error) => set({ submitError: error }),
+  setLimitReached: () => set({ limitReached: true, submitError: null }),
   setIsTransitioning: (transitioning) => set({ isTransitioning: transitioning }),
 
   toggleWizardOption: (field, value) => {

@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/react-native';
-import { parseISO } from 'date-fns';
 import { Route, Sparkles, Wallet, WifiOff, Wrench } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +10,7 @@ import { EmptyState } from '@/components/home/empty-state';
 import { FocusHistory } from '@/components/home/focus-history';
 import { FocusStats } from '@/components/home/focus-stats';
 import { type HomeAction, HomeActionRow, ReceiptScanRow } from '@/components/home/home-actions';
+import { formatTripDates } from '@/components/home/home-helpers';
 import { describePlate, rankBikeTasks } from '@/components/home/home-plate';
 import { OnboardingChecklist } from '@/components/home/onboarding-checklist';
 import { UpNext } from '@/components/home/up-next';
@@ -21,6 +21,7 @@ import { BikePlate, PLATE_SIZE } from '@/components/ui/bike-plate';
 import { ESettingsGroup, ESettingsRow } from '@/components/ui/editorial';
 import { ThemedSegmentedControl } from '@/components/ui/themed-segmented-control';
 import { diagnoseListFromHomeHref, HOME_ROUTE } from '@/config/routes';
+import { useLandingSheets } from '@/features/landing/use-landing-sheets';
 import { ReceiptScanRecoveryCard } from '@/features/receipt-scan/receipt-scan-recovery-card';
 import { SCAN_ENTRY_SURFACE } from '@/features/receipt-scan/scan-flow-constants';
 import { useOpenRide } from '@/features/ride/ride-route';
@@ -58,6 +59,7 @@ export default function HomeScreen() {
   const { requireAccess } = useProGate();
   const bottomPadding = useTabBarClearance();
   const openRide = useOpenRide();
+  useLandingSheets();
 
   const {
     isLoading,
@@ -482,21 +484,4 @@ export default function HomeScreen() {
       </ScrollView>
     </View>
   );
-}
-
-/** "Jun 12, 2026 – Jun 15" in the rider's language; `undefined` without a start date. */
-function formatTripDates(
-  startDate: string | null | undefined,
-  endDate: string | null | undefined,
-  language: string,
-): string | undefined {
-  if (!startDate) return undefined;
-  const start = parseISO(startDate).toLocaleDateString(language, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-  if (!endDate || endDate === startDate) return start;
-  const end = parseISO(endDate).toLocaleDateString(language, { month: 'short', day: 'numeric' });
-  return `${start} – ${end}`;
 }

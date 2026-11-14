@@ -130,6 +130,7 @@
     "plateStateOverdue": "Po terminie",
     "plateCaptionTo": "do: {{task}}",
     "plateCaptionLate": "{{task}} — po terminie",
+    "plateCaptionDueNow": "{{task}}, do zrobienia teraz",
     "plateCaptionAt": "przebieg dla: {{task}}",
     "noServiceDue": "Brak zaplanowanego serwisu",
     "plateDayUnit_one": "dzień",
@@ -211,6 +212,12 @@
     "startCta": "Rozpocznij diagnozę",
     "quotaRemaining": "Za darmo w tym miesiącu: pozostało {{count}} z {{limit}} diagnoz",
     "quotaUsed": "Darmowa diagnoza w tym miesiącu została wykorzystana. Wróci {{date}} — albo przejdź na Pro bez limitu.",
+    "limit": {
+      "usedBackOn": "Darmowa diagnoza w tym miesiącu została wykorzystana. Wróci {{date}}.",
+      "usedResetsNextMonth": "Darmowa diagnoza w tym miesiącu została wykorzystana. Odnowi się w przyszłym miesiącu.",
+      "seePro": "Zobacz plany Pro",
+      "done": "Gotowe"
+    },
     "emptyExplainer": "Opisz, co słyszysz, widzisz lub czujesz, i dodaj zdjęcie, jeśli możesz. Otrzymasz prawdopodobne przyczyny, pilność i kolejne kroki.",
     "severityLevel": {
       "low": "Niska",
@@ -1183,6 +1190,14 @@
       "seeAllHistory_other": "Zobacz wszystkie {{count}} wykonanego zadania",
       "seeAllHistory_few": "Zobacz wszystkie {{count}} wykonane zadania",
       "seeAllHistory_many": "Zobacz wszystkie {{count}} wykonanych zadań",
+      "moreTasks_one": "+{{count}} więcej",
+      "moreTasks_few": "+{{count}} więcej",
+      "moreTasks_many": "+{{count}} więcej",
+      "moreTasks_other": "+{{count}} więcej",
+      "moreTasksA11y_one": "Pokaż jeszcze {{count}} zadanie",
+      "moreTasksA11y_few": "Pokaż jeszcze {{count}} zadania",
+      "moreTasksA11y_many": "Pokaż jeszcze {{count}} zadań",
+      "moreTasksA11y_other": "Pokaż jeszcze {{count}} zadań",
       "serviceItems": "Pozycje serwisowe"
     },
     "costsSegment": {
@@ -3283,5 +3298,14 @@
     "newRoadsComputing": "Obliczanie…",
     "unlockPro": "Odblokuj z Pro",
     "newRoadsLockedA11y": "Nowe drogi w tej jeździe. Odblokuj z Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Twój plan serwisowy jest gotowy",
+      "body": "Harmonogram serwisowy producenta dla Twojego {{bike}} jest w garażu. Przypomnimy Ci przed każdym serwisem.",
+      "bodyNoBike": "Harmonogram serwisowy producenta dla Twojego motocykla jest w garażu. Przypomnimy Ci przed każdym serwisem.",
+      "open": "Zobacz mój plan",
+      "notNow": "Nie teraz"
+    }
   }
 }

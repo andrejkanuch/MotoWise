@@ -1,6 +1,3 @@
-import { type MotorcycleType, SubmitDiagnosticDocument, type Urgency } from '@motovault/graphql';
-import { useQueryClient } from '@tanstack/react-query';
-import { File } from 'expo-file-system';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { ArrowLeft, X } from 'lucide-react-native';
 import { useCallback, useEffect, useRef } from 'react';
@@ -17,20 +14,15 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
-import { trackDiagnosticFailed } from '@/components/diagnosis/diagnostic-analytics';
 import { useDiagnosticEntryGate } from '@/components/diagnosis/use-diagnostic-entry-gate';
-import { recordDiagnosisSubmitted } from '@/components/diagnosis/use-diagnostic-quota';
 import { useDiagnosticColors } from '@/components/diagnostic-flow/diagnostic-colors';
 import { DiagnosticProgressBar } from '@/components/diagnostic-flow/progress-bar';
 import { StepBikeSelection } from '@/components/diagnostic-flow/step-bike-selection';
 import { StepPhotoDetails } from '@/components/diagnostic-flow/step-photo-details';
 import { StepProblemDescription } from '@/components/diagnostic-flow/step-problem-description';
 import { StepReviewSubmit } from '@/components/diagnostic-flow/step-review-submit';
-import { useProGate } from '@/hooks/use-pro-gate';
-import { AnalyticsEvent, captureException, trackEvent } from '@/lib/analytics';
-import { gqlFetcher } from '@/lib/graphql-client';
-import { GRAPHQL_ERROR_CODE } from '@/lib/graphql-error-classification';
-import { hasGraphQLCode } from '@/lib/graphql-errors';
+import { useDiagnosticSubmit } from '@/components/diagnostic-flow/use-diagnostic-submit';
+import { TAB_ROUTE } from '@/config/routes';
 import { useDiagnosticFlowStore } from '@/stores/diagnostic-flow.store';
 import { space } from '@/theme/spacing';
 
@@ -48,10 +40,9 @@ export default function NewDiagnosticScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const queryClient = useQueryClient();
   const prefersReducedMotion = useReducedMotion();
   const colors = useDiagnosticColors();
-  const { requirePro, isPro } = useProGate();
+  const handleSubmit = useDiagnosticSubmit();
 
   const { currentStep, navigationDirection, reset, goBack, hasAnyData } = useDiagnosticFlowStore(
     useShallow((s) => ({
@@ -62,8 +53,6 @@ export default function NewDiagnosticScreen() {
       hasAnyData: s.hasAnyData,
     })),
   );
-
-  const store = useDiagnosticFlowStore;
 
   // Reset store on focus (but not if a submission is in progress). `diagnostic_started`
   // is counted per entry instead, by useStartDiagnosis / useDiagnosticEntryGate.
@@ -147,85 +136,11 @@ export default function NewDiagnosticScreen() {
     }
   };
 
-  const handleSubmit = async () => {
-    // No client-side Pro gate here: the free tier includes one diagnosis a month
-    // (FREE_TIER_LIMITS.MAX_AI_DIAGNOSTICS_PER_MONTH, and the store listings say so).
-    // The server counts and answers FORBIDDEN once it is used — see the catch below.
-    const state = store.getState();
-    if (state.isSubmitting || !state.hasProblemInput()) return;
-    state.setIsSubmitting(true);
-    state.setSubmitError(null);
-    const submittedAtMs = Date.now();
-    trackEvent(AnalyticsEvent.DIAGNOSTIC_SUBMITTED, { has_photo: !!state.photoUri });
-
-    try {
-      // Read base64 from photoUri at submission time
-      let photoBase64: string | undefined;
-      if (state.photoUri) {
-        // New expo-file-system File API — readAsStringAsync is documented to throw
-        // in a future SDK. Matches the byte-read pattern in lib/image-upload.ts.
-        photoBase64 = await new File(state.photoUri).base64();
-      }
-
-      // Build wizard answers only if any options were selected
-      const symptoms = state.wizardAnswers.symptoms.join(',');
-      const location = state.wizardAnswers.location.join(',');
-      const timing = state.wizardAnswers.timing.join(',');
-      const hasWizardAnswers = symptoms || location || timing;
-
-      const result = await gqlFetcher(SubmitDiagnosticDocument, {
-        input: {
-          motorcycleId: state.selectedMotorcycleId || undefined,
-          photoBase64: photoBase64 || undefined,
-          manualBikeInfo: state.manualBikeInfo
-            ? { ...state.manualBikeInfo, type: state.manualBikeInfo.type as MotorcycleType }
-            : undefined,
-          freeTextDescription: state.freeTextDescription?.trim() || undefined,
-          additionalNotes: state.additionalNotes?.trim() || undefined,
-          urgency: (state.urgency as Urgency) || undefined,
-          wizardAnswers: hasWizardAnswers
-            ? {
-                symptoms: symptoms || undefined,
-                location: location || undefined,
-                timing: timing || undefined,
-              }
-            : undefined,
-          dataSharingOptedIn: state.dataSharingOptedIn,
-          includeMaintenanceHistory: state.includeMaintenanceHistory,
-          includeBikeHistory: state.includeMaintenanceHistory,
-        },
-      });
-
-      trackEvent(AnalyticsEvent.DIAGNOSTIC_COMPLETED, {
-        has_photo: !!state.photoUri,
-        has_wizard_answers: !!hasWizardAnswers,
-      });
-      recordDiagnosisSubmitted(queryClient);
-      router.replace(`/(diagnose)/${result.submitDiagnostic.id}` as `/${string}`);
-    } catch (error: unknown) {
-      let message = 'Failed to analyze';
-      if (error && typeof error === 'object') {
-        // graphql-request ClientError has response.errors[]
-        const gqlErrors = (error as { response?: { errors?: { message: string }[] } }).response
-          ?.errors;
-        if (gqlErrors?.length) {
-          message = gqlErrors.map((e) => e.message).join('; ');
-        } else if (error instanceof Error) {
-          message = error.message;
-        }
-      }
-      if (!isPro && hasGraphQLCode(error, GRAPHQL_ERROR_CODE.FORBIDDEN)) {
-        // Free monthly diagnosis used: an expected outcome, and the upgrade moment.
-        trackEvent(AnalyticsEvent.DIAGNOSTIC_LIMIT_REACHED);
-        requirePro('full_ai_diagnostics');
-      } else {
-        trackDiagnosticFailed(error, submittedAtMs);
-        captureException(error, { source: 'diagnose.submitDiagnostic', message });
-      }
-      state.setSubmitError(message);
-    } finally {
-      state.setIsSubmitting(false);
-    }
+  // Issue 365 T08: "Done" on the limit panel. The form is cleared, so reopening
+  // Diagnose starts fresh instead of on the filled review step.
+  const handleLimitDone = () => {
+    reset();
+    router.dismissTo(TAB_ROUTE.DIAGNOSE);
   };
 
   return (
@@ -289,7 +204,7 @@ export default function NewDiagnosticScreen() {
       )}
       {currentStep === 4 && (
         <Animated.View entering={entering} exiting={exiting} style={{ flex: 1 }}>
-          <StepReviewSubmit onSubmit={handleSubmit} />
+          <StepReviewSubmit onSubmit={handleSubmit} onLimitDone={handleLimitDone} />
         </Animated.View>
       )}
     </View>

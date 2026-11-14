@@ -130,6 +130,7 @@
     "plateStateOverdue": "Gecikmiş",
     "plateCaptionTo": "{{task}} için kalan",
     "plateCaptionLate": "{{task}}, gecikti",
+    "plateCaptionDueNow": "{{task}}, şimdi zamanı",
     "plateCaptionAt": "{{task}} için kilometre",
     "noServiceDue": "Yaklaşan bakım yok",
     "plateDayUnit_one": "gün",
@@ -211,6 +212,12 @@
     "startCta": "Teşhis başlat",
     "quotaRemaining": "Bu ay ücretsiz: {{limit}} teşhisten {{count}} kaldı",
     "quotaUsed": "Bu ayın ücretsiz teşhisi kullanıldı. {{date}} tarihinde yenilenir ya da sınırsız kullanım için Pro'ya geçin.",
+    "limit": {
+      "usedBackOn": "Bu ayın ücretsiz teşhisi kullanıldı. {{date}} tarihinde yenilenir.",
+      "usedResetsNextMonth": "Bu ayın ücretsiz teşhisi kullanıldı. Gelecek ay yenilenir.",
+      "seePro": "Pro planlarını gör",
+      "done": "Bitti"
+    },
     "emptyExplainer": "Duyduğunu, gördüğünü veya hissettiğini anlat, mümkünse bir fotoğraf ekle. Olası nedenleri, aciliyeti ve sonraki adımları öğrenirsin.",
     "severityLevel": {
       "low": "Düşük",
@@ -1141,6 +1148,10 @@
       "doneOn": "{{date}} tarihinde tamamlandı",
       "seeAllHistory_one": "Tamamlanan {{count}} görevi gör",
       "seeAllHistory_other": "Tamamlanan {{count}} görevin tümünü gör",
+      "moreTasks_one": "+{{count}} tane daha",
+      "moreTasks_other": "+{{count}} tane daha",
+      "moreTasksA11y_one": "{{count}} görev daha göster",
+      "moreTasksA11y_other": "{{count}} görev daha göster",
       "serviceItems": "Servis kalemleri"
     },
     "costsSegment": {
@@ -3153,5 +3164,14 @@
     "newRoadsComputing": "Hesaplanıyor…",
     "unlockPro": "Pro ile kilidi aç",
     "newRoadsLockedA11y": "Bu sürüşteki yeni yollar. Pro ile kilidi aç"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Bakım planın hazır",
+      "body": "{{bike}} için üretici bakım takvimi garajında. Her bakımdan önce sana hatırlatacağız.",
+      "bodyNoBike": "Motosikletin için üretici bakım takvimi garajında. Her bakımdan önce sana hatırlatacağız.",
+      "open": "Planımı gör",
+      "notNow": "Şimdi değil"
+    }
   }
 }

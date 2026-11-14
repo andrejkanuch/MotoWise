@@ -130,6 +130,7 @@
     "plateStateOverdue": "Overdue",
     "plateCaptionTo": "to {{task}}",
     "plateCaptionLate": "{{task}}, past due",
+    "plateCaptionDueNow": "{{task}}, due now",
     "plateCaptionAt": "odometer for {{task}}",
     "noServiceDue": "No service due",
     "plateDayUnit_one": "day",
@@ -211,6 +212,12 @@
     "startCta": "Start a diagnosis",
     "quotaRemaining": "Free this month: {{count}} of {{limit}} diagnoses left",
     "quotaUsed": "This month's free diagnosis is used. It's back on {{date}}, or go Pro for unlimited.",
+    "limit": {
+      "usedBackOn": "This month's free diagnosis is used. It's back on {{date}}.",
+      "usedResetsNextMonth": "This month's free diagnosis is used. It resets next month.",
+      "seePro": "See Pro plans",
+      "done": "Done"
+    },
     "emptyExplainer": "Tell it what you hear, see or feel, and add a photo if you can. You get the likely causes, how urgent it is and the next steps.",
     "severityLevel": {
       "low": "Low",
@@ -1152,6 +1159,10 @@
       "doneOn": "Done {{date}}",
       "seeAllHistory_one": "See {{count}} completed task",
       "seeAllHistory_other": "See all {{count}} completed tasks",
+      "moreTasks_one": "+{{count}} more",
+      "moreTasks_other": "+{{count}} more",
+      "moreTasksA11y_one": "Show {{count}} more task",
+      "moreTasksA11y_other": "Show {{count}} more tasks",
       "serviceItems": "Service items"
     },
     "costsSegment": {
@@ -3153,5 +3164,14 @@
     "newRoadsComputing": "Working it out…",
     "unlockPro": "Unlock with Pro",
     "newRoadsLockedA11y": "New roads on this ride. Unlock with Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Your service plan is ready",
+      "body": "The manufacturer's service schedule for your {{bike}} is in your garage. We'll remind you before each service is due.",
+      "bodyNoBike": "The manufacturer's service schedule for your bike is in your garage. We'll remind you before each service is due.",
+      "open": "See my plan",
+      "notNow": "Not now"
+    }
   }
 }

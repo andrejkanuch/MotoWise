@@ -130,6 +130,7 @@
     "plateStateOverdue": "अतिदेय",
     "plateCaptionTo": "{{task}} तक",
     "plateCaptionLate": "{{task}}, समय से पीछे",
+    "plateCaptionDueNow": "{{task}}, अभी करना है",
     "plateCaptionAt": "{{task}} के लिए ओडोमीटर",
     "noServiceDue": "कोई सर्विस बकाया नहीं",
     "plateDayUnit_one": "दिन",
@@ -211,6 +212,12 @@
     "startCta": "निदान शुरू करें",
     "quotaRemaining": "इस महीने मुफ़्त: {{limit}} में से {{count}} डायग्नोसिस बाकी",
     "quotaUsed": "इस महीने का मुफ़्त डायग्नोसिस इस्तेमाल हो चुका है। यह {{date}} को फिर मिलेगा, या असीमित के लिए Pro लें।",
+    "limit": {
+      "usedBackOn": "इस महीने का मुफ़्त डायग्नोसिस इस्तेमाल हो चुका है। यह {{date}} को फिर मिलेगा।",
+      "usedResetsNextMonth": "इस महीने का मुफ़्त डायग्नोसिस इस्तेमाल हो चुका है। यह अगले महीने फिर मिलेगा।",
+      "seePro": "Pro प्लान देखें",
+      "done": "हो गया"
+    },
     "emptyExplainer": "आप जो सुनते, देखते या महसूस करते हैं, वह बताएं और हो सके तो फ़ोटो जोड़ें। आपको संभावित कारण, कितना ज़रूरी है और अगले कदम मिलेंगे।",
     "severityLevel": {
       "low": "कम",
@@ -1141,6 +1148,10 @@
       "doneOn": "{{date}} को पूरा",
       "seeAllHistory_one": "{{count}} पूरा कार्य देखें",
       "seeAllHistory_other": "सभी {{count}} पूरे कार्य देखें",
+      "moreTasks_one": "+{{count}} और",
+      "moreTasks_other": "+{{count}} और",
+      "moreTasksA11y_one": "{{count}} और काम दिखाएँ",
+      "moreTasksA11y_other": "{{count}} और काम दिखाएँ",
       "serviceItems": "सर्विस आइटम"
     },
     "costsSegment": {
@@ -3153,5 +3164,14 @@
     "newRoadsComputing": "हिसाब लगाया जा रहा है…",
     "unlockPro": "Pro से अनलॉक करें",
     "newRoadsLockedA11y": "इस राइड की नई सड़कें। Pro से अनलॉक करें"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "आपका सर्विस प्लान तैयार है",
+      "body": "आपकी {{bike}} का निर्माता सर्विस शेड्यूल आपके गैराज में है। हर सर्विस से पहले हम आपको याद दिलाएंगे।",
+      "bodyNoBike": "आपकी बाइक का निर्माता सर्विस शेड्यूल आपके गैराज में है। हर सर्विस से पहले हम आपको याद दिलाएंगे।",
+      "open": "मेरा प्लान देखें",
+      "notNow": "अभी नहीं"
+    }
   }
 }

@@ -95,6 +95,14 @@ the flows below.
   SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=<local key> \
     DEVICE=<udid> pnpm --filter @motovault/mobile test:e2e:onboarding-signin
   ```
+- **`flows/onboarding-oauth-cancel.yaml`** (tag `android-oauth`) — Google cancel on the onboarding
+  account step (issue 365 T12, FS-OB2c): Back on the account picker returns to the account step with no
+  "Something went wrong" alert and the button enabled; a double tap opens one picker. Android emulator
+  with Google Play services and a signed-in Google account; it never picks an account, so it writes
+  nothing. The general `test:e2e` run skips the tag. Run it with:
+  ```bash
+  maestro --device <emulator serial> test apps/mobile/.maestro/flows/onboarding-oauth-cancel.yaml
+  ```
 - **`flows/onboarding-paywall-verify.yaml`** — onboarding paywall gate (#326), required before a
   build is promoted to production (`docs/runbooks/mobile-release.md`). Part 1 is the email-code
   signup flow; part 2 confirms the account and fails unless the RevenueCat paywall is shown where
@@ -186,6 +194,22 @@ the flows below.
   regression class); the raw number itself is unchanged by the toggle. No numeric-input selector, so
   low fragility. **Authored from source 2026-07-16; navigation selectors validated on-device** (Profile
   Units picker, Garage tab, bike card). `test:e2e:units-display`.
+- **`flows/onboarding-service-plan.yaml`** and **`flows/onboarding-make-only-service-plan.yaml`** —
+  FS-PO1H, Experiment 2 (issue 365 T07a/T07b): the bike onboarding creates gets its OEM service plan.
+  The first onboards a Yamaha MT-09 2019 (`BIKE_MAKE`/`BIKE_MODEL`/`BIKE_YEAR` branch of
+  `_shared/onboarding-to-account.yaml`), the second a make-only Honda (`MAKE_ONLY: "true"`, the
+  "Not sure of the details?" chip). Both assert Home no longer reads "No service due", then Garage →
+  bike → `segment-service` → `service-task-card-0`; the make-only flow also finds "Honda schedule".
+  Set `DISTANCE_UNIT=mi` (or `km`) for the unit check; an imperial device must read "mi". Needs the
+  T07a import on the backend; red on a build without it. **Authored from source 2026-11-13, pending
+  on-device validation.** `test:e2e:service-plan`, `test:e2e:service-plan-make-only`.
+- **`flows/diagnose-limit-loop.yaml`** — the diagnose "Try Again" limit loop (issue 365 T08,
+  FS-PO2a). Seeded and Android only (tag `android`, `setAirplaneMode`): the runner plants a used
+  diagnosis (`E2E_SEED_DIAGNOSIS_USED=1`, local stack only), the flow reaches the form offline,
+  submits online and asserts the limit panel (`diagnose-limit-panel`, `-see-pro`, `-done`) with
+  no "Try Again". iOS is covered by the jest suite `new-limit.test.tsx`. **Validated on the
+  Android emulator 2026-11-14** (red on main, green on the fix). `test:e2e:diagnose-limit-loop` on the
+  `e2e-android-local` build.
 
   All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /
   `E2E_EMAIL_PREFIX` (set inline in the `test:e2e:*` package scripts) — no per-flow wrapper needed.

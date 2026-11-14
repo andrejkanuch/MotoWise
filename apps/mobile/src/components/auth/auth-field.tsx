@@ -8,6 +8,7 @@ import {
   type TextInputProps,
   View,
 } from 'react-native';
+import { AUTH_METHOD, type AuthMethod } from '../../config/auth';
 import { tint } from '../../theme/editorial';
 import { space } from '../../theme/spacing';
 import { radius, type } from '../../theme/type';
@@ -18,6 +19,8 @@ import { authButton } from './auth-styles';
 const FIELD_HEIGHT = 52;
 const GLYPH_SIZE = 18;
 const IS_IOS = process.env.EXPO_OS === 'ios';
+/** The provider button not being waited on, while the other one is. */
+const IDLE_WHILE_BUSY_OPACITY = 0.5;
 
 interface AuthFieldProps extends Omit<TextInputProps, 'style' | 'placeholderTextColor'> {
   /** System label above the field; also the input's accessibility label. */
@@ -73,6 +76,11 @@ export function AuthField({
 interface OAuthButtonsProps {
   onApple: () => void;
   onGoogle: () => void;
+  /**
+   * The provider whose sign-in is pending (`useOAuthSignIn().busyProvider`): both
+   * buttons are disabled, the pending one shows a spinner in place of its glyph.
+   */
+  busyProvider?: AuthMethod | null;
 }
 
 /**
@@ -80,18 +88,32 @@ interface OAuthButtonsProps {
  * scheme's ink (black on light, white on dark, per Apple's guidelines), with
  * Google second on a surface card; Android offers Google alone. 52pt each.
  */
-export function OAuthButtons({ onApple, onGoogle }: OAuthButtonsProps) {
+export function OAuthButtons({ onApple, onGoogle, busyProvider = null }: OAuthButtonsProps) {
   const oc = useOnboardingColors();
   const { t } = useTranslation();
+  const disabled = busyProvider !== null;
+  const appleBusy = busyProvider === AUTH_METHOD.APPLE;
+  const googleBusy = busyProvider === AUTH_METHOD.GOOGLE;
+  const restingOpacity = (busy: boolean) => (disabled && !busy ? IDLE_WHILE_BUSY_OPACITY : 1);
   return (
     <View style={{ gap: space.sm }}>
       {IS_IOS ? (
         <Pressable
           onPress={onApple}
+          disabled={disabled}
           accessibilityRole="button"
-          style={({ pressed }) => [authButton(oc.textPrimary), { opacity: pressed ? 0.85 : 1 }]}
+          accessibilityLabel={t('auth.continueWithApple')}
+          accessibilityState={{ disabled, busy: appleBusy }}
+          style={({ pressed }) => [
+            authButton(oc.textPrimary),
+            { opacity: pressed ? 0.85 : restingOpacity(appleBusy) },
+          ]}
         >
-          <AppleGlyph size={GLYPH_SIZE} color={oc.background} />
+          {appleBusy ? (
+            <ActivityIndicator size="small" color={oc.background} />
+          ) : (
+            <AppleGlyph size={GLYPH_SIZE} color={oc.background} />
+          )}
           <Text style={[type.bodyStrong, { color: oc.background }]}>
             {t('auth.continueWithApple')}
           </Text>
@@ -99,14 +121,26 @@ export function OAuthButtons({ onApple, onGoogle }: OAuthButtonsProps) {
       ) : null}
       <Pressable
         onPress={onGoogle}
+        disabled={disabled}
         accessibilityRole="button"
+        // A label keeps Android's content description non-empty, so it is rewritten
+        // when busy clears (without one, a stale "busy" stays after the sign-in settles).
+        accessibilityLabel={t('auth.continueWithGoogle')}
+        accessibilityState={{ disabled, busy: googleBusy }}
         android_ripple={{ color: oc.line, foreground: true }}
         style={({ pressed }) => [
           authButton(oc.surface, oc.line),
-          { overflow: 'hidden', opacity: pressed && IS_IOS ? 0.85 : 1 },
+          {
+            overflow: 'hidden',
+            opacity: pressed && IS_IOS ? 0.85 : restingOpacity(googleBusy),
+          },
         ]}
       >
-        <GoogleGlyph size={GLYPH_SIZE} />
+        {googleBusy ? (
+          <ActivityIndicator size="small" color={oc.textPrimary} />
+        ) : (
+          <GoogleGlyph size={GLYPH_SIZE} />
+        )}
         <Text style={[type.bodyStrong, { color: oc.textPrimary }]}>
           {t('auth.continueWithGoogle')}
         </Text>

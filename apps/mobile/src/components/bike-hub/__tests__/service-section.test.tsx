@@ -23,7 +23,11 @@ jest.mock('../shell/use-today', () => ({
   useToday: () => jest.requireActual('@/test/bike-hub-fixtures').TODAY,
 }));
 
-import { MaintenancePriority, MaintenanceTaskStatus } from '@motovault/graphql';
+import {
+  MaintenancePriority,
+  MaintenanceTaskSource,
+  MaintenanceTaskStatus,
+} from '@motovault/graphql';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import { StyleSheet, useWindowDimensions } from 'react-native';
 import '@/i18n';
@@ -102,6 +106,11 @@ async function renderSection(tasks: HubTask[], extra: Record<string, unknown> = 
   return callbacks;
 }
 
+/** Active shows three tasks; "+N more" opens the rest. */
+async function showAllActive() {
+  await fireEvent.press(screen.getByTestId('service-more'));
+}
+
 beforeEach(() => {
   mockPush.mockClear();
   mockDimensions.mockReturnValue({ width: 390, height: 844, scale: 3, fontScale: 1 });
@@ -110,6 +119,7 @@ beforeEach(() => {
 describe('Service — one count', () => {
   it('"Overdue · N" is the badge number, on the same basis', async () => {
     await renderSection(ACTIVE);
+    await showAllActive();
     const badge = getServiceBadgeCount(ACTIVE, KM);
     expect(badge).toBe(countOverdueTasks(ACTIVE, KM));
     expect(screen.getByText(`Overdue · ${badge}`)).toBeOnTheScreen();
@@ -130,6 +140,7 @@ describe('Service — one count', () => {
 
   it('numbers the active rows top to bottom for Maestro (service-task-card-<n>)', async () => {
     await renderSection(ACTIVE);
+    await showAllActive();
     const cards = screen.getAllByTestId(/^service-task-card-\d+$/);
     expect(cards.map((card) => card.props.testID)).toEqual(
       ACTIVE.map((_, index) => `service-task-card-${index}`),
@@ -179,6 +190,7 @@ describe('Service — task row', () => {
 
   it('offers "Mark done" as an accessibility action on the row', async () => {
     const callbacks = await renderSection(ACTIVE);
+    await showAllActive();
     const row = screen.getByTestId(`service-task-${AIR_FILTER.id}`);
     expect(row.props.accessibilityActions).toEqual(
       expect.arrayContaining([{ name: 'markDone', label: 'Mark done' }]),
@@ -268,5 +280,71 @@ describe('Service — empty', () => {
   it('everything done: no open tasks', async () => {
     await renderSection([done('a', '2026-09-01T10:00:00Z')]);
     expect(screen.getByText('No open tasks')).toBeOnTheScreen();
+  });
+});
+
+describe('Service — imported service plan (issue 365 T07b)', () => {
+  /** 10 tasks from the onboarding import: 4 already past (one by years), 6 ahead. */
+  const DUE_DATES = [
+    '2020-04-01',
+    '2026-03-15',
+    '2026-08-01',
+    '2026-09-30',
+    '2026-11-01',
+    '2027-01-01',
+    '2027-03-01',
+    '2027-06-01',
+    '2027-09-01',
+    '2028-01-01',
+  ];
+  const IMPORTED = DUE_DATES.map((dueDate, index) =>
+    hubTask(
+      task({
+        id: `oem-${index}`,
+        title: `Service item ${index}`,
+        dueDate,
+        source: MaintenanceTaskSource.Oem,
+      }),
+    ),
+  );
+
+  it('shows the 3 most urgent and "+7 more"; a past imported task reads "Due now"', async () => {
+    await renderSection(IMPORTED);
+    expect(screen.getByText(`Active · ${IMPORTED.length}`)).toBeOnTheScreen();
+    // The group still counts every overdue task: the hub's one count.
+    expect(screen.getByText('Overdue · 4')).toBeOnTheScreen();
+    expect(screen.getAllByTestId(/^service-task-card-\d+$/)).toHaveLength(3);
+    expect(screen.getAllByText('Due now')).toHaveLength(3);
+    expect(screen.queryByText(/days? late/)).toBeNull();
+    expect(screen.getByText('+7 more')).toBeOnTheScreen();
+  });
+
+  it('"+N more" opens the rest of the list in place', async () => {
+    await renderSection(IMPORTED);
+    await fireEvent.press(screen.getByTestId('service-more'));
+    expect(screen.getAllByTestId(/^service-task-card-\d+$/)).toHaveLength(IMPORTED.length);
+    expect(screen.getAllByText('Due now')).toHaveLength(4);
+    expect(screen.queryByTestId('service-more')).toBeNull();
+  });
+
+  it('a task asked for from elsewhere that is beyond the first three is shown', async () => {
+    await renderSection(IMPORTED, { initialExpandedId: 'oem-9' });
+    expect(screen.getByTestId('service-task-details-oem-9')).toBeOnTheScreen();
+  });
+
+  it('a task asked for before a snapshot lists it is shown once a later one does', async () => {
+    const props = {
+      motorcycleId: 'bike-a',
+      odometer: ODOMETER,
+      make: 'Honda',
+      mileageUnit: HUB_UNIT.KM,
+      initialExpandedId: 'oem-9',
+      ...handlers(),
+    };
+    await render(<MaintenanceSection tasks={IMPORTED.slice(0, 5)} {...props} />);
+    expect(screen.queryByTestId('service-task-details-oem-9')).toBeNull();
+    // The refetch lists the task below the first three: the list opens for it.
+    await screen.rerender(<MaintenanceSection tasks={IMPORTED} {...props} />);
+    expect(screen.getByTestId('service-task-details-oem-9')).toBeOnTheScreen();
   });
 });

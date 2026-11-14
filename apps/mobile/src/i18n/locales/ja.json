@@ -130,6 +130,7 @@
     "plateStateOverdue": "期限超過",
     "plateCaptionTo": "{{task}}まで",
     "plateCaptionLate": "{{task}}（期限超過）",
+    "plateCaptionDueNow": "{{task}}、今すぐ実施",
     "plateCaptionAt": "{{task}}の走行距離",
     "noServiceDue": "予定の整備はありません",
     "plateDayUnit_one": "日",
@@ -211,6 +212,12 @@
     "startCta": "診断を始める",
     "quotaRemaining": "今月の無料診断：残り {{count}} / {{limit}} 回",
     "quotaUsed": "今月の無料診断は使用済みです。{{date}}に再び利用できます。Proなら無制限です。",
+    "limit": {
+      "usedBackOn": "今月の無料診断は使用済みです。{{date}}に再び利用できます。",
+      "usedResetsNextMonth": "今月の無料診断は使用済みです。来月にリセットされます。",
+      "seePro": "Proプランを見る",
+      "done": "完了"
+    },
     "emptyExplainer": "聞こえる音、見えるもの、感じることを伝え、できれば写真も追加してください。考えられる原因、緊急度、次の手順がわかります。",
     "severityLevel": {
       "low": "低",
@@ -1141,6 +1148,10 @@
       "doneOn": "{{date}}に完了",
       "seeAllHistory_one": "完了したタスク{{count}}件を表示",
       "seeAllHistory_other": "完了したタスク{{count}}件をすべて表示",
+      "moreTasks_one": "他{{count}}件",
+      "moreTasks_other": "他{{count}}件",
+      "moreTasksA11y_one": "残り{{count}}件のタスクを表示",
+      "moreTasksA11y_other": "残り{{count}}件のタスクを表示",
       "serviceItems": "整備項目"
     },
     "costsSegment": {
@@ -3153,5 +3164,14 @@
     "newRoadsComputing": "計算中…",
     "unlockPro": "Proで解除",
     "newRoadsLockedA11y": "このライドの新しい道。Proで解除"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "メンテナンスプランの準備ができました",
+      "body": "{{bike}}のメーカー推奨メンテナンススケジュールをガレージに追加しました。各メンテナンスの前にお知らせします。",
+      "bodyNoBike": "バイクのメーカー推奨メンテナンススケジュールをガレージに追加しました。各メンテナンスの前にお知らせします。",
+      "open": "プランを見る",
+      "notNow": "後で"
+    }
   }
 }
