@@ -82,6 +82,8 @@ export interface EmailCodeStepProps {
   onNeedsSignIn: () => void;
   /** Reports whether a verify or recovery is in flight (e.g. to hold Android back). */
   onBusyChange?: (busy: boolean) => void;
+  /** A resend went out: the onboarding screens restart the saved send time (issue 365 T13a). */
+  onCodeResent?: () => void;
 }
 
 const MESSAGE = {
@@ -146,6 +148,7 @@ export function EmailCodeStep({
   onBack,
   onNeedsSignIn,
   onBusyChange,
+  onCodeResent,
 }: EmailCodeStepProps) {
   const oc = useOnboardingColors();
   const theme = themeOverride ?? emailCodeStepTheme(oc);
@@ -278,6 +281,7 @@ export function EmailCodeStep({
       setCode('');
       setVerifyThrottled(false);
       resendCooldown.start();
+      onCodeResent?.();
       trackEvent(AnalyticsEvent.EMAIL_CODE_SENT, { source: EMAIL_CODE_SOURCE.RESEND });
       show(MESSAGE.RESENT, TONE.INFO);
       return;

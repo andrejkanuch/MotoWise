@@ -363,11 +363,13 @@ describe('EmailCodeStep', () => {
 
   it('resend success counts down from 60, tracks the send, and re-enables after 60 s', async () => {
     mockSendSignupCode.mockResolvedValue(ok);
-    await renderStep();
+    const onCodeResent = jest.fn();
+    await renderStep({ onCodeResent });
 
     await fireEvent.press(screen.getByText(t('auth.codeResend')));
     await flush();
 
+    expect(onCodeResent).toHaveBeenCalledTimes(1);
     expect(mockSendSignupCode).toHaveBeenCalledWith(EMAIL);
     expect(eventsNamed('EMAIL_CODE_SENT')).toEqual([
       ['EMAIL_CODE_SENT', { source: EMAIL_CODE_SOURCE.RESEND }],
@@ -382,11 +384,13 @@ describe('EmailCodeStep', () => {
 
   it('resend rate-limited 42 s shows a 42 s countdown and no error', async () => {
     mockSendSignupCode.mockResolvedValue({ error: sendRateLimited(42) });
-    await renderStep();
+    const onCodeResent = jest.fn();
+    await renderStep({ onCodeResent });
 
     await fireEvent.press(screen.getByText(t('auth.codeResend')));
     await flush();
 
+    expect(onCodeResent).not.toHaveBeenCalled();
     expect(screen.getByText(t('auth.codeResendIn', { seconds: 42 }))).toBeTruthy();
     expect(screen.queryByText(t('auth.codeGenericError'))).toBeNull();
     expect(screen.queryByText(t('auth.codeConnectionError'))).toBeNull();

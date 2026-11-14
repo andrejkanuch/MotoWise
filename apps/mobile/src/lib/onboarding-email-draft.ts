@@ -47,6 +47,26 @@ export async function readEmailDraft(): Promise<EmailDraft | null> {
   }
 }
 
+/**
+ * A saved draft is restored only on the first read of this app launch: that is
+ * the relaunch. A later screen (sign-in pushed from the account step's code
+ * step) must not turn the live draft into another code step. Any step opened
+ * in this launch settles it too.
+ */
+let restoreSettled = false;
+
+/** True once per launch: the caller may restore a saved draft. */
+export function claimEmailDraftRestore(): boolean {
+  if (restoreSettled) return false;
+  restoreSettled = true;
+  return true;
+}
+
+/** Tests only: start a new "launch". */
+export function resetEmailDraftRestoreClaim(): void {
+  restoreSettled = false;
+}
+
 export async function clearEmailDraft(): Promise<void> {
   await deleteSecureItem(KEY);
 }

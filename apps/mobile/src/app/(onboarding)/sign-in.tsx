@@ -59,10 +59,12 @@ export default function OnboardingSignInScreen() {
     close: closeCodeStep,
     back: backFromCodeStep,
     onBusyChange: onCodeStepBusyChange,
+    onCodeResent,
   } = useEmailCodeStep({
     clearPassword: () => setPassword(''),
     persistDraft: true,
-    onStaleDraft: setEmail,
+    formDirty: email.length > 0 || password.length > 0,
+    onDraftEmail: setEmail,
   });
 
   // The account exists but was never confirmed: send a fresh code and open the
@@ -171,6 +173,7 @@ export default function OnboardingSignInScreen() {
             initialCooldownMs={codeStep.initialCooldownMs}
             onBack={closeCodeStep}
             onBusyChange={onCodeStepBusyChange}
+            onCodeResent={onCodeResent}
             onNeedsSignIn={closeCodeStep}
           />
         ) : (

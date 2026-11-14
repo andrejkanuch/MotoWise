@@ -3,6 +3,7 @@ import { BackHandler } from 'react-native';
 import { RESEND_COOLDOWN_MS } from '../config/auth';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import {
+  claimEmailDraftRestore,
   clearEmailDraft,
   emailDraftAgeMs,
   isEmailDraftFresh,
@@ -37,8 +38,17 @@ interface UseEmailCodeStepOptions {
    * out within the last hour.
    */
   persistDraft?: boolean;
-  /** With `persistDraft`: a saved step older than an hour; prefill the form with its address. */
-  onStaleDraft?: (email: string) => void;
+  /**
+   * With `persistDraft`: the address of a restored draft. Fresh, the step reopens
+   * and the form behind it keeps the address for "Change email"; older than an
+   * hour, only the form opens, prefilled.
+   */
+  onDraftEmail?: (email: string) => void;
+  /**
+   * With `persistDraft`: the rider has typed into the form. A saved draft read
+   * after that never replaces what they typed.
+   */
+  formDirty?: boolean;
 }
 
 export interface EmailCodeStepControls {
@@ -58,6 +68,8 @@ export interface EmailCodeStepControls {
    * flight, Android hardware back is swallowed instead of closing the step.
    */
   onBusyChange: (busy: boolean) => void;
+  /** Pass to `EmailCodeStep`'s `onCodeResent`: a resend restarts the saved wait. */
+  onCodeResent: () => void;
 }
 
 /**
@@ -70,14 +82,19 @@ export function useEmailCodeStep({
   clearPassword,
   backLocked = false,
   persistDraft = false,
-  onStaleDraft,
+  onDraftEmail,
+  formDirty = false,
 }: UseEmailCodeStepOptions): EmailCodeStepControls {
   const [codeStep, setCodeStep] = useState<CodeStepState | null>(null);
 
   const clearPasswordRef = useRef(clearPassword);
   clearPasswordRef.current = clearPassword;
-  const onStaleDraftRef = useRef(onStaleDraft);
-  onStaleDraftRef.current = onStaleDraft;
+  const onDraftEmailRef = useRef(onDraftEmail);
+  onDraftEmailRef.current = onDraftEmail;
+  const formDirtyRef = useRef(formDirty);
+  formDirtyRef.current = formDirty;
+  // The open step's address, for the resend callback.
+  const emailRef = useRef<string | null>(null);
   // Read only by the back handler, so a ref: no re-render on every verify.
   const busyRef = useRef(false);
   // Set by any open or close: the rider acted before the saved draft was read.
@@ -91,8 +108,12 @@ export function useEmailCodeStep({
     (state: CodeStepState) => {
       touchedRef.current = true;
       busyRef.current = false;
+      emailRef.current = state.email;
       setCodeStep(state);
-      if (persistDraft) void saveEmailDraft({ email: state.email, codeSentAt: Date.now() });
+      if (!persistDraft) return;
+      // A step opened in this launch is live: nothing left to restore.
+      claimEmailDraftRestore();
+      void saveEmailDraft({ email: state.email, codeSentAt: Date.now() });
     },
     [persistDraft],
   );
@@ -108,24 +129,31 @@ export function useEmailCodeStep({
   const close = useCallback(() => {
     touchedRef.current = true;
     busyRef.current = false;
+    emailRef.current = null;
     setCodeStep(null);
     clearPasswordRef.current();
     // "Change email": the saved address no longer has a code on its way.
     if (persistDraft) void clearEmailDraft();
   }, [persistDraft]);
 
+  const onCodeResent = useCallback(() => {
+    const email = emailRef.current;
+    if (persistDraft && email) void saveEmailDraft({ email, codeSentAt: Date.now() });
+  }, [persistDraft]);
+
   // After a relaunch: back on the code step for the saved address (no password).
+  // Only the first read of the launch restores (`claimEmailDraftRestore`).
   useEffect(() => {
     if (!persistDraft) return;
     let cancelled = false;
     void readEmailDraft().then((draft) => {
-      if (cancelled || touchedRef.current || !draft) return;
+      if (cancelled || !claimEmailDraftRestore()) return;
+      if (touchedRef.current || formDirtyRef.current || !draft) return;
       const now = Date.now();
-      if (!isEmailDraftFresh(draft, now)) {
-        onStaleDraftRef.current?.(draft.email);
-        return;
-      }
+      onDraftEmailRef.current?.(draft.email);
+      if (!isEmailDraftFresh(draft, now)) return;
       const ageMs = emailDraftAgeMs(draft, now);
+      emailRef.current = draft.email;
       setCodeStep({
         email: draft.email,
         initialCooldownMs: Math.max(0, RESEND_COOLDOWN_MS - ageMs),
@@ -153,5 +181,5 @@ export function useEmailCodeStep({
     return () => sub.remove();
   }, [hasCodeStep, back]);
 
-  return { codeStep, open, openRateLimited, close, back, onBusyChange };
+  return { codeStep, open, openRateLimited, close, back, onBusyChange, onCodeResent };
 }

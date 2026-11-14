@@ -79,17 +79,14 @@ export default function AccountScreen() {
     router.replace(previous);
   };
 
-  // Back on the email form or code step the rider left before a relaunch (issue 365 T13a).
-  const [emailMode, setEmailMode] = useState(hasAccountDraft);
+  const [emailMode, setEmailMode] = useState(hasAccountDraft); // relaunch: issue 365 T13a
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
 
-  // Back from the code step returns to the email form: the address stays, the
-  // password is typed again. Android hardware back does the same instead of
-  // popping the screen. Once a session exists the screen is advancing; the back
-  // press is swallowed, matching the hidden Back button. An open step survives a
-  // relaunch for an hour; after that the form opens with the address (FS-OB3).
+  // Back from the code step (Android back too) returns to the email form with the
+  // address kept, password retyped; swallowed once a session exists (Back is hidden).
+  // An open step survives a relaunch for an hour, then the form opens prefilled (FS-OB3).
   const {
     codeStep,
     open: openCodeStep,
@@ -97,11 +94,13 @@ export default function AccountScreen() {
     close: closeCodeStep,
     back: backFromCodeStep,
     onBusyChange: onCodeStepBusyChange,
+    onCodeResent,
   } = useEmailCodeStep({
     clearPassword: () => setPassword(''),
     backLocked: !!session,
     persistDraft: true,
-    onStaleDraft: (address) => {
+    formDirty: email.length > 0 || password.length > 0,
+    onDraftEmail: (address) => {
       setEmail(address);
       setEmailMode(true);
     },
@@ -231,6 +230,7 @@ export default function AccountScreen() {
             initialCooldownMs={codeStep.initialCooldownMs}
             onBack={closeCodeStep}
             onBusyChange={onCodeStepBusyChange}
+            onCodeResent={onCodeResent}
             onNeedsSignIn={() => router.push(OB_ROUTE.SIGN_IN)}
           />
         ) : emailMode ? (

@@ -119,6 +119,7 @@ import { Alert, BackHandler } from 'react-native';
 import AccountScreen from '../../app/(onboarding)/account';
 import { OB_ROUTE } from '../../config/onboarding';
 import i18n from '../../i18n';
+import { resetEmailDraftRestoreClaim } from '../../lib/onboarding-email-draft';
 import { useAuthStore } from '../../stores/auth.store';
 
 const EMAIL = 'rider@example.com';
@@ -193,6 +194,8 @@ beforeEach(() => {
 
 afterEach(() => {
   jest.restoreAllMocks();
+  // Each test is a new launch: a saved draft may restore again.
+  resetEmailDraftRestoreClaim();
 });
 
 describe('AccountScreen email signup', () => {
@@ -370,6 +373,19 @@ describe('AccountScreen after a relaunch', () => {
     expect(screen.getByText(t('auth.codeSentTo', { digits: 6, email: EMAIL }))).toBeTruthy();
     expect(screen.queryByLabelText(t('auth.password'))).toBeNull();
     expect(eventsNamed('EMAIL_CODE_STEP_RESTORED')).toHaveLength(1);
+  });
+
+  it('"Change email" on a restored step returns to the form with the address kept', async () => {
+    mockOnboardingState.accountDraft = { mode: 'code' };
+    mockReadEmailDraft.mockResolvedValue({ email: EMAIL, codeSentAt: Date.now() - 5 * 60_000 });
+
+    await render(<AccountScreen />);
+    await flush();
+    await fireEvent.press(screen.getByText(t('auth.codeChangeEmail')));
+    await flush();
+
+    expect(codeStepShown()).toBe(false);
+    expect(screen.getByLabelText(t('auth.email')).props.value).toBe(EMAIL);
   });
 
   it('a code verified after the restore continues onboarding and clears the draft', async () => {
