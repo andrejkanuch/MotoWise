@@ -170,7 +170,8 @@ describe('decideAutoPause', () => {
       forgotToStopNotified: true,
     };
     const d = decideAutoPause(state, { rawSpeed: 0, pos: POS }, 'stopped', NOW);
-    expect(d.effects).toEqual([{ kind: 'autoEnd', idleSince }]);
+    // stoppedSince: when the stop began, so the floors measure the riding before it.
+    expect(d.effects).toEqual([{ kind: 'autoEnd', idleSince, stoppedSince: NOW - 32 * MIN }]);
     expect(d.abort).toBe(true);
   });
 

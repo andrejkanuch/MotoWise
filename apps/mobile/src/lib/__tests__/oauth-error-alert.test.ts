@@ -74,17 +74,12 @@ describe('presentOAuthError', () => {
     ]);
   });
 
-  it('alerts but does not report an expected outcome (a cancel)', () => {
+  it('stays silent on an expected outcome (a cancel): no alert, no report, no alert event (issue 365 T12)', () => {
     classify.mockReturnValue(OAUTH_ERROR_KIND.expected);
     presentOAuthError(coded('ERR_REQUEST_CANCELED'), AUTH_METHOD.APPLE);
-    expect(alertSpy).toHaveBeenCalledWith('common.error', 'friendly');
+    expect(alertSpy).not.toHaveBeenCalled();
     expect(captureException).not.toHaveBeenCalled();
-    expect(track.mock.calls).toEqual([
-      [
-        'AUTH_ERROR_ALERT_SHOWN',
-        { provider: 'apple', outcome: 'cancelled', error_code: 'ERR_REQUEST_CANCELED' },
-      ],
-    ]);
+    expect(track).not.toHaveBeenCalled();
   });
 
   it('reports and alerts an unexpected failure', () => {

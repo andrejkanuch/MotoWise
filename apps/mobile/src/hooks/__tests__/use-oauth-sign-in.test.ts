@@ -1,6 +1,6 @@
 // Appendix C of the data-layer plan, row by row, per provider: haptic through the
 // iOS-guarded wrapper, one sign-up/sign-in event per resolved sign-in chosen by
-// `isNewUser`, none on a throw, and every throw presented by `presentOAuthError`.
+// `isNewUser`, none on a throw, and every throw but a cancel presented by `presentOAuthError`.
 // issue 365 T04a (FS-OB2a/c): every tap is exactly one `auth_oauth_started` and one
 // `auth_oauth_result` with typed properties, whatever the outcome.
 jest.mock('expo-localization', () => ({
@@ -159,7 +159,7 @@ describe.each(PROVIDERS)('useOAuthSignIn $name', ({ handler, signIn, method }) =
     ]);
   });
 
-  it('a cancel: one started, one result {cancelled, sheet} with the code only, handed to presentOAuthError', async () => {
+  it('a cancel: one started, one result {cancelled, sheet} with the code only, nothing presented (issue 365 T12)', async () => {
     const err = appleCancel();
     signIn.mockImplementation(throwsInSheet(err));
 
@@ -180,7 +180,7 @@ describe.each(PROVIDERS)('useOAuthSignIn $name', ({ handler, signIn, method }) =
         },
       ],
     ]);
-    expect(mockPresentOAuthError.mock.calls).toEqual([[err, method]]);
+    expect(mockPresentOAuthError).not.toHaveBeenCalled();
   });
 
   it('a network failure in the token exchange: result {error, token_exchange}, no message in properties', async () => {
@@ -297,24 +297,19 @@ describe('useOAuthSignIn Google double tap', () => {
 });
 
 describe('useOAuthSignIn errors through the real presentOAuthError', () => {
-  // What login and register did inline before the hook: alert always, report
-  // only what is not an expected outcome. issue 365 T04a: every alert shown is also
-  // one `auth_error_alert_shown` (FS-OB2c's numerator).
+  // Report only what is not an expected outcome. issue 365 T04a: every alert shown is
+  // also one `auth_error_alert_shown` (FS-OB2c's numerator). issue 365 T12: a cancel
+  // shows nothing, so that numerator stays 0 for cancels.
   beforeEach(() => mockPresentOAuthError.mockImplementation(realPresentOAuthError));
 
-  it('a cancellation shows the error alert, counts it, and reports nothing', async () => {
+  it('a cancellation shows no alert, counts no alert, and reports nothing', async () => {
     mockSignInWithApple.mockRejectedValue(appleCancel());
 
     await tap('onApple');
 
-    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(alertSpy).not.toHaveBeenCalled();
     expect(capture).not.toHaveBeenCalled();
-    expect(eventsNamed('AUTH_ERROR_ALERT_SHOWN')).toEqual([
-      [
-        'AUTH_ERROR_ALERT_SHOWN',
-        { provider: 'apple', outcome: 'cancelled', error_code: 'ERR_REQUEST_CANCELED' },
-      ],
-    ]);
+    expect(eventsNamed('AUTH_ERROR_ALERT_SHOWN')).toHaveLength(0);
     expect(eventsNamed('USER_SIGNED_IN')).toHaveLength(0);
   });
 
@@ -411,5 +406,72 @@ describe('useOAuthSignIn in-flight guard (issue 365 T11)', () => {
 
     expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
     expect(eventsNamed('AUTH_OAUTH_RESULT')).toHaveLength(2);
+  });
+});
+
+describe('useOAuthSignIn busyProvider (issue 365 T12)', () => {
+  beforeEach(() => {
+    mockSignInWithApple.mockReset();
+    mockSignInWithGoogle.mockReset();
+  });
+
+  it('is the tapped provider from the tap until the sign-in settles, then null', async () => {
+    let finish: (value: { isNewUser: boolean }) => void = () => {};
+    mockSignInWithGoogle.mockImplementation(
+      () =>
+        new Promise<{ isNewUser: boolean }>((r) => {
+          finish = r;
+        }),
+    );
+    const { result } = await renderHook(() => useOAuthSignIn(SURFACE));
+    expect(result.current.busyProvider).toBeNull();
+
+    let pending: Promise<void> = Promise.resolve();
+    await act(async () => {
+      pending = result.current.onGoogle();
+    });
+    expect(result.current.busyProvider).toBe('google');
+
+    // A second tap, ignored by the guard, leaves the busy state alone.
+    await act(async () => {
+      await result.current.onApple();
+    });
+    expect(result.current.busyProvider).toBe('google');
+
+    await act(async () => {
+      finish({ isNewUser: false });
+      await pending;
+    });
+    expect(result.current.busyProvider).toBeNull();
+  });
+
+  it('clears after a cancel too', async () => {
+    mockSignInWithApple.mockRejectedValue(appleCancel());
+    const { result } = await renderHook(() => useOAuthSignIn(SURFACE));
+
+    await act(async () => {
+      await result.current.onApple();
+    });
+
+    expect(result.current.busyProvider).toBeNull();
+  });
+
+  it('clears even when presenting the error throws, and the next tap goes through', async () => {
+    mockSignInWithGoogle.mockRejectedValueOnce(new Error('boom'));
+    mockPresentOAuthError.mockImplementationOnce(() => {
+      throw new Error('alert failed');
+    });
+    const { result } = await renderHook(() => useOAuthSignIn(SURFACE));
+
+    await act(async () => {
+      await result.current.onGoogle().catch(() => {});
+    });
+    expect(result.current.busyProvider).toBeNull();
+
+    mockSignInWithGoogle.mockResolvedValueOnce({ isNewUser: false });
+    await act(async () => {
+      await result.current.onGoogle();
+    });
+    expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
   });
 });

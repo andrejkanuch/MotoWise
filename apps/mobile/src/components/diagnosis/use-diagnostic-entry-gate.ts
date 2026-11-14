@@ -2,6 +2,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { DIAGNOSTIC_ENTRY, DIAGNOSTIC_ENTRY_PARAM } from '@/config/diagnostic-entry';
 import { presentPaywall } from '@/lib/subscription';
+import { useDiagnosticFlowStore } from '@/stores/diagnostic-flow.store';
 import { useSubscriptionStore } from '@/stores/subscription.store';
 import { parseDiagnosticEntry, trackDiagnosticStarted } from './diagnostic-analytics';
 import { useDiagnosticQuota } from './use-diagnostic-quota';
@@ -51,7 +52,9 @@ export function useDiagnosticEntryGate(onBlocked: () => void): void {
   useEffect(() => {
     if (checkedRef.current || !quota.isKnown) return;
     checkedRef.current = true;
-    if (!quota.isExhausted) return;
+    // Issue 365 T08: the submit already hit the limit and presented the one
+    // automatic paywall this form gets; the limit panel says the rest.
+    if (!quota.isExhausted || useDiagnosticFlowStore.getState().limitReached) return;
     presentPaywall({ ...DIAGNOSTIC_PAYWALL, shouldAbort: () => unmountedRef.current }).then(
       (result) => {
         if (unmountedRef.current) return;

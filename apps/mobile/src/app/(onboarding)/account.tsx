@@ -106,7 +106,7 @@ export default function AccountScreen() {
   // Once a session exists: wait for the server onboarding state, then advance.
   useAccountAdvance(!!session, goNext);
 
-  const { onApple, onGoogle } = useOAuthSignIn(SURFACE);
+  const { onApple, onGoogle, busyProvider } = useOAuthSignIn(SURFACE);
 
   const handleEmail = async () => {
     setBusy(true);
@@ -267,7 +267,7 @@ export default function AccountScreen() {
           </Animated.View>
         ) : (
           <Animated.View entering={FadeIn.duration(200)} style={{ gap: space.sm }}>
-            <OAuthButtons onApple={onApple} onGoogle={onGoogle} />
+            <OAuthButtons onApple={onApple} onGoogle={onGoogle} busyProvider={busyProvider} />
             <AuthDivider label={t('onboarding.obAccountOrEmail')} />
             <Pressable
               onPress={() => setEmailMode(true)}

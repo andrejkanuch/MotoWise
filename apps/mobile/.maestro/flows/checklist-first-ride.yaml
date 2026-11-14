@@ -2,8 +2,9 @@
 # ride" row opens Start Ride and stays unticked. Only a saved ride over both ride
 # floors (30 s and 50 m) ticks it; a tap never does.
 #
-# Red on main before T10: the row read "See your first ride stats", ticked
-# itself on the tap and opened the (empty) rides list, so step 3 times out.
+# Red on main before T10: the row read "See your first ride stats" (step 2's
+# label assert fails), ticked itself on the tap and opened the (empty) rides
+# list, so without that assert step 3 times out.
 #
 # Ids from source: `checklist-row-<id>` (components/home/onboarding-checklist.tsx,
 # T05d), `start-ride-screen` (features/ride/ride-test-ids.ts, T05c),
@@ -36,6 +37,9 @@ env:
     id: "checklist-row-first_ride"
     checked: false
 - assertVisible: "Record your first ride"
+# `checked:` reads the row state on Android only (iOS reports checked=false on
+# every node), so the counter is the check that holds on both platforms.
+- assertVisible: "0 of 5"
 - takeScreenshot: checklist-first-ride-home
 
 # 3. A tap opens Start Ride.
@@ -61,4 +65,5 @@ env:
 - assertVisible:
     id: "checklist-row-first_ride"
     checked: false
+- assertVisible: "0 of 5"
 - takeScreenshot: checklist-first-ride-after-close

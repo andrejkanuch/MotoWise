@@ -16,14 +16,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import {
-  ChevronDown,
-  ChevronUp,
-  Compass,
-  Mountain,
-  Plus,
-  SlidersHorizontal,
-} from 'lucide-react-native';
+import { ChevronDown, ChevronUp, Mountain, Plus, SlidersHorizontal } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -37,22 +30,26 @@ import {
 } from 'react-native';
 import Animated, {
   Extrapolation,
-  FadeInUp,
   interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  useReducedMotion,
   useSharedValue,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BikeBanner } from '@/components/discover/bike-banner';
+import {
+  DiscoverListSkeleton,
+  DiscoverLoadError,
+  DiscoverNoRoutes,
+} from '@/components/discover/discover-list-states';
 import { DiscoverTripCard } from '@/components/discover/discover-trip-card';
 import { NearYouSection } from '@/components/discover/near-you-section';
 import { DraftTripStrip } from '@/components/discover/planner/draft-trip-strip';
 import { TypeaheadSearch } from '@/components/discover/typeahead-search';
 import { useDiscoverAnalytics } from '@/components/discover/use-discover-analytics';
+import { useLoadDeadline } from '@/components/discover/use-load-deadline';
 import { WeatherStrip } from '@/components/discover/weather-strip';
 import { WEATHER_ENABLED } from '@/config/feature-flags';
 import { useUserCountry } from '@/hooks/use-user-country';
@@ -496,7 +493,6 @@ export default function DiscoverScreen() {
   const router = useRouter();
   const cameraRef = useRef<Camera>(null);
   const shapeSourceRef = useRef<ShapeSource>(null);
-  const reducedMotion = useReducedMotion();
   const [mapStyle] = useState(() => getDefaultMapStyle(isDark));
 
   // Device location (also drives "near you" rides) — used to center the map on
@@ -552,8 +548,9 @@ export default function DiscoverScreen() {
 
   const {
     data: tripData,
-    isLoading: tripsLoading,
     status: tripsStatus,
+    isFetching: tripsFetching,
+    refetch: refetchTrips,
     fetchNextPage: fetchNextTrips,
     hasNextPage: hasNextTrips,
     isFetchingNextPage: isFetchingNextTrips,
@@ -592,6 +589,13 @@ export default function DiscoverScreen() {
     return trips; // 'popular' — default API order
   }, [tripData, sortBy]);
   useDiscoverAnalytics({ status: tripsStatus, itemCount: allTrips.length });
+  // A Retry refetches with status still 'error': show the skeleton and re-arm the 10 s window.
+  const tripsFirstLoad = tripsStatus === 'pending' || (tripsStatus === 'error' && tripsFetching);
+  const { timedOut: tripsTimedOut, restart: restartDeadline } = useLoadDeadline(tripsFirstLoad);
+  const retryTrips = useCallback(() => {
+    restartDeadline();
+    refetchTrips();
+  }, [restartDeadline, refetchTrips]);
 
   // --- GeoJSON for map pins ---
 
@@ -978,56 +982,18 @@ export default function DiscoverScreen() {
         onEndReachedThreshold={0.5}
         ListHeaderComponent={headerComponent}
         ListEmptyComponent={
-          tripsLoading ? (
-            <ActivityIndicator size="large" color={t.ink3} style={{ paddingVertical: 40 }} />
+          tripsTimedOut || (tripsStatus === 'error' && !tripsFetching) ? (
+            <DiscoverLoadError onRetry={retryTrips} />
+          ) : tripsFirstLoad ? (
+            <DiscoverListSkeleton />
           ) : (
-            <Animated.View
-              entering={reducedMotion ? undefined : FadeInUp.duration(300)}
-              style={{ alignItems: 'center', paddingVertical: 44, gap: 10 }}
-            >
-              <View
-                style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: 32,
-                  borderCurve: 'continuous',
-                  backgroundColor: t.surface,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Compass size={30} color={t.ink3} />
-              </View>
-              <Text
-                style={{
-                  ...type.bodyStrong,
-                  color: t.ink,
-                  textAlign: 'center',
-                }}
-              >
-                {i18n('discoverFilters.noRoutesMatch')}
-              </Text>
-              <Pressable
-                onPress={() => {
-                  setSurfaceFilter(null);
-                  setDifficultyFilter(null);
-                  setCountryCode(null);
-                }}
-                style={{
-                  marginTop: 8,
-                  paddingHorizontal: 14,
-                  paddingVertical: 8,
-                  borderRadius: 999,
-                  backgroundColor: t.surface2,
-                  borderWidth: 1,
-                  borderColor: t.line,
-                }}
-              >
-                <Text style={{ fontSize: 12, fontWeight: '600', color: t.ink }}>
-                  {i18n('discoverFilters.clearFilters')}
-                </Text>
-              </Pressable>
-            </Animated.View>
+            <DiscoverNoRoutes
+              onClear={() => {
+                setSurfaceFilter(null);
+                setDifficultyFilter(null);
+                setCountryCode(null);
+              }}
+            />
           )
         }
         ListFooterComponent={

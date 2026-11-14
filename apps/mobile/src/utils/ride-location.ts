@@ -13,9 +13,16 @@ import {
   type LocationTaskErrorAction,
 } from '../lib/location-error';
 import { NOTIFICATION_CHANNEL, NOTIFICATION_KIND } from '../lib/notifications';
-import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../lib/ride-analytics';
+import {
+  RIDE_DISCARD_REASON,
+  RIDE_DISCARD_TRIGGER,
+  RIDE_SAVE_TRIGGER,
+  trackRideCompleted,
+  trackRideDiscarded,
+} from '../lib/ride-analytics';
 import { useRideStore } from '../stores/ride.store';
 import { haversineMeters } from './geo-utils';
+import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from './ride-constants';
 import { activeRideSeconds } from './ride-duration';
 import { buildRideEndInput } from './ride-end-input';
 import { gpsFilter } from './ride-gps-filter';
@@ -38,7 +45,7 @@ import {
   restoreBufferFromMMKV,
   rideMMKV,
 } from './ride-storage';
-import { enqueueOrExecute, enqueueWaypointUpload } from './ride-sync-queue';
+import { deleteEndedRide, enqueueOrExecute, enqueueWaypointUpload } from './ride-sync-queue';
 
 // --- Constants ---
 
@@ -276,7 +283,10 @@ export type AutoPauseEffect =
   | { kind: 'addAutoPausedMs'; ms: number }
   /** Persist/clear the "probably forgot to stop" flag for other surfaces (CarPlay). */
   | { kind: 'setForgotToStopPending'; value: boolean }
-  | { kind: 'autoEnd'; idleSince: number };
+  /** `idleSince`: the ride ends here (the stop was confirmed). `stoppedSince`: the
+   *  stop itself began here, AUTO_PAUSE_DURATION_MS earlier — the riding before it
+   *  is what the floors measure (issue 365 T09). */
+  | { kind: 'autoEnd'; idleSince: number; stoppedSince: number };
 
 export interface AutoPauseDecision {
   next: AutoPauseState;
@@ -385,7 +395,11 @@ export function decideAutoPause(
   // Forgot-to-stop escalation: flag at 10 min (CarPlay), auto-end at 30 min.
   const stoppedFor = now - next.continuousAutoPauseStart;
   if (stoppedFor > FORGOT_TO_STOP_AUTO_END_MS) {
-    effects.push({ kind: 'autoEnd', idleSince: next.continuousAutoPauseStart });
+    effects.push({
+      kind: 'autoEnd',
+      idleSince: next.continuousAutoPauseStart,
+      stoppedSince: next.zeroSpeedTimer,
+    });
     return { next, effects, abort: true, moving: false };
   }
   if (stoppedFor > FORGOT_TO_STOP_NOTIFY_MS && !next.forgotToStopNotified) {
@@ -415,7 +429,7 @@ const AUTO_PAUSE_EFFECT_HANDLERS: AutoPauseEffectHandlers = {
     rideMMKV.setForgotToStopPending(e.value);
     useRideStore.setState({ forgotToStopPending: e.value });
   },
-  autoEnd: (e) => autoEndRide(e.idleSince),
+  autoEnd: (e) => autoEndRide(e.idleSince, e.stoppedSince),
 };
 
 function applyAutoPauseEffects(effects: AutoPauseEffect[]): void {
@@ -583,7 +597,7 @@ TaskManager.defineTask<{ locations: Location.LocationObject[] }>(
 // --- Forgot-to-stop helpers ---
 
 /** Exported for tests; production calls it only through the auto-pause effects. */
-export function autoEndRide(idleSince: number): void {
+export function autoEndRide(idleSince: number, stoppedSince: number = idleSince): void {
   const rideId = rideMMKV.getCurrentId();
   if (!rideId) return;
 
@@ -591,14 +605,16 @@ export function autoEndRide(idleSince: number): void {
   const totalPaused = rideMMKV.getTotalPausedMs();
   // Read before clearRideData below wipes them — ride_completed needs both.
   const motorcycleId = rideMMKV.getMotorcycleId() ?? null;
-  const durationS = activeRideSeconds(
-    {
-      startedAt: rideMMKV.getStartedAt(),
-      totalPausedMs: totalPaused,
-      pausedAt: rideMMKV.getPausedAt(),
-    },
-    idleSince,
-  );
+  const clock = {
+    startedAt: rideMMKV.getStartedAt(),
+    totalPausedMs: totalPaused,
+    pausedAt: rideMMKV.getPausedAt(),
+  };
+  const durationS = activeRideSeconds(clock, idleSince);
+  // The floors measure the riding before the stop began. `idleSince` is the stop
+  // confirmed AUTO_PAUSE_DURATION_MS later, so a Start tap left alone would always
+  // read ~60 s there and never count as under the 30 s floor.
+  const riddenS = activeRideSeconds(clock, Math.min(stoppedSince, idleSince));
 
   // The full stats come from the stored waypoints before clearing, through the
   // same builder as the rider's own Stop, so an auto-ended ride keeps its max
@@ -630,21 +646,36 @@ export function autoEndRide(idleSince: number): void {
 
   enqueueOrExecute('endRide', { variables: { input } });
 
-  trackEvent(AnalyticsEvent.RIDE_AUTO_SAVED, {
-    ride_id: rideId,
-    distance_m: Math.round(totalDistance),
-    waypoint_count: allWaypoints.length,
-    idle_minutes: Math.round(FORGOT_TO_STOP_AUTO_END_MS / 60_000),
-  });
-  // The ride is kept, and no summary will open to say so — this is its one
-  // canonical "ride saved" event (ride_auto_saved above is the diagnostic).
-  trackRideCompleted({
-    trigger: RIDE_SAVE_TRIGGER.AUTO_END,
-    rideId,
-    motorcycleId,
-    distanceM: totalDistance,
-    durationS,
-  });
+  // Under BOTH floors it was a Start tap left alone, not a ride: thrown away the
+  // way the guard's "End without saving" does it — the same delete and the same
+  // ride_discarded event, never ride_completed (issue 365 T09, owner decision D3).
+  const discarded = isBelowBothRideFloors(riddenS, totalDistance);
+  if (discarded) {
+    trackRideDiscarded({
+      rideId,
+      distanceM: totalDistance,
+      durationS: riddenS,
+      reason: RIDE_DISCARD_REASON.BELOW_FLOOR,
+      trigger: RIDE_DISCARD_TRIGGER.AUTO_END,
+    });
+    void deleteEndedRide(rideId);
+  } else {
+    trackEvent(AnalyticsEvent.RIDE_AUTO_SAVED, {
+      ride_id: rideId,
+      distance_m: Math.round(totalDistance),
+      waypoint_count: allWaypoints.length,
+      idle_minutes: Math.round(FORGOT_TO_STOP_AUTO_END_MS / 60_000),
+    });
+    // The ride is kept, and no summary will open to say so — this is its one
+    // canonical "ride saved" event (ride_auto_saved above is the diagnostic).
+    trackRideCompleted({
+      trigger: RIDE_SAVE_TRIGGER.AUTO_END,
+      rideId,
+      motorcycleId,
+      distanceM: totalDistance,
+      durationS,
+    });
+  }
 
   // This end is headless — no summary screen will ever open to own cleanup. Leaving
   // the ride id behind made the next Start offer "End" on an unfinished ride, which
@@ -655,9 +686,31 @@ export function autoEndRide(idleSince: number): void {
   useRideStore.getState().hydrate();
 
   void Notifications.scheduleNotificationAsync({
-    content: rideAutoEndedNotificationContent(rideId),
+    content: discarded
+      ? rideAutoDiscardedNotificationContent(rideId)
+      : rideAutoEndedNotificationContent(rideId),
     trigger: { channelId: NOTIFICATION_CHANNEL.RIDE_ALERTS },
   });
+}
+
+/** Under the time floor AND the distance floor (rounded, as the summary shows it). */
+function isBelowBothRideFloors(durationS: number, distanceM: number): boolean {
+  return durationS < MIN_RIDE_ELAPSED_S && Math.round(distanceM) < MIN_RIDE_DISTANCE_M;
+}
+
+/**
+ * The auto-end notice for a ride thrown away under the floors. `autoEnded: false`
+ * because there is no saved ride to open: the tap handler finds no active ride
+ * with this id and stays put.
+ */
+export function rideAutoDiscardedNotificationContent(rideId: string) {
+  return {
+    title: i18n.t('rideHud.autoDiscardedTitle', { defaultValue: 'Ride not saved' }),
+    body: i18n.t('rideHud.autoDiscardedBody', {
+      defaultValue: 'Your ride was too short to save',
+    }),
+    data: { kind: NOTIFICATION_KIND.RIDE_IDLE, rideId, autoEnded: false },
+  };
 }
 
 /**

@@ -95,6 +95,25 @@ the flows below.
   SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=<local key> \
     DEVICE=<udid> pnpm --filter @motovault/mobile test:e2e:onboarding-signin
   ```
+- **`flows/discover-first-open-android.yaml`** — first Discover open raises no OS dialog (issue 365 T29,
+  FS-PO7/PO8): no location prompt until the rider taps `near-you-use-location`, rides (`trip-card-0`)
+  within 8 s, no `discover-retry`. Local stack only, through the sign-in runner:
+  `SIGNIN_CASES=discover DEVICE=<id> pnpm --filter @motovault/mobile test:e2e:onboarding-signin`. Run it on
+  the Android emulator (`e2e-android-local`) in English and with the device locale es-ES, and on the iOS simulator.
+  It passes `LOCATION_UNSET: "true"` to `_shared/welcome-to-sign-in.yaml`, so `launchApp` starts with location
+  not granted (by default Maestro's `launchApp` grants every permission, which hides the dialog). Maestro does
+  not interpolate `permissions` values, and a subflow's own `env` overrides the caller's, so the shared flow
+  has two literal `launchApp` branches and no default. Its text matches carry the Spanish strings for the
+  es-ES run. On iOS, a location alert left open by a failed run survives an app reinstall: reboot the
+  simulator before the next run.
+- **`flows/onboarding-oauth-cancel.yaml`** (tag `android-oauth`) — Google cancel on the onboarding
+  account step (issue 365 T12, FS-OB2c): Back on the account picker returns to the account step with no
+  "Something went wrong" alert and the button enabled; a double tap opens one picker. Android emulator
+  with Google Play services and a signed-in Google account; it never picks an account, so it writes
+  nothing. The general `test:e2e` run skips the tag. Run it with:
+  ```bash
+  maestro --device <emulator serial> test apps/mobile/.maestro/flows/onboarding-oauth-cancel.yaml
+  ```
 - **`flows/onboarding-paywall-verify.yaml`** — onboarding paywall gate (#326), required before a
   build is promoted to production (`docs/runbooks/mobile-release.md`). Part 1 is the email-code
   signup flow; part 2 confirms the account and fails unless the RevenueCat paywall is shown where
@@ -135,6 +154,13 @@ the flows below.
   (`setAirplaneMode` is Android-only); the stale-`me` race itself is covered by
   `src/__tests__/navigation-gate.test.tsx`. **Validated on an Android emulator 2026-11-13: fails on
   main (Welcome screen), passes with the fix.** `test:e2e:onboarding-complete-relaunch`.
+- **`flows/post-onboarding-no-signin.yaml`** — no sign-in screen after onboarding completion (issue 365
+  T15, FS-PO12/FS-PO13). Composes `onboarding.yaml`, then Profile (`tab-profile`), Diagnose (Home's
+  `home-action-diagnose`, as Diagnose has no tab button), Diagnose → New (`diagnose-new`) and Discover
+  (`tab-discover`); after each, no "Sign in", "Continue with Google" or "Choose an account". **Guard
+  only**: the production repro needs a Google-created account; the auth blip guard itself is covered by
+  `src/lib/__tests__/auth-state-change.test.ts`. Both platforms. **Authored from source, pending
+  on-device validation.** `test:e2e:post-onboarding-no-signin`.
 - **`flows/add-bike.yaml`** — add a motorcycle from the garage. Composes `onboarding.yaml` with
   `NO_BIKE: "true"` (bike setup → "Not sure of the details?" → "I'll add my bike later" → no-bike
   value screen), so the free test user reaches an empty garage and "Add your first bike" opens the
@@ -149,11 +175,16 @@ the flows below.
   ride") + the minimum-ride guard sheet. Since #365 T05c it uses ids only (`tab-ride-fab`,
   `start-ride-screen`, `start-ride-button`, `ride-hud-root`, `ride-guard-sheet`,
   `ride-guard-variant-default`, `ride-guard-keep`, `ride-guard-end-anyway`;
-  `src/features/ride/ride-test-ids.ts`). `test:e2e:log-ride`.
+  `src/features/ride/ride-test-ids.ts`). Since issue 365 T09 it rides a moving route (`travel`, ~400 m
+  over ~40 s) so the ride is over both floors and ends straight to the summary. `test:e2e:log-ride`.
+- **`flows/ride-standstill-not-saved.yaml`** — issue 365 T09 (FS-PO4b): a standstill ride ended from
+  the guard ("End without saving") is discarded: no "RIDE SAVED", a "Not saved" toast on Home, and My
+  Rides stays empty (`rides-empty-cta`). Red on `origin/main`. `test:e2e:ride-standstill-not-saved`.
 - **`flows/checklist-first-ride.yaml`** — FS-PO10 (issue 365 T10): the Get Started "Record your
   first ride" row (`checklist-row-first_ride`) opens Start Ride (`start-ride-screen`) and is still
-  unticked after closing it. **Authored from source 2026-11-14, pending on-device validation.**
-  `test:e2e:checklist-first-ride`.
+  unticked after closing it. Red on `origin/main`, green on iOS and Android 2026-11-14. Maestro's
+  `checked:` selector reads the row state on Android only (iOS reports `checked=false` on every
+  node), so the flow also asserts the "0 of 5" counter. `test:e2e:checklist-first-ride`.
 - **`flows/bike-hub-overview.yaml`** — the redesigned bike screen (bike-detail redesign R1): four
   segments, Overview "Log" pill → Log sheet → Note sheet → save, the Notes screen with delete + Undo,
   and the Odometer sheet from the header chip. Needs a backend with migrations 00180–00182 (see
@@ -192,6 +223,13 @@ the flows below.
   Set `DISTANCE_UNIT=mi` (or `km`) for the unit check; an imperial device must read "mi". Needs the
   T07a import on the backend; red on a build without it. **Authored from source 2026-11-13, pending
   on-device validation.** `test:e2e:service-plan`, `test:e2e:service-plan-make-only`.
+- **`flows/diagnose-limit-loop.yaml`** — the diagnose "Try Again" limit loop (issue 365 T08,
+  FS-PO2a). Seeded and Android only (tag `android`, `setAirplaneMode`): the runner plants a used
+  diagnosis (`E2E_SEED_DIAGNOSIS_USED=1`, local stack only), the flow reaches the form offline,
+  submits online and asserts the limit panel (`diagnose-limit-panel`, `-see-pro`, `-done`) with
+  no "Try Again". iOS is covered by the jest suite `new-limit.test.tsx`. **Validated on the
+  Android emulator 2026-11-14** (red on main, green on the fix). `test:e2e:diagnose-limit-loop` on the
+  `e2e-android-local` build.
 
   All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /
   `E2E_EMAIL_PREFIX` (set inline in the `test:e2e:*` package scripts) — no per-flow wrapper needed.
@@ -302,7 +340,8 @@ Hard-won specifics for THIS app — check these first when a flow "should work" 
   (`src/features/ride/ride-guard-sheet.tsx`). Prefer a real selector over a `point:` tap whenever
   `inspect_screen` exposes one.
 - **GPS-dependent flows need `setLocation`.** The ride pre-flight GPS check and recording need a fix;
-  set one at the top of the flow (a stationary sim logs ~0 distance, which still saves).
+  set one at the top of the flow. A stationary sim logs ~0 distance, and since issue 365 T09 such a
+  ride ended from the guard is discarded, not saved: use `travel` for a ride that must be kept.
 
 ## Verified on a local stack (2026-10-07)
 

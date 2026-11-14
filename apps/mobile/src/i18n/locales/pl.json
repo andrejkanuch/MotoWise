@@ -212,6 +212,12 @@
     "startCta": "Rozpocznij diagnozę",
     "quotaRemaining": "Za darmo w tym miesiącu: pozostało {{count}} z {{limit}} diagnoz",
     "quotaUsed": "Darmowa diagnoza w tym miesiącu została wykorzystana. Wróci {{date}} — albo przejdź na Pro bez limitu.",
+    "limit": {
+      "usedBackOn": "Darmowa diagnoza w tym miesiącu została wykorzystana. Wróci {{date}}.",
+      "usedResetsNextMonth": "Darmowa diagnoza w tym miesiącu została wykorzystana. Odnowi się w przyszłym miesiącu.",
+      "seePro": "Zobacz plany Pro",
+      "done": "Gotowe"
+    },
     "emptyExplainer": "Opisz, co słyszysz, widzisz lub czujesz, i dodaj zdjęcie, jeśli możesz. Otrzymasz prawdopodobne przyczyny, pilność i kolejne kroki.",
     "severityLevel": {
       "low": "Niska",
@@ -2145,6 +2151,7 @@
     "gpsTip": "Wskazówka: upewnij się, że telefon ma czysty widok na niebo dla śledzenia GPS",
     "keepRiding": "Jedź dalej",
     "endAnyway": "Zakończ mimo to",
+    "endWithoutSaving": "Zakończ bez zapisywania",
     "reminderNudgeBody": "Twoja jazda wciąż się nagrywa, ale nie ruszasz się od {{minutes}} minut. Zakończ ją lub jedź dalej.",
     "reminderFinalTitle": "Twoja jazda wciąż się nagrywa",
     "reminderFinalBody": "Brak ruchu od {{minutes}} minut. Zakończ jazdę, aby zapisać ją do miejsca, w którym się zatrzymałeś.",
@@ -2157,6 +2164,9 @@
     "rideAlertsChannel": "Powiadomienia o jeździe",
     "autoEndedTitle": "Jazda zapisana",
     "autoEndedBody": "Nie ruszałeś się od {{minutes}} minut, więc zakończyliśmy jazdę i zapisaliśmy ją do miejsca, w którym się zatrzymałeś.",
+    "notSavedToast": "Nie zapisano: przejazdy krótsze niż {{meters}} m nie są zachowywane",
+    "autoDiscardedTitle": "Jazda niezapisana",
+    "autoDiscardedBody": "Twój przejazd był za krótki, żeby go zapisać",
     "serviceTitle": "MotoVault nagrywa Twoją jazdę",
     "serviceBody": "Dotknij, aby wrócić do jazdy. Zakończ ją, gdy zejdziesz z motocykla.",
     "noGpsTitle": "Nie udało się zarejestrować tej jazdy",
@@ -2273,7 +2283,11 @@
     "routesFoundCount_one": "Znaleziono {{count}} trasę",
     "routesFoundCount_few": "Znaleziono {{count}} trasy",
     "routesFoundCount_many": "Znaleziono {{count}} tras",
-    "routesFoundCount_other": "Znaleziono {{count}} trasy"
+    "routesFoundCount_other": "Znaleziono {{count}} trasy",
+    "loadErrorTitle": "Nie udało się wczytać tras",
+    "loadErrorBody": "Sprawdź połączenie i spróbuj ponownie.",
+    "retry": "Spróbuj ponownie",
+    "loadingRoutes": "Wczytywanie tras"
   },
   "mapPicker": {
     "title": "Styl mapy",
@@ -2286,7 +2300,11 @@
     "viewAll": "Zobacz wszystkie",
     "editorsPick": "Wybór redakcji",
     "elevLabel": "{{value}}m przewyższenia",
-    "ratingLabel": "{{value}} ocena"
+    "ratingLabel": "{{value}} ocena",
+    "locationTitle": "Trasy w pobliżu",
+    "locationReason": "Udostępnij lokalizację, aby zobaczyć trasy w swoim kraju. Służy tylko do znajdowania tras w pobliżu.",
+    "useLocation": "Użyj mojej lokalizacji",
+    "openSettings": "Włącz w Ustawieniach"
   },
   "checklist": {
     "getStarted": "Zaczynamy",

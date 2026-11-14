@@ -4,7 +4,7 @@ import type { Waypoint } from '@motovault/types';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, View } from 'react-native';
 import { HudLayoutA } from '../../components/ride/hud-layout-a';
@@ -14,16 +14,18 @@ import { GpsLostBanner } from '../../features/ride/gps-lost-banner';
 import {
   buildRideSummaryHref,
   endRideSession,
+  endRideWithoutSaving,
   pauseRideSession,
   resumeRideSession,
 } from '../../features/ride/ride-controller';
 import {
-  buildRideGuardSnapshot,
-  cachedHasRealRide,
+  currentRideGuardSnapshot,
+  guardEndDiscards,
   isBelowRideFloors,
   RIDE_GUARD_ACTION,
   type RideGuardSnapshot,
   trackRideGuard,
+  withLiveDistance,
 } from '../../features/ride/ride-guard';
 import { RideGuardSheet } from '../../features/ride/ride-guard-sheet';
 import { RIDE_TEST_ID } from '../../features/ride/ride-test-ids';
@@ -32,6 +34,7 @@ import { useRideElapsed } from '../../features/ride/use-ride-elapsed';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { bestEffortNativeCall, NativeSideEffect } from '../../lib/best-effort-native';
 import { useRideStore } from '../../stores/ride.store';
+import { useRideNoticeStore } from '../../stores/ride-notice.store';
 import { triggerImpact } from '../../utils/haptics';
 import { getPointBuffer, getWaypointChunks, rideMMKV } from '../../utils/ride-storage';
 import { hasPendingSyncWork } from '../../utils/ride-sync-queue';
@@ -54,12 +57,8 @@ function persistLayout(layout: HudLayout) {
 }
 
 const APP_STATE_ACTIVE = 'active';
-
-/** Any location point reached the ride (in the live buffer or flushed to a chunk). */
-function rideHasPoints(rideId: string | undefined): boolean {
-  if (getPointBuffer().length > 0) return true;
-  return rideId != null && getWaypointChunks(rideId).some((chunk) => chunk.length > 0);
-}
+/** Where "End without saving" leaves the HUD for (issue 365 T09). */
+const HOME_HREF: Href = '/(tabs)/(home)';
 
 export default function RideHudScreen() {
   const router = useRouter();
@@ -205,17 +204,9 @@ export default function RideHudScreen() {
 
   const handleEndRide = useCallback(() => {
     const elapsed = elapsedRef.current;
-    const { distance: dist, maxSpeed: maxSpeedMps } = useRideStore.getState();
-
-    if (isBelowRideFloors(elapsed, dist)) {
+    if (isBelowRideFloors(elapsed, useRideStore.getState().distance)) {
       const rideId = rideMMKV.getCurrentId();
-      const snapshot = buildRideGuardSnapshot({
-        elapsedS: elapsed,
-        distanceM: dist,
-        maxSpeedMps,
-        gpsFix: hadFixRef.current || rideHasPoints(rideId),
-        hasRealRide: cachedHasRealRide(queryClient),
-      });
+      const snapshot = currentRideGuardSnapshot(elapsed, hadFixRef.current, queryClient);
       setGuardData(snapshot);
       guardSheetRef.current?.expand();
       trackRideGuard(snapshot, RIDE_GUARD_ACTION.SHOWN, rideId ?? null);
@@ -239,8 +230,14 @@ export default function RideHudScreen() {
     }
     guardSheetRef.current?.close();
     setGuardData(null);
+    // Still under 50 m now (not the no-GPS branch): "End without saving", Home with a notice.
+    if (guardData && guardEndDiscards(withLiveDistance(guardData))) {
+      if (!endRideWithoutSaving('phone')) return;
+      useRideNoticeStore.getState().showNotSaved();
+      return router.replace(HOME_HREF);
+    }
     executeEndRide();
-  }, [executeEndRide, guardData]);
+  }, [executeEndRide, guardData, router]);
 
   const handleToggleNight = useCallback(() => {
     triggerImpact();

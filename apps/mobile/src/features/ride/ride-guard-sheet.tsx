@@ -6,7 +6,7 @@ import { editorialThemes } from '../../theme/editorial';
 import { space } from '../../theme/spacing';
 import { radius, type } from '../../theme/type';
 import { rideStorage } from '../../utils/ride-storage';
-import { isNoGpsRide, type RideGuardSnapshot } from './ride-guard';
+import { guardEndDiscards, isNoGpsRide, type RideGuardSnapshot } from './ride-guard';
 import { RIDE_TEST_ID, rideGuardVariantTestId } from './ride-test-ids';
 
 // The HUD is a riding instrument: always dark (night mode swaps to amber-red),
@@ -56,6 +56,8 @@ export function RideGuardSheet({
   }, [onEndAnyway, showTip]);
 
   const isNoGps = shown != null && isNoGpsRide(shown.elapsed_s);
+  // Under 50 m the end discards the ride, so the button says so (issue 365 T09).
+  const endsWithoutSaving = shown != null && guardEndDiscards(shown);
 
   return (
     <BottomSheet
@@ -140,7 +142,7 @@ export function RideGuardSheet({
               }}
             >
               <Text style={{ ...type.bodyStrong, color: HUD_THEME.onPlate }}>
-                {t('rideHud.endAnyway')}
+                {endsWithoutSaving ? t('rideHud.endWithoutSaving') : t('rideHud.endAnyway')}
               </Text>
             </Pressable>
           </View>

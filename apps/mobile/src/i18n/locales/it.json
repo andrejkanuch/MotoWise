@@ -212,6 +212,12 @@
     "startCta": "Avvia una diagnosi",
     "quotaRemaining": "Gratis questo mese: {{count}} di {{limit}} diagnosi rimaste",
     "quotaUsed": "Hai usato la diagnosi gratuita di questo mese. Torna il {{date}}, oppure passa a Pro per diagnosi illimitate.",
+    "limit": {
+      "usedBackOn": "Hai usato la diagnosi gratuita di questo mese. Torna il {{date}}.",
+      "usedResetsNextMonth": "Hai usato la diagnosi gratuita di questo mese. Si rinnova il mese prossimo.",
+      "seePro": "Vedi i piani Pro",
+      "done": "Fatto"
+    },
     "emptyExplainer": "Racconta cosa senti, vedi o percepisci e aggiungi una foto se puoi. Ottieni le cause probabili, l'urgenza e i passi successivi.",
     "severityLevel": {
       "low": "Bassa",
@@ -2108,6 +2114,7 @@
     "gpsTip": "Suggerimento: assicurati che il telefono abbia una visuale libera del cielo per il tracciamento GPS",
     "keepRiding": "Continua a guidare",
     "endAnyway": "Termina comunque",
+    "endWithoutSaving": "Termina senza salvare",
     "reminderNudgeBody": "Il tuo giro è ancora in registrazione, ma sei fermo da {{minutes}} minuti. Terminalo o continua.",
     "reminderFinalTitle": "Il tuo giro è ancora in registrazione",
     "reminderFinalBody": "Nessun movimento da {{minutes}} minuti. Termina il giro per salvarlo com'era quando ti sei fermato.",
@@ -2120,6 +2127,9 @@
     "rideAlertsChannel": "Avvisi giro",
     "autoEndedTitle": "Giro salvato",
     "autoEndedBody": "Eri fermo da {{minutes}} minuti, quindi abbiamo terminato il giro e l'abbiamo salvato fino al punto in cui ti sei fermato.",
+    "notSavedToast": "Non salvato: i giri sotto {{meters}} m non vengono conservati",
+    "autoDiscardedTitle": "Giro non salvato",
+    "autoDiscardedBody": "Il tuo giro era troppo breve per essere salvato",
     "serviceTitle": "MotoVault sta registrando il tuo giro",
     "serviceBody": "Tocca per tornare al giro. Terminalo quando scendi dalla moto.",
     "noGpsTitle": "Non siamo riusciti a tracciare questo giro",
@@ -2230,7 +2240,11 @@
     "routesFoundCount_one": "{{count}} percorso trovato",
     "routesFoundCount_few": "{{count}} percorsi trovati",
     "routesFoundCount_many": "{{count}} percorsi trovati",
-    "routesFoundCount_other": "{{count}} percorsi trovati"
+    "routesFoundCount_other": "{{count}} percorsi trovati",
+    "loadErrorTitle": "Impossibile caricare i percorsi",
+    "loadErrorBody": "Controlla la connessione e riprova.",
+    "retry": "Riprova",
+    "loadingRoutes": "Caricamento percorsi"
   },
   "mapPicker": {
     "title": "Stile mappa",
@@ -2243,7 +2257,11 @@
     "viewAll": "Vedi tutti",
     "editorsPick": "Scelta della redazione",
     "elevLabel": "{{value}}m dislivello",
-    "ratingLabel": "{{value}} valutazione"
+    "ratingLabel": "{{value}} valutazione",
+    "locationTitle": "Percorsi vicino a te",
+    "locationReason": "Condividi la tua posizione per vedere i giri nel tuo Paese. Serve solo a trovare percorsi vicino a te.",
+    "useLocation": "Usa la mia posizione",
+    "openSettings": "Attiva in Impostazioni"
   },
   "checklist": {
     "getStarted": "Per iniziare",
