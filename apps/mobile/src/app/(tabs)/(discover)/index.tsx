@@ -548,8 +548,8 @@ export default function DiscoverScreen() {
 
   const {
     data: tripData,
-    isLoading: tripsLoading,
     status: tripsStatus,
+    isFetching: tripsFetching,
     refetch: refetchTrips,
     fetchNextPage: fetchNextTrips,
     hasNextPage: hasNextTrips,
@@ -589,9 +589,9 @@ export default function DiscoverScreen() {
     return trips; // 'popular' — default API order
   }, [tripData, sortBy]);
   useDiscoverAnalytics({ status: tripsStatus, itemCount: allTrips.length });
-  const { timedOut: tripsTimedOut, restart: restartDeadline } = useLoadDeadline(
-    tripsStatus === 'pending',
-  );
+  // A Retry refetches with status still 'error': show the skeleton and re-arm the 10 s window.
+  const tripsFirstLoad = tripsStatus === 'pending' || (tripsStatus === 'error' && tripsFetching);
+  const { timedOut: tripsTimedOut, restart: restartDeadline } = useLoadDeadline(tripsFirstLoad);
   const retryTrips = useCallback(() => {
     restartDeadline();
     refetchTrips();
@@ -982,9 +982,9 @@ export default function DiscoverScreen() {
         onEndReachedThreshold={0.5}
         ListHeaderComponent={headerComponent}
         ListEmptyComponent={
-          tripsStatus === 'error' || tripsTimedOut ? (
+          tripsTimedOut || (tripsStatus === 'error' && !tripsFetching) ? (
             <DiscoverLoadError onRetry={retryTrips} />
-          ) : tripsLoading ? (
+          ) : tripsFirstLoad ? (
             <DiscoverListSkeleton />
           ) : (
             <DiscoverNoRoutes

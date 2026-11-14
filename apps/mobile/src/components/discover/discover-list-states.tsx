@@ -134,6 +134,7 @@ export const DiscoverNoRoutes = memo(function DiscoverNoRoutes({
       </Text>
       <Pressable
         onPress={onClear}
+        accessibilityRole="button"
         style={{
           marginTop: space.xs,
           paddingHorizontal: space.sm,

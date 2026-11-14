@@ -23,8 +23,17 @@ jest.mock('../../utils/mapbox-geocoding', () => ({
   reverseGeocodeCountryCode: (lat: number, lng: number) => mockReverseGeocode(lat, lng),
 }));
 
+const mockAppStateListeners: Array<(state: string) => void> = [];
 jest.mock('react-native', () => ({
   Linking: { openSettings: () => mockOpenSettings() },
+  AppState: {
+    addEventListener: (_event: string, listener: (state: string) => void) => {
+      mockAppStateListeners.push(listener);
+      return {
+        remove: () => mockAppStateListeners.splice(mockAppStateListeners.indexOf(listener), 1),
+      };
+    },
+  },
 }));
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -94,7 +103,9 @@ describe('useUserCountry', () => {
   });
 
   it('asks only after the rider taps "Use my location", then resolves the country', async () => {
-    mockGetPermissions.mockResolvedValueOnce({ status: 'undetermined', canAskAgain: true });
+    mockGetPermissions
+      .mockResolvedValueOnce({ status: 'undetermined', canAskAgain: true })
+      .mockResolvedValueOnce({ status: 'undetermined', canAskAgain: true });
     mockRequestPermissions.mockResolvedValue({ status: 'granted', canAskAgain: true });
     mockGetPermissions.mockResolvedValue({ status: 'granted', canAskAgain: true });
 
@@ -121,5 +132,41 @@ describe('useUserCountry', () => {
     });
 
     expect(mockOpenSettings).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays in the app when the rider declines the dialog (no jump to Settings)', async () => {
+    // iOS reports canAskAgain=false right after the first "Don't Allow".
+    mockGetPermissions
+      .mockResolvedValueOnce({ status: 'undetermined', canAskAgain: true })
+      .mockResolvedValueOnce({ status: 'undetermined', canAskAgain: true })
+      .mockResolvedValue({ status: 'denied', canAskAgain: false });
+    mockRequestPermissions.mockResolvedValue({ status: 'denied', canAskAgain: false });
+
+    const { result } = await renderUserCountry();
+    await waitFor(() => expect(result.current.data?.access).toBe(LOCATION_ACCESS.NOT_ASKED));
+
+    await act(async () => {
+      await result.current.requestLocation();
+    });
+
+    expect(mockRequestPermissions).toHaveBeenCalledTimes(1);
+    expect(mockOpenSettings).not.toHaveBeenCalled();
+    await waitFor(() => expect(result.current.data?.access).toBe(LOCATION_ACCESS.BLOCKED));
+  });
+
+  it('re-reads the permission when the rider comes back from Settings', async () => {
+    mockGetPermissions
+      .mockResolvedValueOnce({ status: 'denied', canAskAgain: false })
+      .mockResolvedValue({ status: 'granted', canAskAgain: true });
+
+    const { result } = await renderUserCountry();
+    await waitFor(() => expect(result.current.data?.access).toBe(LOCATION_ACCESS.BLOCKED));
+
+    await act(async () => {
+      for (const listener of [...mockAppStateListeners]) listener('active');
+    });
+
+    await waitFor(() => expect(result.current.data?.countryCode).toBe('IT'));
+    expect(mockRequestPermissions).not.toHaveBeenCalled();
   });
 });

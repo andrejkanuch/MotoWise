@@ -1,11 +1,13 @@
 import { isSupportedCountry, type SupportedCountryCode } from '@motovault/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Location from 'expo-location';
-import { useCallback } from 'react';
-import { Linking } from 'react-native';
+import { useCallback, useEffect, useRef } from 'react';
+import { AppState, type AppStateStatus, Linking } from 'react-native';
 import { queryKeys } from '../lib/query-keys';
 import { requestForegroundLocationPermission } from '../utils/location-permission';
 import { reverseGeocodeCountryCode } from '../utils/mapbox-geocoding';
+
+const APP_STATE_ACTIVE: AppStateStatus = 'active';
 
 /** Where the rider stands on sharing location with Discover. */
 export const LOCATION_ACCESS = {
@@ -71,14 +73,38 @@ export function useUserCountry() {
     gcTime: 60 * 60 * 1000,
   });
 
-  /** The rider's "Use my location" tap: the only place Discover asks the OS. */
+  // A rider who turns location on in Settings comes back to the app: re-read
+  // the permission then (a read only, never a request), so the opt-in card
+  // does not outlive the 30-minute staleTime.
+  const access = query.data?.access;
+  const accessRef = useRef(access);
+  accessRef.current = access;
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state !== APP_STATE_ACTIVE) return;
+      if (accessRef.current === undefined || accessRef.current === LOCATION_ACCESS.GRANTED) return;
+      queryClient.invalidateQueries(
+        { queryKey: queryKeys.userCountry.detected },
+        { cancelRefetch: false },
+      );
+    });
+    return () => subscription.remove();
+  }, [queryClient]);
+
+  /**
+   * The rider's "Use my location" tap: the only place Discover asks the OS.
+   * Settings opens only when the OS had already stopped showing the dialog
+   * before this tap; a rider who just declined the dialog stays in the app and
+   * the card switches to "Turn on in Settings".
+   */
   const requestLocation = useCallback(async () => {
     try {
-      const permission = await requestForegroundLocationPermission();
-      if (accessOf(permission) === LOCATION_ACCESS.BLOCKED) {
+      const before = accessOf(await Location.getForegroundPermissionsAsync());
+      if (before === LOCATION_ACCESS.BLOCKED) {
         await Linking.openSettings();
         return;
       }
+      if (before === LOCATION_ACCESS.NOT_ASKED) await requestForegroundLocationPermission();
     } catch {
       // A failed request leaves the prompt card in place; the rider can tap again.
     }
