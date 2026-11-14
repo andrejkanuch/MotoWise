@@ -68,6 +68,7 @@ import { RIDE_SYNC_LIMITS, RIDE_WAYPOINT_LIMITS } from '@motovault/types';
 import { captureException } from '../../lib/analytics';
 import {
   clearDeliveredQueue,
+  deleteEndedRide,
   destroyAllSyncData,
   drainQueue,
   dropDeadLetteredRide,
@@ -992,6 +993,17 @@ describe('recovery of already-stranded ops', () => {
       syncOp({ seq: 4, type: 'endRide', rideId: 'ride-A', createdAt: STRANDED_AT }),
     ];
   }
+
+  // Issue 365 T09: the one delete the summary, the guard and the auto-end share.
+  it('deleteEndedRide drops the dead-lettered ops and queues the delete', async () => {
+    mockSyncStore.set('sync.dead_letter', JSON.stringify(strandedRide()));
+    mockGetNetworkStateAsync.mockResolvedValue(OFFLINE);
+
+    await deleteEndedRide('ride-A');
+
+    expect(getDeadLetterCount()).toBe(0);
+    expect(queue().map((op) => op.type)).toEqual(['deleteRide']);
+  });
 
   it('forgets a discarded ride so a redrive cannot bring it back', async () => {
     mockSyncStore.set(

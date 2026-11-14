@@ -1450,7 +1450,16 @@
     "problemRequired": "Descreva o problema ou adicione uma foto para analisar. Toque para editar.",
     "symptomsRequired": "Escolha o que você percebe ou “Não tenho certeza”.",
     "descriptionRequired": "Descreva o que está acontecendo para continuar.",
-    "removeOption": "Remover {{label}}"
+    "removeOption": "Remover {{label}}",
+    "submit": {
+      "stillWorking": "Ainda processando…",
+      "deadline": "Ainda processando — se terminar, vai aparecer nos seus diagnósticos.",
+      "offline": "Você está offline. Suas respostas foram mantidas — tente de novo quando voltar a ficar online.",
+      "throttled": "Muitas solicitações agora. Espere um minuto e tente de novo.",
+      "server": "Algo deu errado do nosso lado. Suas respostas foram mantidas — tente de novo.",
+      "checkFailed": "Não foi possível verificar se o seu diagnóstico terminou.",
+      "retryCheck": "Tentar de novo"
+    }
   },
   "notifications": {
     "title": "Notificações",
@@ -2114,6 +2123,7 @@
     "gpsTip": "Dica: deixe o celular com o céu à vista para o GPS funcionar bem",
     "keepRiding": "Continuar rodando",
     "endAnyway": "Encerrar mesmo assim",
+    "endWithoutSaving": "Encerrar sem salvar",
     "reminderNudgeBody": "Seu rolê ainda está sendo gravado, mas você está parado há {{minutes}} minutos. Encerre ou continue.",
     "reminderFinalTitle": "Seu rolê ainda está sendo gravado",
     "reminderFinalBody": "Sem movimento há {{minutes}} minutos. Encerre o rolê para salvá-lo como estava quando você parou.",
@@ -2126,6 +2136,9 @@
     "rideAlertsChannel": "Alertas de rolê",
     "autoEndedTitle": "Rolê salvo",
     "autoEndedBody": "Você estava parado há {{minutes}} minutos, então encerramos o rolê e salvamos até onde você parou.",
+    "notSavedToast": "Não salvo: rolês com menos de {{meters}} m não são mantidos",
+    "autoDiscardedTitle": "Rolê não salvo",
+    "autoDiscardedBody": "Seu rolê foi curto demais para ser salvo",
     "serviceTitle": "O MotoVault está gravando seu rolê",
     "serviceBody": "Toque para voltar ao rolê. Encerre quando descer da moto.",
     "noGpsTitle": "Não conseguimos gravar este rolê",
@@ -2236,7 +2249,11 @@
     "routesFoundCount_one": "{{count}} rota encontrada",
     "routesFoundCount_few": "{{count}} rotas encontradas",
     "routesFoundCount_many": "{{count}} rotas encontradas",
-    "routesFoundCount_other": "{{count}} rotas encontradas"
+    "routesFoundCount_other": "{{count}} rotas encontradas",
+    "loadErrorTitle": "Não foi possível carregar as rotas",
+    "loadErrorBody": "Verifique sua conexão e tente novamente.",
+    "retry": "Tentar novamente",
+    "loadingRoutes": "Carregando rotas"
   },
   "mapPicker": {
     "title": "Estilo do mapa",
@@ -2249,12 +2266,16 @@
     "viewAll": "Ver todas",
     "editorsPick": "Escolha do editor",
     "elevLabel": "{{value}} m de elevação",
-    "ratingLabel": "Nota {{value}}"
+    "ratingLabel": "Nota {{value}}",
+    "locationTitle": "Rotas perto de você",
+    "locationReason": "Compartilhe sua localização para ver rotas no seu país. Ela só é usada para encontrar rotas perto de você.",
+    "useLocation": "Usar minha localização",
+    "openSettings": "Ativar nos Ajustes"
   },
   "checklist": {
     "getStarted": "Primeiros passos",
     "progressLabel": "{{completed}} de {{total}}",
-    "seeFirstRideStats": "Veja as estatísticas do seu primeiro rolê",
+    "recordFirstRide": "Grave seu primeiro rolê",
     "findRouteNearYou": "Encontre uma rota perto de você",
     "trackFirstExpense": "Registre sua primeira despesa",
     "completeBikeProfile": "Complete o perfil da moto",

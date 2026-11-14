@@ -127,7 +127,7 @@
     "v2ExperienceHeadline": "¿Cuánto tiempo llevas conduciendo moto?"
   },
   "checklist": {
-    "seeFirstRideStats": "Mira las estadísticas de tu primera salida"
+    "recordFirstRide": "Graba tu primera salida"
   },
   "bikeHub": {
     "segment": {
@@ -231,7 +231,16 @@
     "howUrgent": "¿Cómo de urgente es?",
     "urgencyStranded": "La moto no anda / no puedo salir",
     "includeMaintenanceHint": "Revisiones, recambios y modificaciones, notas, salidas recientes y diagnósticos anteriores ayudan a la IA a diagnosticar tu moto",
-    "problemRequired": "Describe el problema o añade una foto para analizarlo. Toca para editar."
+    "problemRequired": "Describe el problema o añade una foto para analizarlo. Toca para editar.",
+    "submit": {
+      "stillWorking": "Sigue en proceso…",
+      "deadline": "Sigue en proceso: si termina, aparecerá en tus diagnósticos.",
+      "offline": "No tienes conexión. Tus respuestas se guardan; vuelve a intentarlo cuando vuelvas a estar en línea.",
+      "throttled": "Hay demasiadas solicitudes ahora. Espera un minuto y vuelve a intentarlo.",
+      "server": "Algo ha ido mal por nuestra parte. Tus respuestas se guardan; vuelve a intentarlo.",
+      "checkFailed": "No hemos podido comprobar si tu diagnóstico ha terminado.",
+      "retryCheck": "Reintentar"
+    }
   },
   "notifications": {
     "trialReminder": {
@@ -411,6 +420,9 @@
     "rideAlertsChannel": "Avisos de salida",
     "autoEndedTitle": "Salida guardada",
     "autoEndedBody": "Llevabas {{minutes}} minutos sin moverte, así que hemos terminado tu salida y la hemos guardado hasta donde te detuviste.",
+    "notSavedToast": "No se ha guardado: no conservamos salidas de menos de {{meters}} m",
+    "autoDiscardedTitle": "Salida no guardada",
+    "autoDiscardedBody": "Tu salida ha sido demasiado corta para guardarla",
     "serviceTitle": "MotoVault está grabando tu salida",
     "serviceBody": "Toca para volver a tu salida. Termínala cuando te bajes de la moto.",
     "noGpsTitle": "No hemos podido registrar esta salida"

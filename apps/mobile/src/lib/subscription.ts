@@ -440,6 +440,48 @@ export async function stampAnonymousPosthogId(
   });
 }
 
+/**
+ * How long a RevenueCat identity call (`logIn` / `logOut`) may hold up the next
+ * one. A hung native call must not block every later switch for good.
+ */
+const RC_IDENTITY_STALL_MS = 10_000;
+
+/** The last queued identity call; null when none is pending. */
+let identityTail: Promise<void> | null = null;
+
+/**
+ * Run RevenueCat `logIn` / `logOut` one after another, in call order. The auth
+ * listener fires them without awaiting, and a user switch can call
+ * `logoutRevenueCat()` and `loginRevenueCat(newUser)` in the same tick (issue 365
+ * T15: a held null session flushed by a different user's session). Unordered,
+ * the old user's `logOut` (behind an extra `isAnonymous()` round trip) could land
+ * after the new user's `logIn` and leave the new rider on an anonymous customer.
+ * A predecessor that stalls past {@link RC_IDENTITY_STALL_MS} stops blocking.
+ */
+function enqueueIdentityOp(op: () => Promise<void>): Promise<void> {
+  const prev = identityTail;
+  const run = (prev ? settleWithin(prev, RC_IDENTITY_STALL_MS) : Promise.resolve()).then(op);
+  identityTail = run;
+  const clear = () => {
+    if (identityTail === run) identityTail = null;
+  };
+  run.then(clear, clear);
+  return run;
+}
+
+/** Resolves when `pending` settles or after `ms`, whichever is first. Never rejects. */
+function settleWithin(pending: Promise<void>, ms: number): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  return Promise.race([
+    pending.catch(() => undefined),
+    new Promise<void>((resolve) => {
+      timer = setTimeout(resolve, ms);
+    }),
+  ]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
 /** The `logIn` currently in flight, so callers can wait for the customer switch. */
 let loginInFlight: Promise<void> | null = null;
 
@@ -472,7 +514,7 @@ export async function waitForRevenueCatLogin(timeoutMs: number): Promise<void> {
  * Never throws.
  */
 export function loginRevenueCat(userId: string, email?: string | null): Promise<void> {
-  const run = doLoginRevenueCat(userId, email).finally(() => {
+  const run = enqueueIdentityOp(() => doLoginRevenueCat(userId, email)).finally(() => {
     if (loginInFlight === run) loginInFlight = null;
   });
   loginInFlight = run;
@@ -1051,7 +1093,11 @@ export function presentRiderInsightsPaywall(
   });
 }
 
-export async function logoutRevenueCat() {
+export function logoutRevenueCat(): Promise<void> {
+  return enqueueIdentityOp(doLogoutRevenueCat);
+}
+
+async function doLogoutRevenueCat(): Promise<void> {
   if (isExpoGo()) return;
   const cleanup = await initRevenueCat();
   if (!cleanup) return;

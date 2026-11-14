@@ -5,11 +5,30 @@ appId: ${APP_ID}
 env:
   APP_ID: com.motovault.app
 ---
+# Text matches carry the Spanish (es) strings too, so the discover case can
+# run with the device locale set to es-ES (issue 365 T29, FS-PO8 replay).
 # Fresh state + keychain so Welcome renders with no session (see
 # onboarding-to-account.yaml for why both are needed).
 - clearState
 - clearKeychain
-- launchApp
+# Maestro's launchApp grants every permission unless told otherwise. The
+# discover case (issue 365 T29) passes LOCATION_UNSET=true so location starts
+# not granted and the "Use my location" opt-in can be checked. Maestro does not
+# interpolate permission values, hence two literal launchApp branches. No env
+# default here: a subflow's own env would override the caller's value.
+- runFlow:
+    when:
+      true: ${typeof LOCATION_UNSET !== 'undefined' && LOCATION_UNSET == 'true'}
+    commands:
+      - launchApp:
+          permissions:
+            all: allow
+            location: unset
+- runFlow:
+    when:
+      true: ${typeof LOCATION_UNSET === 'undefined' || LOCATION_UNSET != 'true'}
+    commands:
+      - launchApp
 
 - extendedWaitUntil:
     visible: "Ask App Not to Track"
@@ -20,38 +39,38 @@ env:
     optional: true
 
 - extendedWaitUntil:
-    visible: "Let's get started"
+    visible: "Let's get started|Empecemos"
     timeout: 120000
-- tapOn: "Already have an account? Sign in"
+- tapOn: "Already have an account.*|¿Ya tienes una cuenta.*"
 
 # Analytics consent, where the country rule asks for it: decline.
 - runFlow:
     when:
-      visible: "Help shape MotoVault"
+      visible: "Help shape MotoVault|Ayuda a dar forma a MotoVault"
     commands:
-      - tapOn: "Don't allow"
+      - tapOn: "Don't allow|No permitir"
 
 - extendedWaitUntil:
     visible:
       id: "onboarding-sign-in-screen"
     timeout: 15000
-- assertVisible: "Welcome back."
+- assertVisible: "Welcome back.|Qué bueno verte de nuevo."
 # The onboarding sign-in screen shows the email form directly; tap through an
 # email-first variant if one is shown.
 - tapOn:
-    text: "Continue with email"
+    text: "Continue with email|Continuar con correo"
     optional: true
-- tapOn: "Email"
+- tapOn: "Email|Correo electrónico"
 - inputText: ${TEST_EMAIL}
-- tapOn: "Password"
+- tapOn: "Password|Contraseña"
 - inputText: ${TEST_PASSWORD}
 # The app's custom keyboard controller ignores hideKeyboard: tap the subtitle
 # to dismiss the keyboard so it stops covering the Sign In button.
 - tapOn:
-    text: ".*Sign in to access your garage.*"
+    text: ".*Sign in to access your garage.*|.*Inicia sesión para acceder a tu garaje.*"
     optional: true
 - waitForAnimationToEnd
-- tapOn: "Sign In"
+- tapOn: "Sign In|Iniciar sesión"
 # No optional "Not Now" tap here: an optional tap waits seconds when absent, and
 # the "Account ready" notice is only up for 4 s. Simulator prerequisite instead:
 # Settings > General > AutoFill & Passwords > "AutoFill Passwords and Passkeys"

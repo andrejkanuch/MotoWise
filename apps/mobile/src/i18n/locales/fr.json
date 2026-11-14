@@ -1450,7 +1450,16 @@
     "problemRequired": "Décris le problème ou ajoute une photo pour lancer l'analyse. Touche pour modifier.",
     "symptomsRequired": "Choisis ce que tu remarques, ou « Je ne sais pas trop ».",
     "descriptionRequired": "Décris ce qui se passe pour continuer.",
-    "removeOption": "Retirer {{label}}"
+    "removeOption": "Retirer {{label}}",
+    "submit": {
+      "stillWorking": "Toujours en cours…",
+      "deadline": "Toujours en cours — s'il aboutit, il apparaîtra dans tes diagnostics.",
+      "offline": "Tu es hors ligne. Tes réponses sont conservées — réessaie quand tu seras de nouveau en ligne.",
+      "throttled": "Trop de requêtes pour le moment. Attends une minute, puis réessaie.",
+      "server": "Un problème est survenu de notre côté. Tes réponses sont conservées — réessaie.",
+      "checkFailed": "Impossible de vérifier si ton diagnostic a abouti.",
+      "retryCheck": "Réessayer"
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -2114,6 +2123,7 @@
     "gpsTip": "Astuce : pour le suivi GPS, ton téléphone doit avoir une vue dégagée sur le ciel",
     "keepRiding": "Continuer à rouler",
     "endAnyway": "Terminer quand même",
+    "endWithoutSaving": "Terminer sans enregistrer",
     "reminderNudgeBody": "Ta sortie est toujours en cours d'enregistrement, mais tu n'as pas bougé depuis {{minutes}} minutes. Termine-la ou continue.",
     "reminderFinalTitle": "Ta sortie est toujours en cours d'enregistrement",
     "reminderFinalBody": "Aucun mouvement depuis {{minutes}} minutes. Termine la sortie pour l'enregistrer telle qu'elle était à ton arrêt.",
@@ -2126,6 +2136,9 @@
     "rideAlertsChannel": "Alertes de sortie",
     "autoEndedTitle": "Sortie enregistrée",
     "autoEndedBody": "Tu n'avais pas bougé depuis {{minutes}} minutes : on a terminé ta sortie et on l'a enregistrée jusqu'à ton arrêt.",
+    "notSavedToast": "Non enregistrée : les sorties de moins de {{meters}} m ne sont pas conservées",
+    "autoDiscardedTitle": "Sortie non enregistrée",
+    "autoDiscardedBody": "Ta sortie était trop courte pour être enregistrée",
     "serviceTitle": "MotoVault enregistre ta sortie",
     "serviceBody": "Touche pour revenir à ta sortie. Termine-la quand tu descends de la moto.",
     "noGpsTitle": "Impossible d'enregistrer cette sortie",
@@ -2236,7 +2249,11 @@
     "routesFoundCount_one": "{{count}} itinéraire trouvé",
     "routesFoundCount_few": "{{count}} itinéraires trouvés",
     "routesFoundCount_many": "{{count}} itinéraires trouvés",
-    "routesFoundCount_other": "{{count}} itinéraires trouvés"
+    "routesFoundCount_other": "{{count}} itinéraires trouvés",
+    "loadErrorTitle": "Impossible de charger les itinéraires",
+    "loadErrorBody": "Vérifiez votre connexion et réessayez.",
+    "retry": "Réessayer",
+    "loadingRoutes": "Chargement des itinéraires"
   },
   "mapPicker": {
     "title": "Style de carte",
@@ -2249,12 +2266,16 @@
     "viewAll": "Tout voir",
     "editorsPick": "Coup de cœur",
     "elevLabel": "{{value}} m D+",
-    "ratingLabel": "Note : {{value}}"
+    "ratingLabel": "Note : {{value}}",
+    "locationTitle": "Itinéraires près de chez vous",
+    "locationReason": "Partagez votre position pour voir les balades dans votre pays. Elle sert uniquement à trouver des itinéraires près de vous.",
+    "useLocation": "Utiliser ma position",
+    "openSettings": "Activer dans Réglages"
   },
   "checklist": {
     "getStarted": "Pour bien démarrer",
     "progressLabel": "{{completed}} sur {{total}}",
-    "seeFirstRideStats": "Vois les stats de ta première sortie",
+    "recordFirstRide": "Enregistre ta première sortie",
     "findRouteNearYou": "Trouve un itinéraire près de chez toi",
     "trackFirstExpense": "Enregistre ta première dépense",
     "completeBikeProfile": "Complète le profil de ta moto",

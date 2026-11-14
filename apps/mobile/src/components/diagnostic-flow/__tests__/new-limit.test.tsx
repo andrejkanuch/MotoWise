@@ -44,6 +44,8 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 jest.mock('expo-file-system', () => ({ File: jest.fn() }));
+// Online: the offline pre-check (issue 365 T17) lets the submit through.
+jest.mock('expo-network', () => require('@/test/mocks').mockNetwork(true));
 // The review step's bike list (query-options pulls in MMKV through the auth store).
 jest.mock('@/lib/query-options', () => ({
   motorcyclesOptions: () => ({
@@ -262,6 +264,6 @@ describe('diagnose form: free diagnosis used (FORBIDDEN)', () => {
     expect(state.currentStep).toBe(1);
     expect(state.hasAnyData()).toBe(false);
     expect(state.freeTextDescription).toBe('');
-    expect(state.submitError).toBeNull();
+    expect(state.submitFailure).toBeNull();
   });
 });

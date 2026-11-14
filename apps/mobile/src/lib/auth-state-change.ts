@@ -60,6 +60,12 @@ export interface AuthStateChangeInputs {
   prevUserId: string | null;
   /** Whether `LAST_USER_KEY` exists in SecureStore — survives cold starts. */
   hasPersistedUser: boolean;
+  /** This session's user finished onboarding (auth store `onboardingCompleted`). */
+  onboardingCompleted?: boolean;
+  /** The app itself is signing out right now (`isExplicitSignOutInProgress`). */
+  explicitSignOut?: boolean;
+  /** A deferred null session stayed null for the whole grace window. */
+  graceExpired?: boolean;
 }
 
 export interface AuthStateChangeDecision {
@@ -75,6 +81,11 @@ export interface AuthStateChangeDecision {
    * register again; a TOKEN_REFRESHED for the same user must not.
    */
   shouldRegisterPush: boolean;
+  /**
+   * A null session that may be a blip (issue 365 T15): hold it for
+   * `AUTH_BLIP_GRACE_MS` instead of signing out. Every other flag is false.
+   */
+  shouldDeferNullSession: boolean;
 }
 
 /**
@@ -87,6 +98,9 @@ export function decideAuthStateChange({
   sessionUserId,
   prevUserId,
   hasPersistedUser,
+  onboardingCompleted = false,
+  explicitSignOut = false,
+  graceExpired = false,
 }: AuthStateChangeInputs): AuthStateChangeDecision {
   if (sessionUserId) {
     // Session present: identify only on a genuine identity change (todo 191).
@@ -96,6 +110,22 @@ export function decideAuthStateChange({
       shouldResetUser: false,
       shouldClearLocalData: false,
       shouldRegisterPush: userChanged,
+      shouldDeferNullSession: false,
+    };
+  }
+
+  // Issue 365 T15 (FS-PO12/PO13): after onboarding, a null session the app did
+  // not ask for is held, not acted on. Acting on it routes to (auth) and runs
+  // `resetForSignOut`, so a blip followed by the same user's session sent a
+  // finished rider back to sign-in or onboarding. A cold-start null (no user in
+  // this app session) is not a blip: it keeps the todo-188 cleanup.
+  if (prevUserId !== null && onboardingCompleted && !explicitSignOut && !graceExpired) {
+    return {
+      shouldResetUser: false,
+      shouldClearLocalData: false,
+      shouldIdentify: false,
+      shouldRegisterPush: false,
+      shouldDeferNullSession: true,
     };
   }
 
@@ -114,5 +144,91 @@ export function decideAuthStateChange({
     shouldClearLocalData: hadUser,
     shouldIdentify: false,
     shouldRegisterPush: false,
+    shouldDeferNullSession: false,
+  };
+}
+
+/**
+ * How long a deferred null session waits for the session to come back before it
+ * counts as a real sign-out. Covers a token refresh retry and a slow secure
+ * storage read; a server revocation still signs out, this much later.
+ */
+export const AUTH_BLIP_GRACE_MS = 15_000;
+
+export interface AuthBlipGuardOptions<S extends { user?: { id: string } | null }> {
+  graceMs: number;
+  /** Whether a null session arriving after `prevUserId` should be held (see decideAuthStateChange). */
+  shouldDeferNullSession: (prevUserId: string | null) => boolean;
+  /** The real auth-state-change handler. Never sees a held null session. */
+  apply: (event: string, session: S | null) => void;
+  /**
+   * A held null applied when the grace window ends runs from a timer, outside
+   * Supabase's callback (which catches listener errors). A throw there would be
+   * an uncaught JS error, fatal in a release build; it goes here instead.
+   */
+  onFlushError: (error: unknown) => void;
+}
+
+/**
+ * Sits in front of the auth-state-change handler and holds a possibly transient
+ * null session (issue 365 T15):
+ *  - the same user's session within the grace window → the null is dropped;
+ *  - a different user's session → the null is applied first (reset), then the new session;
+ *  - an explicit sign-out while held → applied at once;
+ *  - nothing within the grace window → the null is applied (real revocation).
+ */
+export function createAuthBlipGuard<S extends { user?: { id: string } | null }>({
+  graceMs,
+  shouldDeferNullSession,
+  apply,
+  onFlushError,
+}: AuthBlipGuardOptions<S>) {
+  let lastUserId: string | null = null;
+  let held: { event: string; timer: ReturnType<typeof setTimeout> } | null = null;
+
+  const run = (event: string, session: S | null) => {
+    lastUserId = session?.user?.id ?? null;
+    apply(event, session);
+  };
+  const release = (): string | null => {
+    if (!held) return null;
+    clearTimeout(held.timer);
+    const { event } = held;
+    held = null;
+    return event;
+  };
+  const flush = () => {
+    const event = release();
+    if (event !== null) run(event, null);
+  };
+  const flushOnTimer = () => {
+    try {
+      flush();
+    } catch (error) {
+      onFlushError(error);
+    }
+  };
+
+  return {
+    handle(event: string, session: S | null) {
+      const userId = session?.user?.id ?? null;
+      if (userId === null) {
+        if (!shouldDeferNullSession(lastUserId)) {
+          release();
+          run(event, null);
+        } else if (held) {
+          held.event = event;
+        } else {
+          held = { event, timer: setTimeout(flushOnTimer, graceMs) };
+        }
+        return;
+      }
+      if (held && userId !== lastUserId) flush();
+      else release();
+      run(event, session);
+    },
+    dispose() {
+      release();
+    },
   };
 }

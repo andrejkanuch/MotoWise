@@ -1429,7 +1429,16 @@
     "problemRequired": "Analiz için sorunu açıklayın veya fotoğraf ekleyin. Düzenlemek için dokunun.",
     "symptomsRequired": "Fark ettiğiniz şeyi seçin veya “Emin değilim”.",
     "descriptionRequired": "Devam etmek için ne olduğunu açıklayın.",
-    "removeOption": "{{label}} kaldır"
+    "removeOption": "{{label}} kaldır",
+    "submit": {
+      "stillWorking": "Hâlâ çalışıyor…",
+      "deadline": "Hâlâ çalışıyor — tamamlanırsa teşhislerinde görünecek.",
+      "offline": "Çevrimdışısın. Yanıtların saklandı — tekrar çevrimiçi olunca yeniden dene.",
+      "throttled": "Şu anda çok fazla istek var. Bir dakika bekleyip yeniden dene.",
+      "server": "Bizim tarafımızda bir sorun oluştu. Yanıtların saklandı — yeniden dene.",
+      "checkFailed": "Teşhisinin tamamlanıp tamamlanmadığı kontrol edilemedi.",
+      "retryCheck": "Yeniden dene"
+    }
   },
   "notifications": {
     "title": "Bildirimler",
@@ -2081,6 +2090,7 @@
     "gpsTip": "İpucu: GPS takibi için telefonunun gökyüzünü net gördüğünden emin ol",
     "keepRiding": "Sürüşe devam et",
     "endAnyway": "Yine de bitir",
+    "endWithoutSaving": "Kaydetmeden bitir",
     "reminderNudgeBody": "Sürüşün hâlâ kaydediliyor ama {{minutes}} dakikadır hareket etmedin. Bitir ya da devam et.",
     "reminderFinalTitle": "Sürüşün hâlâ kaydediliyor",
     "reminderFinalBody": "{{minutes}} dakikadır hareket yok. Sürüşü durduğun andaki hâliyle kaydetmek için bitir.",
@@ -2093,6 +2103,9 @@
     "rideAlertsChannel": "Sürüş uyarıları",
     "autoEndedTitle": "Sürüş kaydedildi",
     "autoEndedBody": "{{minutes}} dakikadır hareket etmediğin için sürüşünü bitirdik ve durduğun yere kadar kaydettik.",
+    "notSavedToast": "Kaydedilmedi: {{meters}} m altındaki sürüşler saklanmaz",
+    "autoDiscardedTitle": "Sürüş kaydedilmedi",
+    "autoDiscardedBody": "Sürüşün kaydedilemeyecek kadar kısaydı",
     "serviceTitle": "MotoVault sürüşünü kaydediyor",
     "serviceBody": "Sürüşe dönmek için dokun. Motordan inince bitir.",
     "noGpsTitle": "Bu sürüş takip edilemedi",
@@ -2201,7 +2214,11 @@
     "routesFoundCount_one": "{{count}} rota bulundu",
     "routesFoundCount_few": "{{count}} rota bulundu",
     "routesFoundCount_many": "{{count}} rota bulundu",
-    "routesFoundCount_other": "{{count}} rota bulundu"
+    "routesFoundCount_other": "{{count}} rota bulundu",
+    "loadErrorTitle": "Rotalar yüklenemedi",
+    "loadErrorBody": "Bağlantını kontrol edip tekrar dene.",
+    "retry": "Tekrar dene",
+    "loadingRoutes": "Rotalar yükleniyor"
   },
   "mapPicker": {
     "title": "Harita Stili",
@@ -2214,12 +2231,16 @@
     "viewAll": "Tümünü gör",
     "editorsPick": "Editörün Seçimi",
     "elevLabel": "{{value}}m yükselti",
-    "ratingLabel": "{{value}} puan"
+    "ratingLabel": "{{value}} puan",
+    "locationTitle": "Yakınındaki rotalar",
+    "locationReason": "Ülkendeki rotaları görmek için konumunu paylaş. Yalnızca yakınındaki rotaları bulmak için kullanılır.",
+    "useLocation": "Konumumu kullan",
+    "openSettings": "Ayarlar'dan aç"
   },
   "checklist": {
     "getStarted": "Başlayalım",
     "progressLabel": "{{completed}}/{{total}}",
-    "seeFirstRideStats": "İlk sürüş istatistiklerini gör",
+    "recordFirstRide": "İlk sürüşünü kaydet",
     "findRouteNearYou": "Yakınında bir rota bul",
     "trackFirstExpense": "İlk harcamanı kaydet",
     "completeBikeProfile": "Motor profilini tamamla",

@@ -22,6 +22,9 @@ import { type } from '../../theme/type';
 import { NativeToggle } from '../ui/native-toggle';
 import { useDiagnosticColors } from './diagnostic-colors';
 import { DiagnoseLimitPanel } from './limit-panel';
+import { SubmitStatus } from './submit-status';
+import { useDiagnosisDeadlineLock } from './use-diagnosis-deadline-lock';
+import { useStillWorking } from './use-still-working';
 
 const ALL_PREDEFINED = new Set<string>([
   ...PREDEFINED_SYMPTOMS,
@@ -121,7 +124,8 @@ export function StepReviewSubmit({ onSubmit, onLimitDone }: StepReviewSubmitProp
       dataSharingOptedIn: s.dataSharingOptedIn,
       includeMaintenanceHistory: s.includeMaintenanceHistory,
       isSubmitting: s.isSubmitting,
-      submitError: s.submitError,
+      submitFailure: s.submitFailure,
+      deadlineLock: s.deadlineLock,
       limitReached: s.limitReached,
       hasProblemInput: s.hasProblemInput(),
       goToStepFromReview: s.goToStepFromReview,
@@ -152,7 +156,11 @@ export function StepReviewSubmit({ onSubmit, onLimitDone }: StepReviewSubmitProp
     .flatMap(([, values]) => (values as string[]).filter((v: string) => v !== 'dont_know'))
     .map((v: string) => (ALL_PREDEFINED.has(v) ? tDynamic(t, `diagnoseV2.option.${v}`) : `"${v}"`));
 
-  const submitDisabled = store.isSubmitting || !store.hasProblemInput;
+  const retryQuotaCheck = useDiagnosisDeadlineLock();
+  const stillWorking = useStillWorking(store.isSubmitting);
+
+  // Issue 365 T17: locked while the server may still be working past the deadline.
+  const submitDisabled = store.isSubmitting || !store.hasProblemInput || !!store.deadlineLock;
   const submitInk = submitDisabled ? colors.textMuted : colors.onAccent;
 
   return (
@@ -425,18 +433,11 @@ export function StepReviewSubmit({ onSubmit, onLimitDone }: StepReviewSubmitProp
                 </Text>
               </Pressable>
             )}
-            {store.submitError && (
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: colors.danger,
-                  textAlign: 'center',
-                  marginBottom: space.xs,
-                }}
-              >
-                {store.submitError}
-              </Text>
-            )}
+            <SubmitStatus
+              failure={store.submitFailure}
+              lock={store.deadlineLock}
+              onRetryCheck={retryQuotaCheck}
+            />
             <Pressable
               style={{
                 borderRadius: 16,
@@ -457,10 +458,10 @@ export function StepReviewSubmit({ onSubmit, onLimitDone }: StepReviewSubmitProp
                 <>
                   <ActivityIndicator size="small" color={submitInk} />
                   <Text style={[type.bodyStrong, { color: submitInk }]}>
-                    {t('diagnoseV2.analyzing')}
+                    {stillWorking ? t('diagnoseV2.submit.stillWorking') : t('diagnoseV2.analyzing')}
                   </Text>
                 </>
-              ) : store.submitError ? (
+              ) : store.submitFailure ? (
                 <Text style={[type.bodyStrong, { color: submitInk }]}>
                   {t('diagnoseV2.tryAgain')}
                 </Text>

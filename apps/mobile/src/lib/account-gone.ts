@@ -1,5 +1,6 @@
 import { useAuthStore } from '../stores/auth.store';
 import { addBreadcrumb, captureException } from './analytics';
+import { withExplicitSignOut } from './explicit-sign-out';
 import { GRAPHQL_ERROR_CODE } from './graphql-error-classification';
 import { hasGraphQLCode } from './graphql-errors';
 import { supabase } from './supabase';
@@ -64,7 +65,7 @@ export function signOutGoneAccount(requestUserId: string | null): Promise<void> 
     // sign-out and sign-in, so this closes the last microtask-sized gap.)
     if (getRequestSessionUserId() !== requestUserId) return;
     addBreadcrumb('me returned NOT_FOUND; signing out locally', ACCOUNT_GONE_SOURCE);
-    const { error } = await supabase.auth.signOut({ scope: 'local' });
+    const { error } = await withExplicitSignOut(() => supabase.auth.signOut({ scope: 'local' }));
     if (error) captureException(error, { source: ACCOUNT_GONE_SOURCE });
   })().catch((err) => captureException(err, { source: ACCOUNT_GONE_SOURCE }));
   let timer: ReturnType<typeof setTimeout> | undefined;
