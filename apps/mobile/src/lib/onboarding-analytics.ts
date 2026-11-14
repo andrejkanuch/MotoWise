@@ -1,3 +1,4 @@
+import type { CompleteOnboardingMutation } from '@motovault/graphql';
 import type { JsonType } from '@posthog/core';
 import { getStepIndex, OB_STEP_NAME, type OnboardingRoute } from '../config/onboarding';
 import { AnalyticsEvent, type AnalyticsEventName, trackEvent } from './analytics';
@@ -42,11 +43,39 @@ export function trackOnboardingFlowEvent(
   trackEvent(event, { variant: getOnboardingVariant(), ...properties });
 }
 
+/** What `completeOnboarding` returned: carries the service plan the API imported. */
+export type OnboardingCompletedUser = Pick<
+  CompleteOnboardingMutation['completeOnboarding'],
+  'servicePlanTaskCount' | 'servicePlanTier'
+>;
+
 /**
- * Track `onboarding_completed` and start the clock that paywall events report as
+ * The onboarding bike's service plan as `onboarding_completed` reports it
+ * (issue 365 T07b, Experiment 2): the imported task count (0 when nothing was
+ * imported, or an older API sent no count) and the tier (`model` | `make` |
+ * `generic`) only when there is one.
+ */
+export function servicePlanCompletionFields(
+  user: OnboardingCompletedUser,
+): Record<string, JsonType> {
+  return {
+    service_plan_task_count: user.servicePlanTaskCount ?? 0,
+    ...(user.servicePlanTier && { service_plan_tier: user.servicePlanTier }),
+  };
+}
+
+/**
+ * Track `onboarding_completed` with the service plan of `completedUser`, and
+ * start the clock that paywall events report as
  * `minutes_since_onboarding_completed` (issue 365 T05a).
  */
-export function trackOnboardingCompletion(properties?: Record<string, JsonType>) {
+export function trackOnboardingCompletion(
+  completedUser: OnboardingCompletedUser,
+  properties?: Record<string, JsonType>,
+) {
   recordOnboardingCompleted();
-  trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_COMPLETED, properties);
+  trackOnboardingFlowEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
+    ...properties,
+    ...servicePlanCompletionFields(completedUser),
+  });
 }

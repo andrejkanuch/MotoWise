@@ -10,7 +10,7 @@ import {
   type HubUnit,
 } from '@/lib/bike-hub/constants';
 import { formatOdometer } from '@/lib/bike-hub/format';
-import type { DueLimit, TaskDue } from '@/lib/bike-hub/task-due';
+import { type DueLimit, isDueNow, type TaskDue } from '@/lib/bike-hub/task-due';
 import { DUE_TONE_COLOR, HUB_ROW_SUB_LINES, SYSTEM_WEIGHT, useHubTheme } from './tokens';
 
 interface CopyContext {
@@ -117,7 +117,8 @@ interface DescribeDueOptions extends CopyContext {
 /**
  * Turns `getTaskDue` output into copy. Leads with the limit `getTaskDue` put
  * first; the other limit follows in grey, or the schedule the task came from
- * when it has only one limit.
+ * when it has only one limit. A passed manufacturer-schedule task reads "Due
+ * now" (`isDueNow`).
  */
 export function describeDue(due: TaskDue, options: DescribeDueOptions): DueLineCopy {
   const { t, scheduleName } = options;
@@ -129,6 +130,10 @@ export function describeDue(due: TaskDue, options: DescribeDueOptions): DueLineC
 
   if (!due.primary) {
     return { primary: t('bikeHub.due.someday'), secondary: schedule, secondaryLate: false };
+  }
+  // A passed schedule limit is "Due now", with no count of days or distance.
+  if (isDueNow(due)) {
+    return { primary: t('bikeHub.due.dueNow'), secondary: schedule, secondaryLate: false };
   }
   const primaryCopy = PRIMARY_COPY[limitKey(due.primary)];
   const primary = primaryCopy ? primaryCopy(due.primary, options) : '';

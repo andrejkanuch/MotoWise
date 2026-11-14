@@ -15,7 +15,13 @@ import {
   type HubUnit,
 } from '../../lib/bike-hub/constants';
 import { formatOdometer, hasOdometer } from '../../lib/bike-hub/format';
-import { dueUrgency, getTaskDue, isActiveTask, type TaskDue } from '../../lib/bike-hub/task-due';
+import {
+  dueUrgency,
+  getTaskDue,
+  isActiveTask,
+  isDueNow,
+  type TaskDue,
+} from '../../lib/bike-hub/task-due';
 import { PLATE_STATE, type PlateState } from '../ui/bike-plate';
 import type { TaskItem } from './home-types';
 
@@ -24,11 +30,8 @@ export interface RankedHomeTask {
   due: TaskDue;
 }
 
-/**
- * The home query does not carry a task's `source`. It only feeds the "Honda
- * schedule" wording, which Home never shows.
- */
-const SOURCE_NOT_LOADED = MaintenanceTaskSource.User;
+/** A task without a `source` (an older cache entry) counts as the rider's own. */
+const SOURCE_FALLBACK = MaintenanceTaskSource.User;
 
 /** Shown in place of the figure when the bike has no odometer yet. */
 const NO_FIGURE = '—';
@@ -62,7 +65,11 @@ export function rankBikeTasks(tasks: readonly TaskItem[], context: RankContext):
     .map((task) => ({
       task,
       due: getTaskDue(
-        { dueDate: task.dueDate, targetMileage: task.targetMileage, source: SOURCE_NOT_LOADED },
+        {
+          dueDate: task.dueDate,
+          targetMileage: task.targetMileage,
+          source: task.source ?? SOURCE_FALLBACK,
+        },
         { odometer, today, unit },
       ),
     }))
@@ -105,6 +112,17 @@ export function describePlate(next: RankedHomeTask | undefined, context: CopyCon
 
   const state = PLATE_STATE_OF[next.due.state];
   const task = next.task.title;
+
+  // A passed schedule task: no count of days, the plate keeps the odometer.
+  if (isDueNow(next.due)) {
+    return {
+      state,
+      figure: hasOdometer(odometer) ? formatOdometer(odometer, language) : NO_FIGURE,
+      unit: hasOdometer(odometer) ? unit : undefined,
+      caption: t('home.plateCaptionDueNow', { task }),
+      stateLabel: t(STATE_LABEL_KEY[state]),
+    };
+  }
   const isTime = limit.dimension === DUE_DIMENSION.TIME;
   const caption =
     limit.direction === DUE_DIRECTION.PAST

@@ -88,6 +88,17 @@ export default function ModalsLayout() {
         name="recalls"
         options={{ presentation: 'formSheet', gestureEnabled: true, headerShown: false }}
       />
+      {/* "Service plan ready" over Home after onboarding (issue 365 T16b). */}
+      <Stack.Screen
+        name="service-plan-ready"
+        options={{
+          presentation: 'formSheet',
+          gestureEnabled: true,
+          sheetGrabberVisible: true,
+          sheetAllowedDetents: [0.5],
+          contentStyle: sheetContentStyle,
+        }}
+      />
       <Stack.Screen
         name="carplay/index"
         options={{ presentation: 'fullScreenModal', gestureEnabled: true }}

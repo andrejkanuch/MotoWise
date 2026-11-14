@@ -85,6 +85,24 @@ the flows below.
   `delivered+<label>@resend.dev` test inbox (reports delivered, never bounces). The server side of
   the same contract runs in CI on every relevant PR: `scripts/e2e-email-confirmation.sh`
   (`.github/workflows/email-confirmation-e2e.yml`).
+- **`flows/onboarding-signin-unfinished-account.yaml` + `flows/onboarding-signin-onboarded-account.yaml`** —
+  returning-rider sign-in from Welcome (issue 365 T11, FS-OB1a). A confirmed account that has not
+  finished onboarding must leave "Welcome back." for Experience with the "Account ready" notice
+  (`onboarding-account-ready`, up for 4 s); an onboarded account must land on Home. Steps up to
+  Sign In live in `flows/_shared/welcome-to-sign-in.yaml`. Local stack only (the runner creates the
+  users and refuses any other `SUPABASE_URL`); simulator AutoFill Passwords off. Run via:
+  ```bash
+  SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=<local key> \
+    DEVICE=<udid> pnpm --filter @motovault/mobile test:e2e:onboarding-signin
+  ```
+- **`flows/onboarding-oauth-cancel.yaml`** (tag `android-oauth`) — Google cancel on the onboarding
+  account step (issue 365 T12, FS-OB2c): Back on the account picker returns to the account step with no
+  "Something went wrong" alert and the button enabled; a double tap opens one picker. Android emulator
+  with Google Play services and a signed-in Google account; it never picks an account, so it writes
+  nothing. The general `test:e2e` run skips the tag. Run it with:
+  ```bash
+  maestro --device <emulator serial> test apps/mobile/.maestro/flows/onboarding-oauth-cancel.yaml
+  ```
 - **`flows/onboarding-paywall-verify.yaml`** — onboarding paywall gate (#326), required before a
   build is promoted to production (`docs/runbooks/mobile-release.md`). Part 1 is the email-code
   signup flow; part 2 confirms the account and fails unless the RevenueCat paywall is shown where
@@ -118,6 +136,20 @@ the flows below.
   log-mode shape (Odometer / Date completed / "Log it", Priority hidden), logs a completed record,
   confirms it lands under History, and cleans up. **Authored from source 2026-07-16, pending
   on-device validation.** `test:e2e:log-past-work`.
+- **`flows/onboarding-complete-relaunch.yaml`** — onboarding completion survives a cold start (issue 365
+  T14, FS-OB1e). Composes `onboarding.yaml`, then `stopApp` → airplane mode on → `launchApp` (no
+  `clearState`) → the tab bar (`tab-home`; a cold start can land on any tab), never "Let's get
+  started". Airplane mode is turned off again in `onFlowComplete`. Tagged `android`
+  (`setAirplaneMode` is Android-only); the stale-`me` race itself is covered by
+  `src/__tests__/navigation-gate.test.tsx`. **Validated on an Android emulator 2026-11-13: fails on
+  main (Welcome screen), passes with the fix.** `test:e2e:onboarding-complete-relaunch`.
+- **`flows/post-onboarding-no-signin.yaml`** — no sign-in screen after onboarding completion (issue 365
+  T15, FS-PO12/FS-PO13). Composes `onboarding.yaml`, then Profile (`tab-profile`), Diagnose (Home's
+  `home-action-diagnose`, as Diagnose has no tab button), Diagnose → New (`diagnose-new`) and Discover
+  (`tab-discover`); after each, no "Sign in", "Continue with Google" or "Choose an account". **Guard
+  only**: the production repro needs a Google-created account; the auth blip guard itself is covered by
+  `src/lib/__tests__/auth-state-change.test.ts`. Both platforms. **Authored from source, pending
+  on-device validation.** `test:e2e:post-onboarding-no-signin`.
 - **`flows/add-bike.yaml`** — add a motorcycle from the garage. Composes `onboarding.yaml` with
   `NO_BIKE: "true"` (bike setup → "Not sure of the details?" → "I'll add my bike later" → no-bike
   value screen), so the free test user reaches an empty garage and "Add your first bike" opens the
@@ -166,6 +198,22 @@ the flows below.
   regression class); the raw number itself is unchanged by the toggle. No numeric-input selector, so
   low fragility. **Authored from source 2026-07-16; navigation selectors validated on-device** (Profile
   Units picker, Garage tab, bike card). `test:e2e:units-display`.
+- **`flows/onboarding-service-plan.yaml`** and **`flows/onboarding-make-only-service-plan.yaml`** —
+  FS-PO1H, Experiment 2 (issue 365 T07a/T07b): the bike onboarding creates gets its OEM service plan.
+  The first onboards a Yamaha MT-09 2019 (`BIKE_MAKE`/`BIKE_MODEL`/`BIKE_YEAR` branch of
+  `_shared/onboarding-to-account.yaml`), the second a make-only Honda (`MAKE_ONLY: "true"`, the
+  "Not sure of the details?" chip). Both assert Home no longer reads "No service due", then Garage →
+  bike → `segment-service` → `service-task-card-0`; the make-only flow also finds "Honda schedule".
+  Set `DISTANCE_UNIT=mi` (or `km`) for the unit check; an imperial device must read "mi". Needs the
+  T07a import on the backend; red on a build without it. **Authored from source 2026-11-13, pending
+  on-device validation.** `test:e2e:service-plan`, `test:e2e:service-plan-make-only`.
+- **`flows/diagnose-limit-loop.yaml`** — the diagnose "Try Again" limit loop (issue 365 T08,
+  FS-PO2a). Seeded and Android only (tag `android`, `setAirplaneMode`): the runner plants a used
+  diagnosis (`E2E_SEED_DIAGNOSIS_USED=1`, local stack only), the flow reaches the form offline,
+  submits online and asserts the limit panel (`diagnose-limit-panel`, `-see-pro`, `-done`) with
+  no "Try Again". iOS is covered by the jest suite `new-limit.test.tsx`. **Validated on the
+  Android emulator 2026-11-14** (red on main, green on the fix). `test:e2e:diagnose-limit-loop` on the
+  `e2e-android-local` build.
 
   All authed journey flows share the parameterized onboarding runner via `E2E_FLOW` /
   `E2E_EMAIL_PREFIX` (set inline in the `test:e2e:*` package scripts) — no per-flow wrapper needed.

@@ -130,6 +130,7 @@
     "plateStateOverdue": "เลยกำหนด",
     "plateCaptionTo": "ถึง {{task}}",
     "plateCaptionLate": "{{task}} เลยกำหนด",
+    "plateCaptionDueNow": "{{task}} ถึงกำหนดแล้ว",
     "plateCaptionAt": "เลขไมล์สำหรับ {{task}}",
     "noServiceDue": "ไม่มีการเข้าศูนย์ที่ถึงกำหนด",
     "plateDayUnit_one": "วัน",
@@ -211,6 +212,12 @@
     "startCta": "เริ่มการวินิจฉัย",
     "quotaRemaining": "ฟรีเดือนนี้: เหลือ {{count}} จาก {{limit}} ครั้ง",
     "quotaUsed": "ใช้การวินิจฉัยฟรีของเดือนนี้แล้ว จะกลับมาในวันที่ {{date}} หรืออัปเกรดเป็น Pro เพื่อใช้ได้ไม่จำกัด",
+    "limit": {
+      "usedBackOn": "ใช้การวินิจฉัยฟรีของเดือนนี้แล้ว จะกลับมาในวันที่ {{date}}",
+      "usedResetsNextMonth": "ใช้การวินิจฉัยฟรีของเดือนนี้แล้ว จะรีเซ็ตในเดือนหน้า",
+      "seePro": "ดูแพ็กเกจ Pro",
+      "done": "เสร็จสิ้น"
+    },
     "emptyExplainer": "บอกสิ่งที่คุณได้ยิน เห็น หรือรู้สึก และแนบรูปถ้าทำได้ คุณจะได้สาเหตุที่เป็นไปได้ ความเร่งด่วน และขั้นตอนถัดไป",
     "severityLevel": {
       "low": "ต่ำ",
@@ -762,6 +769,7 @@
     "obSignInNewHere": "เพิ่งมาใหม่?",
     "obSignInGetStarted": "เริ่มเลย",
     "obSignInSigningIn": "กำลังเข้าสู่ระบบ…",
+    "obAccountReadyNotice": "บัญชีพร้อมแล้ว — มาตั้งค่าโรงรถของคุณกัน",
     "obRevealScheduleProof": "ตารางการบำรุงรักษา OEM ของคุณพร้อมโหลดแล้ว",
     "obRevealSpecCategory": "หมวดหมู่",
     "obRevealCatAdventure": "แอดเวนเจอร์",
@@ -1140,6 +1148,10 @@
       "doneOn": "เสร็จเมื่อ {{date}}",
       "seeAllHistory_one": "ดูงานที่เสร็จแล้ว {{count}} รายการ",
       "seeAllHistory_other": "ดูงานที่เสร็จแล้วทั้งหมด {{count}} รายการ",
+      "moreTasks_one": "+อีก {{count}} รายการ",
+      "moreTasks_other": "+อีก {{count}} รายการ",
+      "moreTasksA11y_one": "แสดงอีก {{count}} รายการ",
+      "moreTasksA11y_other": "แสดงอีก {{count}} รายการ",
       "serviceItems": "รายการบริการ"
     },
     "costsSegment": {
@@ -3156,5 +3168,14 @@
     "newRoadsComputing": "กำลังคำนวณ…",
     "unlockPro": "ปลดล็อกด้วย Pro",
     "newRoadsLockedA11y": "ถนนใหม่ในการขี่ครั้งนี้ ปลดล็อกด้วย Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "แผนบำรุงรักษาของคุณพร้อมแล้ว",
+      "body": "ตารางบำรุงรักษาจากผู้ผลิตสำหรับ {{bike}} ของคุณอยู่ในโรงรถแล้ว เราจะเตือนคุณก่อนถึงกำหนดแต่ละครั้ง",
+      "bodyNoBike": "ตารางบำรุงรักษาจากผู้ผลิตสำหรับรถของคุณอยู่ในโรงรถแล้ว เราจะเตือนคุณก่อนถึงกำหนดแต่ละครั้ง",
+      "open": "ดูแผนของฉัน",
+      "notNow": "ไว้ทีหลัง"
+    }
   }
 }

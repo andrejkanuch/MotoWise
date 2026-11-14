@@ -130,6 +130,7 @@
     "plateStateOverdue": "En retard",
     "plateCaptionTo": "avant {{task}}",
     "plateCaptionLate": "{{task}}, en retard",
+    "plateCaptionDueNow": "{{task}}, à faire maintenant",
     "plateCaptionAt": "au compteur pour {{task}}",
     "noServiceDue": "Aucun entretien prévu",
     "plateDayUnit_one": "jour",
@@ -211,6 +212,12 @@
     "startCta": "Lancer un diagnostic",
     "quotaRemaining": "Diagnostics gratuits restants ce mois-ci : {{count}} sur {{limit}}",
     "quotaUsed": "Ton diagnostic gratuit du mois est utilisé. Il revient le {{date}}, ou passe à Pro pour un accès illimité.",
+    "limit": {
+      "usedBackOn": "Ton diagnostic gratuit du mois est utilisé. Il revient le {{date}}.",
+      "usedResetsNextMonth": "Ton diagnostic gratuit du mois est utilisé. Il revient le mois prochain.",
+      "seePro": "Voir les offres Pro",
+      "done": "Terminé"
+    },
     "emptyExplainer": "Décris ce que tu entends, vois ou ressens, et ajoute une photo si tu peux. Tu obtiens les causes probables, le degré d'urgence et les prochaines étapes.",
     "severityLevel": {
       "low": "Faible",
@@ -762,6 +769,7 @@
     "obSignInNewHere": "Pas encore de compte ?",
     "obSignInGetStarted": "Commencer",
     "obSignInSigningIn": "Connexion en cours…",
+    "obAccountReadyNotice": "Compte prêt — configurons ton garage",
     "obRevealScheduleProof": "Ton plan d'entretien constructeur est prêt à charger.",
     "obRevealSpecCategory": "Catégorie",
     "obRevealCatAdventure": "Aventure",
@@ -1161,7 +1169,11 @@
       "seeAllHistory_one": "Voir {{count}} tâche faite",
       "seeAllHistory_other": "Voir les {{count}} tâches faites",
       "serviceItems": "Points d'entretien",
-      "seeAllHistory_many": "Voir les {{count}} tâches faites"
+      "seeAllHistory_many": "Voir les {{count}} tâches faites",
+      "moreTasks_one": "+{{count}} autre",
+      "moreTasks_other": "+{{count}} autres",
+      "moreTasksA11y_one": "Afficher {{count}} autre tâche",
+      "moreTasksA11y_other": "Afficher {{count}} autres tâches"
     },
     "costsSegment": {
       "spentIn": "Dépensé en {{year}}",
@@ -3219,5 +3231,14 @@
     "newRoadsComputing": "Calcul en cours…",
     "unlockPro": "Débloquer avec Pro",
     "newRoadsLockedA11y": "Routes nouvelles sur cette sortie. Débloquer avec Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Ton plan d'entretien est prêt",
+      "body": "Le plan d'entretien constructeur de ta {{bike}} est dans ton garage. On te préviendra avant chaque entretien.",
+      "bodyNoBike": "Le plan d'entretien constructeur de ta moto est dans ton garage. On te préviendra avant chaque entretien.",
+      "open": "Voir mon plan",
+      "notNow": "Plus tard"
+    }
   }
 }

@@ -130,6 +130,7 @@
     "plateStateOverdue": "Scaduto",
     "plateCaptionTo": "a {{task}}",
     "plateCaptionLate": "{{task}}, scaduto",
+    "plateCaptionDueNow": "{{task}}, da fare ora",
     "plateCaptionAt": "contachilometri per {{task}}",
     "noServiceDue": "Nessun tagliando in scadenza",
     "plateDayUnit_one": "giorno",
@@ -211,6 +212,12 @@
     "startCta": "Avvia una diagnosi",
     "quotaRemaining": "Gratis questo mese: {{count}} di {{limit}} diagnosi rimaste",
     "quotaUsed": "Hai usato la diagnosi gratuita di questo mese. Torna il {{date}}, oppure passa a Pro per diagnosi illimitate.",
+    "limit": {
+      "usedBackOn": "Hai usato la diagnosi gratuita di questo mese. Torna il {{date}}.",
+      "usedResetsNextMonth": "Hai usato la diagnosi gratuita di questo mese. Si rinnova il mese prossimo.",
+      "seePro": "Vedi i piani Pro",
+      "done": "Fatto"
+    },
     "emptyExplainer": "Racconta cosa senti, vedi o percepisci e aggiungi una foto se puoi. Ottieni le cause probabili, l'urgenza e i passi successivi.",
     "severityLevel": {
       "low": "Bassa",
@@ -762,6 +769,7 @@
     "obSignInNewHere": "Nuovo qui?",
     "obSignInGetStarted": "Inizia",
     "obSignInSigningIn": "Accesso in corso…",
+    "obAccountReadyNotice": "Account pronto: configuriamo il tuo garage",
     "obRevealScheduleProof": "Il tuo piano di manutenzione OEM è pronto da caricare.",
     "obRevealSpecCategory": "Categoria",
     "obRevealCatAdventure": "Adventure",
@@ -1161,7 +1169,11 @@
       "seeAllHistory_one": "Vedi {{count}} attività fatta",
       "seeAllHistory_other": "Vedi tutte le {{count}} attività fatte",
       "serviceItems": "Voci di servizio",
-      "seeAllHistory_many": "Vedi tutte le {{count}} attività fatte"
+      "seeAllHistory_many": "Vedi tutte le {{count}} attività fatte",
+      "moreTasks_one": "+{{count}} altro",
+      "moreTasks_other": "+{{count}} altri",
+      "moreTasksA11y_one": "Mostra {{count}} altro intervento",
+      "moreTasksA11y_other": "Mostra altri {{count}} interventi"
     },
     "costsSegment": {
       "spentIn": "Speso nel {{year}}",
@@ -3219,5 +3231,14 @@
     "newRoadsComputing": "Calcolo in corso…",
     "unlockPro": "Sblocca con Pro",
     "newRoadsLockedA11y": "Strade nuove in questa uscita. Sblocca con Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Il tuo piano di manutenzione è pronto",
+      "body": "Il piano di manutenzione del costruttore per la tua {{bike}} è nel tuo garage. Ti avviseremo prima di ogni tagliando.",
+      "bodyNoBike": "Il piano di manutenzione del costruttore per la tua moto è nel tuo garage. Ti avviseremo prima di ogni tagliando.",
+      "open": "Vedi il mio piano",
+      "notNow": "Non ora"
+    }
   }
 }

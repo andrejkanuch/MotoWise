@@ -130,6 +130,7 @@
     "plateStateOverdue": "Terlambat",
     "plateCaptionTo": "menuju {{task}}",
     "plateCaptionLate": "{{task}}, terlambat",
+    "plateCaptionDueNow": "{{task}}, jatuh tempo sekarang",
     "plateCaptionAt": "odometer untuk {{task}}",
     "noServiceDue": "Tidak ada servis jatuh tempo",
     "plateDayUnit_one": "hari",
@@ -211,6 +212,12 @@
     "startCta": "Mulai diagnosis",
     "quotaRemaining": "Gratis bulan ini: sisa {{count}} dari {{limit}} diagnosis",
     "quotaUsed": "Diagnosis gratis bulan ini sudah terpakai. Tersedia lagi pada {{date}}, atau upgrade ke Pro untuk tanpa batas.",
+    "limit": {
+      "usedBackOn": "Diagnosis gratis bulan ini sudah terpakai. Tersedia lagi pada {{date}}.",
+      "usedResetsNextMonth": "Diagnosis gratis bulan ini sudah terpakai. Akan direset bulan depan.",
+      "seePro": "Lihat paket Pro",
+      "done": "Selesai"
+    },
     "emptyExplainer": "Ceritakan apa yang kamu dengar, lihat, atau rasakan, dan tambahkan foto jika bisa. Kamu akan mendapat kemungkinan penyebab, tingkat urgensi, dan langkah berikutnya.",
     "severityLevel": {
       "low": "Rendah",
@@ -762,6 +769,7 @@
     "obSignInNewHere": "Baru di sini?",
     "obSignInGetStarted": "Mulai",
     "obSignInSigningIn": "Sedang memasukkanmu…",
+    "obAccountReadyNotice": "Akun siap — ayo siapkan garasimu",
     "obRevealScheduleProof": "Jadwal servis OEM kamu siap dimuat.",
     "obRevealSpecCategory": "Kategori",
     "obRevealCatAdventure": "Adventure",
@@ -1140,6 +1148,10 @@
       "doneOn": "Selesai {{date}}",
       "seeAllHistory_one": "Lihat {{count}} tugas selesai",
       "seeAllHistory_other": "Lihat semua {{count}} tugas selesai",
+      "moreTasks_one": "+{{count}} lagi",
+      "moreTasks_other": "+{{count}} lagi",
+      "moreTasksA11y_one": "Tampilkan {{count}} tugas lagi",
+      "moreTasksA11y_other": "Tampilkan {{count}} tugas lagi",
       "serviceItems": "Item servis"
     },
     "costsSegment": {
@@ -3156,5 +3168,14 @@
     "newRoadsComputing": "Sedang dihitung…",
     "unlockPro": "Buka dengan Pro",
     "newRoadsLockedA11y": "Jalan baru di perjalanan ini. Buka dengan Pro"
+  },
+  "landing": {
+    "servicePlanReady": {
+      "title": "Rencana servismu sudah siap",
+      "body": "Jadwal servis pabrikan untuk {{bike}} kamu sudah ada di garasi. Kami akan mengingatkanmu sebelum setiap servis.",
+      "bodyNoBike": "Jadwal servis pabrikan untuk motormu sudah ada di garasi. Kami akan mengingatkanmu sebelum setiap servis.",
+      "open": "Lihat rencanaku",
+      "notNow": "Nanti saja"
+    }
   }
 }

@@ -1,4 +1,8 @@
-import { MaintenancePriority, MaintenanceTaskStatus } from '@motovault/graphql';
+import {
+  MaintenancePriority,
+  MaintenanceTaskSource,
+  MaintenanceTaskStatus,
+} from '@motovault/graphql';
 import { createFormatter } from 'next-intl';
 import { describe, expect, it } from 'vitest';
 import {
@@ -62,6 +66,7 @@ function task(overrides: Partial<Task> = {}): Task {
     targetMileage: null,
     priority: MaintenancePriority.Medium,
     status: MaintenanceTaskStatus.Pending,
+    source: MaintenanceTaskSource.User,
     completedAt: null,
     remind30d: false,
     remind7d: false,

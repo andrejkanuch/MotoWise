@@ -1,6 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import { DUE_STATE, type DueState, type HubUnit } from '../../lib/bike-hub/constants';
+import {
+  ATTENTION_MAX_ROWS,
+  DUE_STATE,
+  type DueState,
+  type HubUnit,
+} from '../../lib/bike-hub/constants';
 import { useEditorialTheme } from '../../theme/editorial';
 import { space } from '../../theme/spacing';
 import { type } from '../../theme/type';
@@ -9,8 +14,8 @@ import { describeDue } from '../bike-hub/ui/due-line';
 import { ESettingsGroup, ESettingsRow } from '../ui/editorial';
 import type { RankedHomeTask } from './home-plate';
 
-/** Rows shown before "See all" hands over to the bike's Service segment. */
-export const UP_NEXT_MAX_ROWS = 3;
+/** Rows shown before "+N more" hands over to the bike's Service segment. */
+export const UP_NEXT_MAX_ROWS = ATTENTION_MAX_ROWS;
 
 const DOT_SIZE = 8;
 
@@ -22,10 +27,12 @@ interface UpNextProps {
   onSeeAll: () => void;
 }
 
-/** "Up next": the active bike's nearest tasks as native inset rows. */
+/** "Up next": the active bike's nearest tasks as native inset rows, then "+N more". */
 export function UpNext({ tasks, unit, onOpenTask, onSeeAll }: UpNextProps) {
   const { t, i18n } = useTranslation();
   const { t: theme } = useEditorialTheme();
+
+  const hidden = tasks.length - UP_NEXT_MAX_ROWS;
 
   const dotColor: Partial<Record<DueState, string>> = {
     [DUE_STATE.OVERDUE]: theme.overdueInk,
@@ -84,6 +91,17 @@ export function UpNext({ tasks, unit, onOpenTask, onSeeAll }: UpNextProps) {
             />
           );
         })}
+        {hidden > 0 ? (
+          <ESettingsRow
+            testID="home-up-next-more"
+            title={t('bikeHub.service.moreTasks', { count: hidden })}
+            onPress={() => {
+              triggerImpact();
+              onSeeAll();
+            }}
+            accessibilityLabel={t('bikeHub.service.moreTasksA11y', { count: hidden })}
+          />
+        ) : null}
       </ESettingsGroup>
     </View>
   );
