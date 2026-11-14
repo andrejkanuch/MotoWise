@@ -164,7 +164,11 @@ the flows below.
   ride") + the minimum-ride guard sheet. Since #365 T05c it uses ids only (`tab-ride-fab`,
   `start-ride-screen`, `start-ride-button`, `ride-hud-root`, `ride-guard-sheet`,
   `ride-guard-variant-default`, `ride-guard-keep`, `ride-guard-end-anyway`;
-  `src/features/ride/ride-test-ids.ts`). `test:e2e:log-ride`.
+  `src/features/ride/ride-test-ids.ts`). Since issue 365 T09 it rides a moving route (`travel`, ~400 m
+  over ~40 s) so the ride is over both floors and ends straight to the summary. `test:e2e:log-ride`.
+- **`flows/ride-standstill-not-saved.yaml`** — issue 365 T09 (FS-PO4b): a standstill ride ended from
+  the guard ("End without saving") is discarded: no "RIDE SAVED", a "Not saved" toast on Home, and My
+  Rides stays empty (`rides-empty-cta`). Red on `origin/main`. `test:e2e:ride-standstill-not-saved`.
 - **`flows/bike-hub-overview.yaml`** — the redesigned bike screen (bike-detail redesign R1): four
   segments, Overview "Log" pill → Log sheet → Note sheet → save, the Notes screen with delete + Undo,
   and the Odometer sheet from the header chip. Needs a backend with migrations 00180–00182 (see
@@ -320,7 +324,8 @@ Hard-won specifics for THIS app — check these first when a flow "should work" 
   (`src/features/ride/ride-guard-sheet.tsx`). Prefer a real selector over a `point:` tap whenever
   `inspect_screen` exposes one.
 - **GPS-dependent flows need `setLocation`.** The ride pre-flight GPS check and recording need a fix;
-  set one at the top of the flow (a stationary sim logs ~0 distance, which still saves).
+  set one at the top of the flow. A stationary sim logs ~0 distance, and since issue 365 T09 such a
+  ride ended from the guard is discarded, not saved: use `travel` for a ride that must be kept.
 
 ## Verified on a local stack (2026-10-07)
 

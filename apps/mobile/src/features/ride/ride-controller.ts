@@ -25,7 +25,15 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { invalidateSavedRide } from '../../lib/invalidate';
 import { queryClient } from '../../lib/query-client';
 import { queryKeys } from '../../lib/query-keys';
-import { RIDE_SAVE_TRIGGER, trackRideCompleted } from '../../lib/ride-analytics';
+import {
+  RIDE_DISCARD_REASON,
+  RIDE_DISCARD_TRIGGER,
+  RIDE_SAVE_TRIGGER,
+  type RideDiscardReason,
+  type RideDiscardTrigger,
+  trackRideCompleted,
+  trackRideDiscarded,
+} from '../../lib/ride-analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { selectPrimaryBike } from '../../utils/primary-bike';
 import { activeRideSeconds, movingTimeSeconds } from '../../utils/ride-duration';
@@ -61,7 +69,11 @@ import {
   restoreBufferFromMMKV,
   rideMMKV,
 } from '../../utils/ride-storage';
-import { enqueueOrExecute, enqueueWaypointUpload } from '../../utils/ride-sync-queue';
+import {
+  deleteEndedRide,
+  enqueueOrExecute,
+  enqueueWaypointUpload,
+} from '../../utils/ride-sync-queue';
 
 export type RideSource = 'phone' | 'carplay';
 
@@ -554,6 +566,41 @@ export function finalizeEndedRide(rideId: string): boolean {
   clearRideData(rideId);
   useRideStore.getState().hydrate();
   return pending;
+}
+
+/**
+ * Throw an ended ride away instead of keeping it: delete it on the server (it was
+ * completed there when it ended), clear it from the phone and fire
+ * `ride_discarded` — never `ride_completed`. The rides lists refetch once the
+ * delete has drained; an immediate refetch would bring the ride back. Shared by
+ * the summary's Discard and the guard's "End without saving"; the headless
+ * auto-end uses the same delete (`deleteEndedRide`) and event (issue 365 T09).
+ */
+export function discardEndedRide(
+  summary: Pick<RideEndSummary, 'rideId' | 'distanceM' | 'durationS'>,
+  { reason, trigger }: { reason: RideDiscardReason; trigger: RideDiscardTrigger },
+): void {
+  const { rideId, distanceM, durationS } = summary;
+  trackRideDiscarded({ rideId, distanceM, durationS, reason, trigger });
+  void deleteEndedRide(rideId).finally(() =>
+    queryClient.invalidateQueries({ queryKey: queryKeys.rides.all }),
+  );
+  finalizeEndedRide(rideId);
+}
+
+/**
+ * The guard's "End without saving": end the current ride and discard it as under
+ * the floors, so no summary opens and nothing is saved. Returns the ended ride's
+ * summary, or null when there was no ride to end. The caller routes.
+ */
+export function endRideWithoutSaving(source: RideSource): RideEndSummary | null {
+  const summary = endRideSession(source);
+  if (!summary) return null;
+  discardEndedRide(summary, {
+    reason: RIDE_DISCARD_REASON.BELOW_FLOOR,
+    trigger: RIDE_DISCARD_TRIGGER.GUARD,
+  });
+  return summary;
 }
 
 /**

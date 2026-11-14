@@ -2,7 +2,9 @@ import { type MyRidesQuery, RideStatus } from '@motovault/graphql';
 import type { QueryClient } from '@tanstack/react-query';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { queryKeys } from '../../lib/query-keys';
+import { useRideStore } from '../../stores/ride.store';
 import { MIN_RIDE_DISTANCE_M, MIN_RIDE_ELAPSED_S } from '../../utils/ride-constants';
+import { getPointBuffer, getWaypointChunks, rideMMKV } from '../../utils/ride-storage';
 
 /**
  * The minimum-ride guard: the sheet the HUD shows when a ride is ended under the
@@ -37,6 +39,12 @@ export function isNoGpsRide(elapsedS: number): boolean {
 
 export function isBelowRideFloors(elapsedS: number, distanceM: number): boolean {
   return elapsedS < MIN_RIDE_ELAPSED_S || distanceM < MIN_RIDE_DISTANCE_M;
+}
+
+/** Any location point reached the ride (in the live buffer or flushed to a chunk). */
+function rideHasPoints(rideId: string | undefined): boolean {
+  if (getPointBuffer().length > 0) return true;
+  return rideId != null && getWaypointChunks(rideId).some((chunk) => chunk.length > 0);
 }
 
 const KMH_PER_MPS = 3.6;
@@ -74,6 +82,28 @@ export function buildRideGuardSnapshot(input: RideGuardInput): RideGuardSnapshot
     has_real_ride: input.hasRealRide,
     variant: RIDE_GUARD_VARIANT.DEFAULT,
   };
+}
+
+/**
+ * Whether ending from this sheet discards the ride ("End without saving") instead
+ * of opening its summary: a ride under the 50 m floor, whatever its elapsed time,
+ * except the no-GPS branch, which keeps "End Anyway" so a ride the GPS missed can
+ * still be saved (issue 365 T09, owner decision D3 as amended 2026-11-12). A ride
+ * over 50 m that is only under the time floor is kept as before.
+ */
+export function guardEndDiscards(snapshot: RideGuardSnapshot): boolean {
+  return snapshot.distance_m < MIN_RIDE_DISTANCE_M && !isNoGpsRide(snapshot.elapsed_s);
+}
+
+/**
+ * The sheet's snapshot with the distance the ride has now. Recording runs while
+ * the sheet is open, so its snapshot can be stale by the time the rider taps:
+ * the discard decision reads the live distance so a ride that crossed 50 m since
+ * is kept, never deleted.
+ */
+export function withLiveDistance(snapshot: RideGuardSnapshot): RideGuardSnapshot {
+  const live = Math.round(useRideStore.getState().distance);
+  return { ...snapshot, distance_m: Math.max(snapshot.distance_m, live) };
 }
 
 export function trackRideGuard(
@@ -133,4 +163,24 @@ export function cachedHasRealRide(queryClient: QueryClient): boolean | null {
     queryClient.getQueryData<RidesPage>(queryKeys.rides.list(HOME_RIDES_LIST)),
     queryClient.getQueryData<RidesPage>(queryKeys.rides.summary),
   ]);
+}
+
+/**
+ * The sheet's snapshot for the ride now recording: distance and top speed from the
+ * ride store, a fix if the HUD saw one or any point reached the ride, and the
+ * rider's history from the cached ride lists.
+ */
+export function currentRideGuardSnapshot(
+  elapsedS: number,
+  hudSawFix: boolean,
+  queryClient: QueryClient,
+): RideGuardSnapshot {
+  const { distance, maxSpeed } = useRideStore.getState();
+  return buildRideGuardSnapshot({
+    elapsedS,
+    distanceM: distance,
+    maxSpeedMps: maxSpeed,
+    gpsFix: hudSawFix || rideHasPoints(rideMMKV.getCurrentId()),
+    hasRealRide: cachedHasRealRide(queryClient),
+  });
 }
