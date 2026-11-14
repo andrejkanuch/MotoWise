@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { ArrowRight } from 'lucide-react-native';
-import { Pressable, Text } from 'react-native';
+import { ActivityIndicator, Pressable, Text } from 'react-native';
 import { tint } from '../../theme/editorial';
 import { space } from '../../theme/spacing';
 import { radius, type } from '../../theme/type';
@@ -11,6 +11,8 @@ interface OnboardingContinueButtonProps {
   label: string;
   onPress: () => void;
   disabled?: boolean;
+  /** A spinner before the label: the tap registered and its work is in flight. */
+  loading?: boolean;
   /** Trailing arrow. Off by default — the copper fill already says "go". */
   showIcon?: boolean;
   testID?: string;
@@ -26,6 +28,7 @@ export function OnboardingContinueButton({
   label,
   onPress,
   disabled = false,
+  loading = false,
   showIcon = false,
   testID,
   accessibilityLabel,
@@ -43,7 +46,7 @@ export function OnboardingContinueButton({
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ disabled }}
+      accessibilityState={{ disabled, busy: loading }}
       android_ripple={{ color: tint(oc.textOnAccent, 0.18), foreground: true }}
       style={({ pressed }) => ({
         backgroundColor: disabled ? oc.surface2 : oc.warm,
@@ -61,6 +64,9 @@ export function OnboardingContinueButton({
         transform: [{ scale: pressed && !disabled ? 0.98 : 1 }],
       })}
     >
+      {loading ? (
+        <ActivityIndicator size="small" color={disabled ? oc.textMuted : oc.textOnAccent} />
+      ) : null}
       <Text
         // Sticky footers sit above the keyboard: cap growth so AX sizes keep
         // the focused field in view on small phones.

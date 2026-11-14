@@ -38,6 +38,8 @@ export interface OnboardingAction {
   label: string;
   onPress: () => void;
   disabled?: boolean;
+  /** Primary only: a spinner before the label while the tap's work is in flight. */
+  loading?: boolean;
   /** Primary only: the trailing arrow icon (default off). */
   showIcon?: boolean;
   testID?: string;
@@ -166,6 +168,7 @@ export function OnboardingShell({
                 label={primary.label}
                 onPress={primary.onPress}
                 disabled={primary.disabled}
+                loading={primary.loading}
                 showIcon={primary.showIcon}
                 testID={primary.testID}
                 accessibilityLabel={primary.accessibilityLabel}
